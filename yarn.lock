@@ -2,6 +2,13 @@
 # yarn lockfile v1
 
 
+JSONStream@^1.0.4:
+  version "1.3.2"
+  resolved "http://registry.npm.taobao.org/JSONStream/download/JSONStream-1.3.2.tgz#c102371b6ec3a7cf3b847ca00c20bb0fce4c6dea"
+  dependencies:
+    jsonparse "^1.2.0"
+    through ">=2.2.7 <3"
+
 JSONStream@^1.0.7:
   version "1.3.1"
   resolved "http://registry.npm.taobao.org/JSONStream/download/JSONStream-1.3.1.tgz#707f761e01dae9e16f1bcf93703b78c70966579a"
@@ -224,6 +231,10 @@ block-stream@*:
   resolved "http://registry.npm.taobao.org/block-stream/download/block-stream-0.0.9.tgz#13ebfe778a03205cfe03751481ebb4b3300c126a"
   dependencies:
     inherits "~2.0.0"
+
+bluebird@^2.8.2, bluebird@^2.9.8:
+  version "2.11.0"
+  resolved "http://registry.npm.taobao.org/bluebird/download/bluebird-2.11.0.tgz#534b9033c022c9579c56ba3b3e5a5caafbb650e1"
 
 bluebird@^3.0.6, bluebird@^3.2.2, bluebird@^3.4.0, bluebird@^3.5.0:
   version "3.5.0"
@@ -457,6 +468,10 @@ cssom@0.3.x, "cssom@>= 0.3.0 < 0.4.0":
   resolved "http://registry.npm.taobao.org/cssstyle/download/cssstyle-0.2.37.tgz#541097234cb2513c83ceed3acddc27ff27987d54"
   dependencies:
     cssom "0.3.x"
+
+cuid@~1.2.5:
+  version "1.2.5"
+  resolved "http://registry.npm.taobao.org/cuid/download/cuid-1.2.5.tgz#4b36176987f9063ce05ee0934e89ccee4b9de8a6"
 
 cuid@~1.3.8:
   version "1.3.8"
@@ -904,6 +919,15 @@ hexo-front-matter@^0.2.2:
   dependencies:
     js-yaml "^3.6.1"
 
+hexo-fs@^0.1.3:
+  version "0.1.6"
+  resolved "http://registry.npm.taobao.org/hexo-fs/download/hexo-fs-0.1.6.tgz#f980ccc3bc79d0fb92eddbd887bc20a56500d03f"
+  dependencies:
+    bluebird "^3.4.0"
+    chokidar "^1.5.2"
+    escape-string-regexp "^1.0.5"
+    graceful-fs "^4.1.4"
+
 hexo-fs@^0.2.0:
   version "0.2.2"
   resolved "http://registry.npm.taobao.org/hexo-fs/download/hexo-fs-0.2.2.tgz#0b97b79f68df121f765d1291b8e90fae326d000e"
@@ -954,7 +978,18 @@ hexo-log@^0.1.2:
     bunyan "^1.5.1"
     chalk "^1.1.1"
 
-hexo-pagination@0.0.2:
+hexo-multiauthor@^0.0.1:
+  version "0.0.1"
+  resolved "http://registry.npm.taobao.org/hexo-multiauthor/download/hexo-multiauthor-0.0.1.tgz#545c5d5a943f6d50cc77d85e383c44cece734ac4"
+  dependencies:
+    bluebird "^2.9.8"
+    hexo-fs "^0.1.3"
+    hexo-pagination "^0.0.2"
+    js-yaml "^3.2.5"
+    lodash "^3.0.1"
+    warehouse "^1.0.0"
+
+hexo-pagination@0.0.2, hexo-pagination@^0.0.2:
   version "0.0.2"
   resolved "http://registry.npm.taobao.org/hexo-pagination/download/hexo-pagination-0.0.2.tgz#8cf470c7db0de5b18a3926a76deb194015df7f2b"
   dependencies:
@@ -1219,7 +1254,7 @@ js-tokens@^3.0.0, js-tokens@^3.0.2:
   version "3.0.2"
   resolved "http://registry.npm.taobao.org/js-tokens/download/js-tokens-3.0.2.tgz#9866df395102130e38f7f996bceb65443209c25b"
 
-js-yaml@^3.6.1:
+js-yaml@^3.2.5, js-yaml@^3.6.1:
   version "3.10.0"
   resolved "http://registry.npm.taobao.org/js-yaml/download/js-yaml-3.10.0.tgz#2e78441646bd4682e963f22b6e92823c309c62dc"
   dependencies:
@@ -1309,6 +1344,10 @@ levn@~0.3.0:
   dependencies:
     prelude-ls "~1.1.2"
     type-check "~0.3.2"
+
+lodash@^3.0.0, lodash@^3.0.1:
+  version "3.10.1"
+  resolved "http://registry.npm.taobao.org/lodash/download/lodash-3.10.1.tgz#5bf45e8e49ba4189e17d482789dfd15bd140b7b6"
 
 lodash@^4.1.0, lodash@^4.13.1, lodash@^4.17.4, lodash@^4.2.1:
   version "4.17.4"
@@ -2128,6 +2167,16 @@ verror@1.10.0:
     assert-plus "^1.0.0"
     core-util-is "1.0.2"
     extsprintf "^1.2.0"
+
+warehouse@^1.0.0:
+  version "1.0.3"
+  resolved "http://registry.npm.taobao.org/warehouse/download/warehouse-1.0.3.tgz#ff635fe74113b92b2f8ca1b039184ae9138baced"
+  dependencies:
+    JSONStream "^1.0.4"
+    bluebird "^2.8.2"
+    cuid "~1.2.5"
+    graceful-fs "^4.1.2"
+    lodash "^3.0.0"
 
 warehouse@^2.2.0:
   version "2.2.0"
