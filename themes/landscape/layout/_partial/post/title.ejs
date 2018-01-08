@@ -15,7 +15,11 @@
 <% } %>
 <% if (author && post.author) { %>
   <div class="article-author">
-    <a href="<%- config.root %><%- 'author/' + post.authorId %>"><%= post.author.name %></a>
-    <span class="article-author-description" title="<%= post.author.about %>"><%= post.author.about %></span>
+    <img src="<%- gravatar(post.author.email, 48) %>">
+    <div class="article-author-info">
+      <a href="<%- config.root %><%- 'author/' + post.authorId %>" class="article-author-name"><%- post.author.name %></a>
+      <a href="<%- post.author.site %>" class="article-author-site" title="Visit the author's site">[site]</a>
+      <div class="article-author-about" title="<%- post.author.about %>"><%- post.author.about %></div>
+    </div>
   </div>
 <% } %>

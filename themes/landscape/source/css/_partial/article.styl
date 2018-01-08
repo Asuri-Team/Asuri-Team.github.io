@@ -40,19 +40,35 @@
 
 .article-author
   margin-top: 1.5rem
-  padding: 0.5rem 0
+  padding: 0.5rem 0.2rem
   border-top: 1px solid #ddd
   border-bottom: 1px solid #ddd
+  overflow: hidden
+  img
+    border-radius: 50%
+    margin-right: 5px
   a
     color: #333
     font-weight: bold
+    margin-right: 0.2rem
     text-decoration: none
-    margin-right: 0.2rem;
-    vertical-align: middle
-
-.article-author-description
-  opacity: 0.4
-  vertical-align: middle
+    &:hover
+      text-decoration: underline
+  .article-author-info, img
+    float: left
+    height: 48px
+    text-decoration: none
+  .article-author-info
+    line-height: 24px
+    width: calc(100% - 53px)
+  .article-author-site
+    line-height: 24px
+    opacity: 0.4
+  .article-author-about
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+    opacity: 0.4
 
 .article-entry
   @extend $base-style
