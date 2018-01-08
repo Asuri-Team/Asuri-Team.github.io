@@ -11,11 +11,11 @@
     <h1 class="<%= class_name %>" itemprop="name">
       <%= post.title %>
     </h1>
-    <% if (author && post.author) { %>
-      <div class="article-author">
-        <a href="<%- config.root %><%- 'author/' + post.authorId %>"><%= post.author.name %></a>
-        <span class="article-author-description" title="<%= post.author.about %>"><%= post.author.about %></span>
-      </div>
-    <% } %>
   <% } %>
+<% } %>
+<% if (author && post.author) { %>
+  <div class="article-author">
+    <a href="<%- config.root %><%- 'author/' + post.authorId %>"><%= post.author.name %></a>
+    <span class="article-author-description" title="<%= post.author.about %>"><%= post.author.about %></span>
+  </div>
 <% } %>
