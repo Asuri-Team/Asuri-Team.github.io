@@ -1,6 +1,6 @@
 ---
 title: NUAACTF_2018 官方wp
-authorId: Zedd
+authorId: zedd
 tags: wp
 tags:
  - nuaactf
@@ -366,9 +366,15 @@ print get_pin(md5_list)
 
 #### 题目描述
 
+```
+http://ctf.asuri.org:8003/
 
+做完A+B你就可以拿金牌了。（你可能需要一个逆向哥哥来帮你
 
+小水管服务器，为了顺畅做题请大家不要用扫描器，而且这题用不到扫描器！！！
 
+flag格式为NUAACTF{.*}
+```
 
 #### 信息收集
 
@@ -564,7 +570,21 @@ private static final String[] BLACKLIST = { "$", "{", "}", "`", "base64", "&", "
 
 ### Web4 Pentest
 
-首先通过扫目录扫出上传页面，然后利用上传处理的错误逻辑，上传带一句话的图片(图片会经过gd库解析)，解析出错不会删除上传的文件（可以在 index 页面看到）， 然后文件包含拿 shell, 得到 web 目录下的 Import_notes 文件，知道需要打登录内网 samba 拿 flag, 于是 reGexx 代理进内网。
+####	题目描述
+
+```
+I love Pentest!
+
+做出来的师傅请不要搅屎。 http://ctf.asuri.org:8004
+```
+
+####	解题
+
+首先通过扫目录扫出上传页面，然后利用上传处理的错误逻辑，上传带一句话的图片(图片会经过gd库解析)，解析出错不会删除上传的文件（可以在 index 页面看到）， 然后文件包含拿 shell, 得到 web 目录下的 Import_notes 文件，知道需要打登录内网 samba 拿 flag, 于是代理进内网。由于用了 disable_function , 通过下面的文章进行绕过
+
+```
+https://www.freebuf.com/articles/web/192052.html
+```
 
 samba 共享里面有一半 flag , 还需要利用漏洞打内网的另外一台 tomcat ,拿到 shell ， 读取第二部分的 flag
 
