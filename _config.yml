@@ -4,7 +4,7 @@
 
 # Site
 title: Asuri Team
-subtitle: from NUAA to world.
+subtitle: Asuri Secure yoUR Information.
 description:
 author: All Members
 language: cn
@@ -40,7 +40,7 @@ future: true
 highlight:
   enable: true
   line_number: true
-  auto_detect: true
+  auto_detect: false
   tab_replace:
   
 # Home page setting
