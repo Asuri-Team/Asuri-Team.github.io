@@ -1,7 +1,6 @@
 ---
 title: NUAACTF_2018 官方wp
 authorId: zedd
-tags: wp
 tags:
  - nuaactf
  - writeup
@@ -1061,5 +1060,6 @@ dec()
 ### plot
 
 g-code plot
+
 
 https://ncviewer.com/
