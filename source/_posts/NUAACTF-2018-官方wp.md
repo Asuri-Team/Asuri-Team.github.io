@@ -1,6 +1,6 @@
 ---
 title: NUAACTF_2018 官方wp
-authorId: Zedd
+authorId: zedd
 tags:
  - nuaactf
  - writeup
@@ -1132,6 +1132,476 @@ tmp = [each ^ right_answer for each in check]
 ans = [chr(bit_detrans(each)) for each in tmp]
 print(''.join(ans))  # nuaactf{Haa!You_G0t_1t!}
 ```
+
+### BuggyProtect
+
+#### 初窥
+拿到程序后，首先尝试运行，发现会返回一个选单
+如果无法运行，需要自己安装一下`openssl 1.1.x`版本。
+```
+Welcome to my tiny software
+1. register
+2. cow say
+3. check flag
+4. trial license
+0. exit
+Your choice:
+```
+1. 输入注册码
+2. You have no license to run this feature.
+3. You have no license to run this feature.
+4. 得到一个试用注册码
+
+显而易见，我们需要把从`4`中拿到的注册码通过`1`注册一下。然后再尝试运行`2, 3`。
+```
+Your choice: 2
+please input >123123456
+/ 123123456 \
+  \ ^__^
+    (oo)\_______
+    (__)\       )\/\
+        ||----w |
+        ||     ||
+
+...
+Your choice: 3
+You have no license to run this feature.
+```
+
+我们这个注册码并不能成功的执行check_flag函数。
+
+#### 反编译
+显而易见，我们反编译的重点应该放在`1. register`上，
+```
+__int64 sub_1220()
+{
+  signed int v0; // ebp
+  bool v1; // cf
+  bool v2; // zf
+  signed __int64 v3; // rcx
+  const char *v4; // rsi
+  __int64 *v5; // rdi
+  signed __int64 v6; // rcx
+  const char *v7; // rsi
+  __int64 *v8; // rdi
+  char v9; // al
+  bool v10; // cf
+  bool v11; // zf
+  __int64 v13; // [rsp+0h] [rbp-4B8h]
+  char v14; // [rsp+80h] [rbp-438h]
+  unsigned __int64 v15; // [rsp+488h] [rbp-30h]
+
+  v0 = -2;
+  v15 = __readfsqword(0x28u);
+  memset(&v14, 0, 0x400uLL);
+  puts("paste license here:");
+  do
+  {
+    while ( 1 )
+    {
+      fgets((char *)&v13, 128, stdin);
+      v3 = 25LL;
+      v4 = "-----BEGIN LICENSE-----\n";
+      v5 = &v13;
+      do
+      {
+        if ( !v3 )
+          break;
+        v1 = (const unsigned __int8)*v4 < *(_BYTE *)v5;
+        v2 = *v4++ == *(_BYTE *)v5;
+        v5 = (__int64 *)((char *)v5 + 1);
+        --v3;
+      }
+      while ( v2 );
+      v6 = 23LL;
+      v7 = "-----END LICENSE-----\n";
+      v8 = &v13;
+      v9 = (!v1 && !v2) - v1;
+      v10 = 0;
+      v11 = v9 == 0;
+      if ( v9 )
+        break;
+      do
+      {
+        if ( !v6 )
+          break;
+        v10 = (const unsigned __int8)*v7 < *(_BYTE *)v8;
+        v11 = *v7++ == *(_BYTE *)v8;
+        v8 = (__int64 *)((char *)v8 + 1);
+        --v6;
+      }
+      while ( v11 );
+      if ( (!v10 && !v11) == v10 )
+        goto LABEL_16;
+      v0 = 1;
+    }
+    do
+    {
+      if ( !v6 )
+        break;
+      v10 = (const unsigned __int8)*v7 < *(_BYTE *)v8;
+      v11 = *v7++ == *(_BYTE *)v8;
+      v8 = (__int64 *)((char *)v8 + 1);
+      --v6;
+    }
+    while ( v11 );
+    if ( (!v10 && !v11) == v10 )
+      break;
+    if ( v0 > 0 )
+    {
+      v7 = (const char *)&v13;
+      __strcat_chk(&v14, &v13, 1024LL);
+    }
+    ++v0;
+  }
+  while ( v0 != 8 );
+LABEL_16:
+  sub_16A0(&v14, v7);
+  return 0LL;
+}
+```
+对应的函数从控制台读入了license，并调用了`sub_16a0`
+```
+void __fastcall sub_16A0(const char *a1)
+{
+  const char *v1; // rbx
+  int v2; // eax
+  __int64 v3; // rdi
+  unsigned int v4; // ebp
+  _BYTE *v5; // r13
+  __int64 v6; // rax
+  __int64 v7; // r12
+  __int64 v8; // rax
+  __int64 v9; // rbx
+  __int64 v10; // rax
+  unsigned int v11; // er12
+  __int64 v12; // rbx
+  __int64 v13; // rbp
+  int v14; // eax
+  __m128i *v15; // rbx
+  __int64 v16; // rax
+  int v17; // eax
+  size_t v18; // rbp
+  __int64 v19; // rsi
+  char *v20; // rdi
+  __int64 v21; // r14
+  __int64 v22; // rax
+  char *v23; // r13
+  int v24; // er12
+  unsigned __int64 v25; // rdi
+  __int64 *v26; // rbx
+  __int64 v27; // rax
+  int v28; // [rsp+Ch] [rbp-8Ch]
+  __m128i v29; // [rsp+10h] [rbp-88h]
+  __m128i v30; // [rsp+20h] [rbp-78h]
+  __m128i v31; // [rsp+30h] [rbp-68h]
+  __m128i v32; // [rsp+40h] [rbp-58h]
+  __int64 v33; // [rsp+50h] [rbp-48h]
+  unsigned __int64 v34; // [rsp+58h] [rbp-40h]
+
+  v1 = a1;
+  v34 = __readfsqword(0x28u);
+  v2 = strlen(a1);
+  v3 = v2;
+  v4 = v2;
+  v5 = malloc(v2);
+  v6 = BIO_f_base64(v3);
+  v7 = BIO_new(v6);
+  v8 = BIO_new_mem_buf(v1, v4);
+  v9 = BIO_push(v7, v8);
+  BIO_ctrl(v9, 11LL, 0LL, 0LL);
+  v10 = (signed int)BIO_read(v9, v5, v4);
+  v5[v10] = 0;
+  v11 = v10;
+  BIO_free_all(v9);
+  __printf_chk(1LL, "b64decode size: %d\n", v11);
+  v12 = BIO_new_mem_buf(&unk_2031AC, &unk_20336F - &unk_2031AC);
+  v13 = PEM_read_bio_RSA_PUBKEY(v12, 0LL, 0LL, 0LL);
+  BIO_free(v12);
+  if ( v13 )
+  {
+    v14 = RSA_size(v13);
+    v15 = (__m128i *)malloc(v14);
+    RSA_public_decrypt(v11, v5, v15, v13, 1LL);
+    RSA_free(v13);
+    v16 = v15[4].m128i_i64[0];
+    v29 = _mm_loadu_si128(v15);
+    v33 = v16;
+    v30 = _mm_loadu_si128(v15 + 1);
+    v31 = _mm_loadu_si128(v15 + 2);
+    v32 = _mm_loadu_si128(v15 + 3);
+    free(v15);
+  }
+  v17 = getpagesize();
+  v18 = v17;
+  v19 = v17;
+  v20 = (char *)sub_19C0 - (unsigned __int64)sub_19C0 % v17;
+  mprotect(v20, v17, 7);
+  v21 = EVP_CIPHER_CTX_new(v20, v19);
+  v22 = EVP_aes_256_cbc();
+  EVP_DecryptInit(v21, v22, &v29, &v31);
+  EVP_CIPHER_CTX_set_padding(v21, 0LL);
+  v23 = (char *)malloc((char *)term_proc - (char *)sub_19C0 + 16);
+  EVP_DecryptUpdate(v21, v23, &v28, sub_19C0, (unsigned int)((char *)term_proc - (char *)sub_19C0));
+  v24 = v28;
+  EVP_DecryptFinal(v21, &v23[v28], &v28);
+  memcpy(sub_19C0, v23, v24 + v28);
+  free(v23);
+  v25 = qword_2033A0;
+  if ( qword_2033A0 )
+  {
+    v26 = &qword_2033A0;
+    do
+    {
+      while ( !(v26[1] & v33) )
+      {
+        v26 += 2;
+        v25 = *v26;
+        if ( !*v26 )
+          return;
+      }
+      v26 += 2;
+      mprotect((void *)(v25 - v25 % v18), v18, 7);
+      v27 = *(v26 - 2);
+      *(_DWORD *)v27 = 0x90909090;
+      *(_BYTE *)(v27 + 4) = 0x90u;
+      v25 = *v26;
+    }
+    while ( *v26 );
+  }
+}
+```
+
+`sub_16a0` 完成了base64解码，rsa解密，aes_cbc解密，并在解密后将一段内存替换为了`90 90 90 90 90`。如果敏感的话，这里明显是在替换成`nop ...`指令。不过没发现也没事，我们可以后面动态调试。
+明显，`  EVP_DecryptInit(v21, v22, &v29, &v31);` 对应KEY和IV的参数，都是由RSA解密后的数据`v15`来的，因此要重点关心一下AES到底解密了啥。
+`EVP_DecryptUpdate(v21, v23, &v28, sub_19C0, (unsigned int)((char *)term_proc - (char *)sub_19C0));` 这里传入的地址是`sub_19c0`，size是`term_proc - sub_19c0`,跳转到`sub_19c0`看看
+```
+protected:00000000000019C0 sub_19C0        proc far                ; CODE XREF: .text:00000000000011C5↑j
+protected:00000000000019C0                                         ; DATA XREF: sub_16A0:loc_17E4↑o
+protected:00000000000019C0 ; __unwind {
+protected:00000000000019C0                 mov     cl, 57h ; 'W'
+protected:00000000000019C2                 movsd
+protected:00000000000019C3                 retf
+protected:00000000000019C3 sub_19C0        endp
+protected:00000000000019C3
+protected:00000000000019C3 ; ---------------------------------------------------------------------------
+protected:00000000000019C4                 dd 0AAE07FBCh
+protected:00000000000019C8                 dq 7377960DB082A6D4h, 20A9907265E37A56h, 0C0EE3002F6A022F1h
+protected:00000000000019C8                 dq 0DA34CA6597E060D2h, 0AD3F087F2F712AC0h, 2D449E3657B67092h
+protected:00000000000019C8                 dq 7EFBF76461C835AEh, 0CA3A2F1F6BD9C3A3h, 44B78C39C5EE967Ah
+protected:00000000000019C8                 dq 0BA132C2118113477h, 0D6DCF6649B92C65Dh, 7EA2578B98A01ED3h
+protected:00000000000019C8                 dq 3B48240BB1C350CFh, 0D0CDD055EE84C8F7h, 54F5B8F0F927AAAAh
+protected:00000000000019C8                 dq 0D5EF5F140160B5E1h, 17B1445512CA5AB0h, 9193B2F97B725AC1h
+protected:00000000000019C8                 dq 0A28AF713CBDAFE8Eh, 452618AF1E34DB28h, 2C94F9D13D155D4Ah
+protected:00000000000019C8                 dq 3CD909CDB9D105F9h, 53EE901A203FBEBAh, 84D147C50674ECA7h
+protected:00000000000019C8                 dq 6815A1F60179F284h, 0D40D3484C66C7EAFh, 47B12282C741B298h
+protected:00000000000019C8                 dq 1059744C56A877AEh, 0FAE0DECEEFA7103Eh, 85F0F585625C21AEh
+protected:00000000000019C8                 dq 2D22E7585454836Ah, 21BB08002B85E034h, 0ACE68E35258784ADh
+protected:00000000000019C8                 dq 0CA93D3F3A06681A9h, 390139D8389DAE1Bh, 7F6DB02B671BDCA6h
+protected:00000000000019C8                 dq 3FFD7505BF5864CBh, 0D6B332ADAF3D2C2Dh, 33747267742F7E1Bh
+protected:00000000000019C8                 dq 5CEE44A063A998B0h, 1BF088761D678E3Bh, 568B6B1E008B5677h
+protected:00000000000019C8                 dq 347C9E9758B15A65h, 0D835A24E41DA0EB7h, 0AA9D8572FF22DE1Ah
+protected:00000000000019C8                 dq 59F18E6141D961Dh, 4F1BD2919272156h, 0D9C5BE02E9E0499Dh
+protected:00000000000019C8                 dq 0C70AF6C49C77BBB7h, 3363804DF15B98B1h, 90B880C5D3C90256h
+protected:00000000000019C8                 dq 21EC795F29E0F199h, 51AEF1B5DD2BCF23h, 8F730FCA2104083Eh
+protected:00000000000019C8                 dq 59EA15EF9297BFACh, 3C27A1FDE8C44BBEh, 0C957D242993A0F03h
+protected:00000000000019C8                 dq 7280FE25FA7A99A6h, 4F05DE22E472D254h
+protected:00000000000019C8 ; } // starts at 1A80
+protected:00000000000019C8 protected       ends
+protected:00000000000019C8
+.fini:0000000000001BA0 ; ===========================================================================
+.fini:0000000000001BA0
+.fini:0000000000001BA0 ; Segment type: Pure code
+.fini:0000000000001BA0 ; Segment permissions: Read/Execute
+.fini:0000000000001BA0 _fini           segment dword public 'CODE' use64
+.fini:0000000000001BA0                 assume cs:_fini
+.fini:0000000000001BA0                 ;org 1BA0h
+.fini:0000000000001BA0                 assume es:nothing, ss:nothing, ds:_data, fs:nothing, gs:nothing
+.fini:0000000000001BA0
+.fini:0000000000001BA0 ; =============== S U B R O U T I N E =======================================
+.fini:0000000000001BA0
+.fini:0000000000001BA0
+.fini:0000000000001BA0                 public _term_proc
+.fini:0000000000001BA0 _term_proc      proc near               ; DATA XREF: sub_16A0+14B↑o
+.fini:0000000000001BA0                 sub     rsp, 8
+.fini:0000000000001BA4                 add     rsp, 8
+.fini:0000000000001BA8                 retn
+.fini:0000000000001BA8 _term_proc      endp
+.fini:0000000000001BA8
+.fini:0000000000001BA8 _fini           ends
+.fini:0000000000001BA8
+```
+明显看出，`19c0`处的汇编代码是错误的，后面也全都是乱码，解密的区域也是这堆数据，而且这个section名字也不是`.text`。
+
+#### 动态调试
+此时我们就要gdb挂上看一看解密完了到底是啥了
+
+```
+0x5555555559c0:      push   %rbx
+   0x5555555559c1:      lea    0x275(%rip),%rsi        # 0x555555555c3d
+   0x5555555559c8:      mov    $0x1,%edi
+   0x5555555559cd:      sub    $0x90,%rsp
+   0x5555555559d4:      mov    %fs:0x28,%rax
+   0x5555555559dd:      mov    %rax,0x88(%rsp)
+   0x5555555559e5:      xor    %eax,%eax
+   0x5555555559e7:      mov    %rsp,%rbx
+   0x5555555559ea:      callq  0x555555554dc0 <__printf_chk@plt>
+   0x5555555559ef:      lea    0x256(%rip),%rdi        # 0x555555555c4c
+   0x5555555559f6:      mov    %rbx,%rsi
+   0x5555555559f9:      xor    %eax,%eax
+   0x5555555559fb:      callq  0x555555554f20 <__isoc99_scanf@plt>
+   0x555555555a00:      lea    0x24b(%rip),%rsi        # 0x555555555c52
+   0x555555555a07:      mov    %rbx,%rdx
+   0x555555555a0a:      mov    $0x1,%edi
+   0x555555555a0f:      xor    %eax,%eax
+   0x555555555a11:      callq  0x555555554dc0 <__printf_chk@plt>
+   0x555555555a16:      lea    0x23d(%rip),%rdi        # 0x555555555c5a
+   0x555555555a1d:      callq  0x555555554db0 <puts@plt>
+   0x555555555a22:      lea    0x23a(%rip),%rdi        # 0x555555555c63
+   0x555555555a29:      callq  0x555555554db0 <puts@plt>
+   0x555555555a2e:      lea    0x23f(%rip),%rdi        # 0x555555555c74
+   0x555555555a35:      callq  0x555555554db0 <puts@plt>
+   0x555555555a3a:      lea    0x248(%rip),%rdi        # 0x555555555c89
+   0x555555555a41:      callq  0x555555554db0 <puts@plt>
+   0x555555555a46:      lea    0x24e(%rip),%rdi        # 0x555555555c9b
+   0x555555555a4d:      callq  0x555555554db0 <puts@plt>
+   0x555555555a52:      mov    0x88(%rsp),%rcx
+   0x555555555a5a:      xor    %fs:0x28,%rcx
+   0x555555555a63:      jne    0x555555555a70
+   0x555555555a65:      add    $0x90,%rsp
+   0x555555555a6c:      xor    %eax,%eax
+   0x555555555a6e:      pop    %rbx
+   0x555555555a6f:      retq
+```
+**!惊了**，这里竟然变成代码了！ 我们可以直接把这整个section直接反编译出来! 合理的猜测下，`2, 3`两个菜单选项应该调用的都是这里的代码。于是我们调试回`2. cow say`看看。
+```
+(gdb) x/10i $rip
+=> 0x5555555551c0:      nop
+   0x5555555551c1:      nop
+   0x5555555551c2:      nop
+   0x5555555551c3:      nop
+   0x5555555551c4:      nop
+   0x5555555551c5:      jmpq   0x5555555559c0
+   0x5555555551ca:      jmpq   0x555555555930
+   0x5555555551cf:      jmpq   0x555555555a80
+```
+**!惊了** 这里的代码变成了nop? 抓紧回IDA看看原来是啥
+```
+.text:00000000000011C0 sub_11C0        proc near               ; CODE XREF: main+CA↑p
+.text:00000000000011C0                                         ; .text:000000000000137A↓j
+.text:00000000000011C0                                         ; DATA XREF: ...
+.text:00000000000011C0                 jmp     sub_1930
+.text:00000000000011C0 sub_11C0        endp
+.text:00000000000011C0
+.text:00000000000011C5 ; ---------------------------------------------------------------------------
+.text:00000000000011C5                 jmp     near ptr sub_19C0
+.text:00000000000011CA
+.text:00000000000011CA ; =============== S U B R O U T I N E =======================================
+.text:00000000000011CA
+.text:00000000000011CA ; Attributes: thunk
+.text:00000000000011CA
+.text:00000000000011CA sub_11CA        proc near               ; CODE XREF: main+DA↑p
+.text:00000000000011CA                                         ; .text:0000000000001352↓j
+.text:00000000000011CA                                         ; DATA XREF: ...
+.text:00000000000011CA                 jmp     sub_1930
+.text:00000000000011CA sub_11CA        endp
+.text:00000000000011CA
+.text:00000000000011CA ; ---------------------------------------------------------------------------
+.text:00000000000011CF                 db 0E9h
+.text:00000000000011D0 ; ---------------------------------------------------------------------------
+```
+`jmp sub_1930` 被patch成了nop！
+我们再看看 `3. check_flag`是调用的啥？ `sub_11CA`！ 再看看`sub_1930`做了啥？
+```
+int sub_1930()
+{
+  return puts("You have no license to run this feature.");
+}
+```
+原来注册成功后，对应跳转到unlicensed的jmp就会patch成nop， 那后面跟的就是jmp 到实际的函数。
+
+从IDA里U+C一下，将sub_11ca恢复完整
+```
+.text:00000000000011CA sub_11CA        proc near               ; CODE XREF: main+DA↑p
+.text:00000000000011CA                                         ; .text:0000000000001352↓j
+.text:00000000000011CA                                         ; DATA XREF: ...
+.text:00000000000011CA                 jmp     sub_1930
+.text:00000000000011CA sub_11CA        endp
+.text:00000000000011CA
+.text:00000000000011CF ; ---------------------------------------------------------------------------
+.text:00000000000011CF                 jmp     near ptr qword_19C8+0B8h
+```
+check_flag真实的位置应该就是`qword_19C8+0B8h`
+```
+(gdb) x/100i 0x555555554000+0x19c8+0xb8
+=> 0x555555555a80:      push   %rbx
+   0x555555555a81:      lea    0x1dd(%rip),%rsi        # 0x555555555c65
+   0x555555555a88:      mov    $0x1,%edi
+   0x555555555a8d:      sub    $0x110,%rsp
+   0x555555555a94:      mov    %fs:0x28,%rax
+   0x555555555a9d:      mov    %rax,0x108(%rsp)
+   0x555555555aa5:      xor    %eax,%eax
+   0x555555555aa7:      lea    0x80(%rsp),%rbx
+   0x555555555aaf:      callq  0x555555554dc0 <__printf_chk@plt>
+   0x555555555ab4:      lea    0x1b9(%rip),%rdi        # 0x555555555c74
+   0x555555555abb:      mov    %rbx,%rsi
+   0x555555555abe:      xor    %eax,%eax
+   0x555555555ac0:      callq  0x555555554f20 <__isoc99_scanf@plt>
+   0x555555555ac5:      movdqa 0x213(%rip),%xmm0        # 0x555555555ce0
+   0x555555555acd:      xor    %eax,%eax
+   0x555555555acf:      movb   $0xf4,0x20(%rsp)
+   0x555555555ad4:      movb   $0x0,0x21(%rsp)
+   0x555555555ad9:      mov    $0x1,%esi
+   0x555555555ade:      movaps %xmm0,(%rsp)
+   0x555555555ae2:      mov    %rsp,%rdx
+   0x555555555ae5:      xor    %r8d,%r8d
+   0x555555555ae8:      movdqa 0x200(%rip),%xmm0        # 0x555555555cf0
+   0x555555555af0:      movaps %xmm0,0x10(%rsp)
+   0x555555555af5:      nopl   (%rax)
+   0x555555555af8:      movzbl (%rbx,%rax,1),%ecx
+   0x555555555afc:      mov    %ecx,%edi
+   0x555555555afe:      xor    $0xffffff89,%edi
+   0x555555555b01:      cmp    %dil,(%rdx,%rax,1)
+   0x555555555b05:      mov    %cl,(%rdx,%rax,1)
+   0x555555555b08:      cmovne %r8d,%esi
+   0x555555555b0c:      add    $0x1,%rax
+   0x555555555b10:      cmp    $0x21,%rax
+   0x555555555b14:      jne    0x555555555af8
+   0x555555555b16:      test   %esi,%esi
+   0x555555555b18:      jne    0x555555555b2e
+   0x555555555b1a:      movabs $0x6c6620676e6f7277,%rax
+   0x555555555b24:      movl   $0x216761,0x8(%rdx)
+   0x555555555b2b:      mov    %rax,(%rdx)
+   0x555555555b2e:      lea    0x145(%rip),%rsi        # 0x555555555c7a
+   0x555555555b35:      mov    $0x1,%edi
+   0x555555555b3a:      xor    %eax,%eax
+   0x555555555b3c:      callq  0x555555554dc0 <__printf_chk@plt>
+   0x555555555b41:      lea    0x13a(%rip),%rdi        # 0x555555555c82
+   0x555555555b48:      callq  0x555555554db0 <puts@plt>
+   0x555555555b4d:      lea    0x137(%rip),%rdi        # 0x555555555c8b
+   0x555555555b54:      callq  0x555555554db0 <puts@plt>
+   0x555555555b59:      lea    0x13c(%rip),%rdi        # 0x555555555c9c
+   0x555555555b60:      callq  0x555555554db0 <puts@plt>
+   0x555555555b65:      lea    0x145(%rip),%rdi        # 0x555555555cb1
+   0x555555555b6c:      callq  0x555555554db0 <puts@plt>
+   0x555555555b71:      lea    0x14b(%rip),%rdi        # 0x555555555cc3
+   0x555555555b78:      callq  0x555555554db0 <puts@plt>
+   0x555555555b7d:      xor    %eax,%eax
+   0x555555555b7f:      mov    0x108(%rsp),%rbx
+   0x555555555b87:      xor    %fs:0x28,%rbx
+   0x555555555b90:      jne    0x555555555b9b
+   0x555555555b92:      add    $0x110,%rsp
+   0x555555555b99:      pop    %rbx
+   0x555555555b9a:      retq
+   0x555555555b9b:      callq  0x555555554ef0 <__stack_chk_fail@plt>
+   0x555555555ba0:      sub    $0x8,%rsp
+   0x555555555ba4:      add    $0x8,%rsp
+   0x555555555ba8:      retq
+```
+实际这一段应该是一个很简单的异或`0x89`逻辑，能做到这里基本就已经解决的差不多了。
+然后出题人做着做着发现。比赛当天的binary似乎传错了...
+正确的binary:
+https://dl.summershrimp.com/BuggyProtect-new
 
 ## Misc
 
