@@ -1,5 +1,6 @@
 ---
 title: 2019-googlectf-writeup-part2
+authorId: l1nk
 date: 2019-07-30 23:31:47
 tags:
   - googlectf
