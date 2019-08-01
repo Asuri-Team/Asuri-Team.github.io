@@ -49,7 +49,7 @@ categories:
 ```
 恢复成最初的形状。这种就叫做胞元自动机的变化过程。
 有很多的胞元自动机规则，分别就是规定了这种变化过程。题目中给出的`Wolfram rule 126`也是一种变化的规则:
-![](http://showlinkroom.me/2019/07/29/GoogleCTF-2019/wp04.png)
+![](2019-googlectf-writeup-part2/wp04.png)
 第一排为当前状态。也就是说仅仅在**当前状态以及相邻两个状态均相等的时候，当前状态转变成0，否则转变成1**
 
 ### 题解
@@ -115,7 +115,7 @@ Your task is very simple: just boot this machine. We tried before but we always 
 这个题目是一个pwn题，从名字中可以知道应该是和一个叫做**Secure Boot**的特性相关的一个题目。这个特性其实是关于UEFI(Unified Extensible Firmware Interface)的一个子特性。
 
 用`binwalk`查看之后，发现是一个UEFI文件，然后用`UEFITool`查看之后发现里面内容如下:
-![](http://showlinkroom.me/2019/07/29/GoogleCTF-2019/wp11.png)
+![](2019-googlectf-writeup-part2/wp11.png)
 官方给出的`run.py`脚本如下:
 ```python
 #!/usr/bin/python3
@@ -184,7 +184,7 @@ Password?
 ****
 ```
 这里会发现，程序在`DXE`阶段加载了一个好叫做`UiAPP`的文件，并且要求我们输入密码。于是这里想到说，这个`UiAPP`可能是实现了输入密码功能的一个自定义的EFI文件。此时我们注意到`7CB8BDC9-F8EB-4F34-AAEA-3EE4AF6516A1`这个值，这个值我们在`UEFITool`的截图中看到过。
-![](http://showlinkroom.me/2019/07/29/GoogleCTF-2019/wp12.png)
+![](2019-googlectf-writeup-part2/wp12.png)
 于是想到，能不能将这个文件导出来看一下。这里使用工具`uefi-firmware-parser`进行导出:
 ```
 uefi-firmware-parser -ecO ./OVMF.fd
@@ -307,7 +307,7 @@ target remote 127.0.0.1:1234
 ```
 即可连接调试。
 链接进去后用手速进入输入password的界面，然后断下来，检查内部执行情况可以发现，此时的程序段的确都是可执行的:
-![](http://showlinkroom.me/2019/07/29/GoogleCTF-2019/wp13.png)
+![](2019-googlectf-writeup-part2/wp13.png)
 之后有一个满头疼的点，我们需要找到此时的`uiapp`被映射的位置。这里似乎没有什么好办法，只能说翻找栈看看第三位有没有和IDA相同的数字了。通过逆向分析，可以知道如下的汇编:
 ```
 .text:000000000000FF1E
@@ -466,8 +466,8 @@ if __name__ == "__main__":
 socat -,raw,echo=0 SYSTEM:"python exploit.py"
 ```
 来进行启动，会得到如下的画面:
-![](http://showlinkroom.me/2019/07/29/GoogleCTF-2019/wp14.png)
+![](2019-googlectf-writeup-part2/wp14.png)
 然后设置一下`Secure Boot`就能够让其正常启动。修改成`remote`模式之后即可到达最终答案
 
-![](http://showlinkroom.me/2019/07/29/GoogleCTF-2019/wp15.png)
+![](2019-googlectf-writeup-part2/wp15.png)
 `CTF{pl4y1ng_with_v1rt_3F1_just_4fun}`

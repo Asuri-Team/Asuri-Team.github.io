@@ -25,7 +25,7 @@ _PS:整个wp太长了，所以就分成两部分了
 
 ### Stage1 
 题目是一个url`https://malvertising.web.ctfcompetition.com`
-![](http://showlinkroom.me/2019/07/29/GoogleCTF-2019/wp00.png)
+![](2019-googlectf-writeup-part1/wp00.png)
 随便点击之后就会跳转到`google.com`上。对当前界面的代码进行审计，可以看到如下关键代码:
 
 ```html
@@ -53,7 +53,7 @@ t[b('0x19', 'F#*Z')] = function() {
 ;
 ```
 结合之前的逻辑分析，会发现函数`b`被反复的调用。并且动态调试后注意到，这个函数会对一些加密的内容进行解密，于是动态跟踪程序，在如下的位置下断点:
-![](http://showlinkroom.me/2019/07/29/GoogleCTF-2019/wp01.png)
+![](2019-googlectf-writeup-part1/wp01.png)
 可以发现，这个地方解开了一段加载js的代码。然后在如下的位置:
 ```javascript
 if (Number(/\x61\x6e\x64\x72\x6f\x69\x64/i[b('0x1b', 'JQ&l')](navigator[b('0x1c', 'IfD@')]))) {
@@ -70,7 +70,7 @@ if (Number(/\x61\x6e\x64\x72\x6f\x69\x64/i[b('0x1b', 'JQ&l')](navigator[b('0x1c'
 if (Number(/android/i["test"](navigator["userAgent"])))
 ```
 正则后面跟着`["test"]`，就是利用js的特性，其实本质上是调用了`/android/i.test`的正则匹配。这里的意思相当于说：读出当前浏览器的`userAgent`，并且检测其中是否包含`Android`字样。为了解决这个问题，可以利用Chrome的`Toggle Device Bar`模拟切换浏览设备，如下:
-![](http://showlinkroom.me/2019/07/29/GoogleCTF-2019/wp02.png)
+![](2019-googlectf-writeup-part1/wp02.png)
 这样就会进入第二个js文件
 
 ### Stage2
@@ -274,7 +274,7 @@ var dJs = document.createElement('script'); dJs.setAttribute('src','./src/npoTHy
 
 ### Stage3
 这个文件里面也使用了和**Stage1**中类似的算法，并且这一次上了反调试，如果使用调试器的话，会陷入一个死循环中出不来，而直接运行脚本，又会有如下的错误（我看网上的wp似乎没遇到这个问题。。）
-![](http://showlinkroom.me/2019/07/29/GoogleCTF-2019/wp03.png)
+![](2019-googlectf-writeup-part1/wp03.png)
 考虑到隐藏的内容可能包含了答案，于是简单逆向，找到了加密算法`_0x5877`，并且写了一个小jio本把里面所有调用的函数都捞了出来:
 ```
 _0x5877("0x0", "fYVo") !== "csEBi")
@@ -315,11 +315,11 @@ alert("CTF{I-LOVE-MALVERTISING-wkJsuw}")
 
 许久不做Android，找一个题目来找一下手感。
 这个题目是一个游戏题，内容如下:
-![](http://showlinkroom.me/2019/07/29/GoogleCTF-2019/wp05.png)
+![](2019-googlectf-writeup-part1/wp05.png)
 操作起来及其难受。
 
 然后拖到工具里面查看，内容包大致如下:
-![](http://showlinkroom.me/2019/07/29/GoogleCTF-2019/wp06.png)
+![](2019-googlectf-writeup-part1/wp06.png)
 
 其中有部分内容我简单逆向了一下。里面很多的类和对象都被混淆成了abcd，简单逆向之后，大致的功能分为三类
 
@@ -498,7 +498,7 @@ CallMessageToGenerateMap()
 
 ### 资源读取
 讲到这里，就需要提一下游戏的`sprite`的初始化过程了。整个程序用了一个被我称为`ResourceLoader`的类进行初始化处理的。对于简单的游戏来说，一般需要一些图片将简单的元素放在一起，这些元素会在程序执行的之后被切割下来作为`tile`，对应在某些由游戏本身定义好的`object`上面。这个程序也有这样的`tile`，将当前的APK解包之后，在assets目录下会发现几张图片，例如:
-![](http://showlinkroom.me/2019/07/29/GoogleCTF-2019/wp07.png)
+![](2019-googlectf-writeup-part1/wp07.png)
 仔细看会发现，这里面基本上每一个元素的大小距离都是等距的，这样就能够方便程序对每一个元素进行快速的切割。切割下来的`tile`一般会作为某一些操作元素的外壳，这个外壳就被称为`Sprite`。
 一般来说游戏的开发中，都会有一个将`Sprite`和游戏对象的`physical object`以及部分可以操作的`controller`进行绑定的过程，在这个程序中的逻辑如下:
 
@@ -544,7 +544,7 @@ CallMessageToGenerateMap()
     }
 ```
 其中`UI.png`如下:
-![](http://showlinkroom.me/2019/07/29/GoogleCTF-2019/wp08.png)
+![](2019-googlectf-writeup-part1/wp08.png)
 可以看到，这段逻辑将一个名为`UI.png`的图片进行了等距切割，并且将切割好的图片对应到一个二维的int数组中，将每一个按钮的`Sprite`用数组的方式进行了存储，从而实现对按钮初始化的过程。
 根据这段逻辑，我们可以找到调用了`tileset.png`初始化的位置
 
@@ -787,7 +787,7 @@ if __name__ == "__main__":
 #### 最终拿flag
 
 在用数列解密之前，我们先确认一下当前的地图模式是怎么样的。反向推到加载`level`的逻辑可以知道，程序将关卡都压缩过，这里我们用python重新解压缩任意一关之后，得到如下的数据:
-![](http://showlinkroom.me/2019/07/29/GoogleCTF-2019/wp09.png)
+![](2019-googlectf-writeup-part1/wp09.png)
 然后源程序中，有一个翻译的逻辑如下:
 ```java
 for(i = 0; i < this.clo; ++i) {
@@ -935,4 +935,4 @@ jarsigner -verbose -keystore test.keystore -signedjar ./flaggybirdflag-signed.ap
  * `-signedjar` 签名后的文件名
 
 最后跟上`jar-file`以及我们刚刚对签名起的别名，即可完成签名。替换后的APK打开即可得到flag:
-![](http://showlinkroom.me/2019/07/29/GoogleCTF-2019/wp10.png)
+![](2019-googlectf-writeup-part1/wp10.png)
