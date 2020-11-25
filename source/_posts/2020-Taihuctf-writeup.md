@@ -17,7 +17,7 @@ Asuri第一次举办这种外面的比赛，幸苦各位了
 ## Web
 
 ### checkin
-![](img/checkin.png)
+![](2020-Taihuctf-writeup/checkin.png)
 拼手速的游戏。其实也可以通过修改时间让游戏变慢更快得到flag，各自想办法即可~
 
 ### easy\_web
@@ -37,7 +37,7 @@ view-source:http://127.0.0.1/?id=1%20uniunionon%20seselectlect%20load_file(0x2f7
 
 2.审计代码知道需要上传tar包，并且需要生成一个可以路径穿越tar包，大致才可如下。然后在upload目录生成一个webshell即可getshell。
 
-![image-20200623235656239](img/image-20200623235656239.png)
+![image-20200623235656239](2020-Taihuctf-writeup/image-20200623235656239.png)
 
 3.生成方法
 
@@ -47,7 +47,7 @@ view-source:http://127.0.0.1/?id=1%20uniunionon%20seselectlect%20load_file(0x2f7
 
 参考：[https://blog.csdn.net/xiejianjun417/article/details/94008196](https://blog.csdn.net/xiejianjun417/article/details/94008196)
 
-![image-20200624001210958](img/image-20200624001210958.png)
+![image-20200624001210958](2020-Taihuctf-writeup/image-20200624001210958.png)
 
 ## Pwn
 
@@ -433,7 +433,7 @@ sh.interactive()
 ### easy\_rev
 
 简单的逆向，程序一开始玩了一点点小花招，再`init_array`将全局数组的内容改了。并且使用了arm中常见的anti-ida的技巧，混入了几个有问题的字节。**这里并不是塞得无意义字节啦，本意首先塞入一个叫做PLD的加速指令。**  
-![](img/PLD.png)  
+![](2020-Taihuctf-writeup/PLD.png)  
 这个指令中提到，如果发生了异常，系统会将这个指令当成NOP处理。而出题使用的字节码为`0xF5DFDF02`，翻译成二进制即为
 ```
 11110101110111111 1011 11100000010
@@ -442,7 +442,7 @@ sh.interactive()
                注意这一段
 ```
 而这个指令在手册中的定义如下。。。
-![](img/PLD2.png)  
+![](2020-Taihuctf-writeup/PLD2.png)  
 我们把arm指令本身给破坏了，所以导致ida翻译失败，可能这也是导致qemu模拟的arm环境运行不起来，这个出题人才疏学浅，确实没有意识到这个问题 _出题人在树莓派上测试是可以执行的（包括使用gdb），所以没有意识到这个问题。。。_
 
 这边只需要将这些全部nop即可:
@@ -938,42 +938,41 @@ flag{cL1m8_w17H_vm_70_h4rV357}
 
 这是一个压缩文件，直接打开需要密码，把它拖入010Editor里查看，发现是伪加密
 
-![](img/omise1.png)
+![](2020-Taihuctf-writeup/omise1.png)
 
 把图中的地方改为00就可以了，之后打开压缩包，里面有两个文件：一个是文档，一个压缩包。查看后可以发现压缩包是加密的需要密码，那么就从文档入手，文档打开如下：
 
-![](img/omise2.png)
+![](2020-Taihuctf-writeup/omise2.png)
 
 
 可以尝试各种解密都无法解开，可以猜测是隐藏了密钥，这是我们选中全部文本，右键字体，可以发现有内容被隐藏
 
-![](img/omise3.png)
+![](2020-Taihuctf-writeup/omise3.png)
 
 取消隐藏后，我们就发现了两行字符，考虑希尔加密，得到密钥
 
-![](img/omise4.png)
-![](img/omise5.png)
+![](2020-Taihuctf-writeup/omise4.png)
+![](2020-Taihuctf-writeup/omise5.png)
 
 拿到密钥后，我们再用rabbit解密，得到一串规整的字符
 
-![](img/omise6.png)
+![](2020-Taihuctf-writeup/omise6.png)
 
 这时候考虑base家族，用base32解决了
 
-![](img/omise7.png)
+![](2020-Taihuctf-writeup/omise7.png)
 
 这一看就很明显是unicode加密后的结果,解密一看很明显的佛说加密
 
-![](img/omise8.png)
-![](img/omise9.png)
+![](2020-Taihuctf-writeup/omise9.png)
 
 再次解密后就得到了密码
 
-![](img/omise10.png)
+![](2020-Taihuctf-writeup/omise10.png)
 
 打开文件是一段音频，我们考虑音频隐写，利用Audacity打开，查看频谱图就可以得到flag
 
-![](img/omise11.png)
+![](2020-Taihuctf-writeup/omise11.png)
 
 就结束啦
 
@@ -1000,7 +999,7 @@ end@bj
 ```
 
 将这一步修复好之后，使用pdfstreamdumper就能够查看内部的内容了:  
-![](img/pdfstreamdumper.png)  
+![](2020-Taihuctf-writeup/pdfstreamdumper.png)  
 不过发现这里存在两个object，其中一个里面写了很多文字，另一个则是一个图片，看上去被js加密了，所以我们这里需要想办法将图片解密开来。一种办法是直接将这段代码dump出来，或者我们可以选择修复pdf。如果我们现在尝试打开pdf的话，会发现此时打印的是一段假的flag，提示我们要去寻找入口。此时会发现xfa没有发生渲染，注意到在obj1中的render为false，我们需要改成true：
 ```
 1 0 0bj
@@ -1021,7 +1020,7 @@ end@bj
 end0bj
 ```
 之后尝试打开pdf，就能见到一段和protein介绍有关的内容，这段内容提示了之后图片的含义，这里先记下来  
-![](img/protein.png)  
+![](2020-Taihuctf-writeup/protein.png)  
 之前我们注意到，还有一个对象，但是引用表中，有效的只有6项，第七个obj展示不出来：
 ```
 0000000000 65535 f 
@@ -1033,12 +1032,12 @@ end0bj
 0000000732 00000 n 
 ```
 这里有一个小技巧，这里把第7个obj的编号改成6，即可展示6的图片~
-![](img/borken2.png)
+![](2020-Taihuctf-writeup/broken2.png)
 根据前面对文章dna=>rna=>protein的描述
 ，每3个密码子可以编码为一个氨基酸，每种氨基酸都有一个英文字母的缩写，刚好有二十来种，起源于一张老图如下
-![](img/borken1.jpg)
+![](2020-Taihuctf-writeup/broken1.jpg)
 例如其中的最开始的CAU，对应的就是CAT（同CAU-组氨酸)，为H，故有HAPPYNEWYEAR
-![](img/borken3.jpg)
+![](2020-Taihuctf-writeup/broken3.jpg)
 我们拿出基因序列为
 `AUCUAGAGGGAAGCUCUGCUGUACUAGAUGAUUUCGUCGUAGACUCACGAAUAGGAACUGGAUGAAAGGUAGGAUGCUUAC`
 可以在线解密[https://skaminsky115.github.io/nac/DNA-mRNA-Protein_Converter.html](https://skaminsky115.github.io/nac/DNA-mRNA-Protein_Converter.html)也可以用脚本写翻译脚本
