@@ -6,9 +6,9 @@ branches:
   - hexo  # 设置自动化部署的源码分支
 before_install:
 - export TZ='Asia/Shanghai'  
-- npm install -g hexo
-- npm install -g hexo-cli 
-- npm install -g yarn
+# - npm install -g hexo
+# - npm install -g hexo-cli 
+# - npm install -g yarn
 before_script:
 # ------------------------------------------------
 # 设置github账户信息 注意修改成自己的信息
@@ -21,11 +21,11 @@ before_script:
 - sed -i'' "s~git@github.com:Asuri-Team/Asuri-Team.github.io.git~https://${REPO_TOKEN}:x-oauth-basic@github.com/Asuri-Team/Asuri-Team.github.io.git~" _config.yml
 # 安装依赖组件
 install:
-- yarn
+- npm install
 # 执行的命令
 script:
-- hexo clean
-- hexo generate
+- ./node_modules/.bin/hexo clean
+- ./node_modules/.bin/hexo generate
 # 执行的成功后执行 
 after_success:
-- hexo deploy
+- ./node_modules/.bin/hexo deploy
