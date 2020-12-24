@@ -2,6 +2,7 @@
 menu:
   Home: /
   Archives: /archives
+  Members: /members
 rss: /atom.xml
 
 # Content
