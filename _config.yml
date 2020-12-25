@@ -73,7 +73,7 @@ pagination_dir: page
 ## Themes: https://hexo.io/themes/
 theme: landscape
 
-skip_render: "source/members/index.html"
+skip_render: 
 
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html
