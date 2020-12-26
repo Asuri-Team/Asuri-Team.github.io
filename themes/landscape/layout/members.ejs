@@ -1,0 +1,154 @@
+<link rel="stylesheet" href="/css/styles.css" />
+<link rel="stylesheet" href="/css/pygment_trac.css" />
+<div class="wrapper">
+	<header>
+		<p class="center">
+			<img class="logo" src="logo.png" alt="Asuri" style="cursor: pointer" onclick="location.replace('/')" />
+		</p>
+		<p class="center">A CTF Team From NUAA</p>
+
+		<ul class="other site">
+			<li>
+				&#128681;
+				<a href="https://ctftime.org/team/65539" class="btn">CTFTime</a>
+			</li>
+			<li>
+				&#128373;
+				<a href="#members" class="btn">Members</a>
+			</li>
+			<li>
+				&#127942;
+				<a href="#awards" class="btn">Selected Awards</a>
+			</li>
+			<li>
+				&#128008;
+				<a href="https://github.com/Asuri-Team">GitHub</a>
+			</li>
+		</ul>
+	</header>
+
+	<section>
+		<h1 id="Asuri">Asuri Secure yoUR Information</h1>
+
+		<p>南京航空航天大学 Asuri 信息安全战队成立于 2014 年，成立以来一直致力于信息安全技术的研究，作为高校战队长期活跃在各大 CTF
+			赛事（信息安全竞赛）之中，并依靠着过硬的实力吸引了无数同样热爱安全的小伙伴。
+			<br />
+			<br />
+			我们有奋斗于安全一线的 Hacker，或是痴迷用代码改变世界的 Programmer，亦不乏潜心钻研的 Geeker。我们始终不安一隅，崇尚技术，不断在信息安全的传统界线上寻求挑战和突破。</p>
+
+		<p>
+			<br />
+		</p>
+		<h1 id="members">战队成员</h1>
+
+		<h2 id="activeMembers">活跃成员</h2>
+		<table>
+			<thead>
+				<tr>
+					<th></th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody>
+				<% if (site.data && site.data.members) { %>
+				<% var members = site.data.members; %>
+				<% for (var i = 0, len = members.length; i < len; i++) { %>
+				<% var member = members[i]; %>
+				<tr>
+					<td>
+						<img src="<%- member.avatar %>" class="profile-image" alt="profile-image" />
+					</td>
+					<td>
+						<strong><%- member.name %></strong>
+						<br />
+						<%- member.introduction %>
+						<br />
+						<% if (member.GitHub) { %>
+						- Github:
+						<a href="https://github.com/<%- member.GitHub %>"><%- member.GitHub %></a><br />
+						<% } %>
+						<% if (member.url) { %>
+						- Blog:
+						<a href="<%- member.url %>"><%- member.url %></a>
+						<% } %>
+					</td>
+				</tr>
+				<% } %>
+				<% } %>
+			</tbody>
+		</table>
+
+		<p>
+			<br />
+		</p>
+
+		<h2 id="historyMembers">历史活跃成员</h2>
+		<table>
+			<thead>
+				<tr>
+					<th></th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody>
+				<% if (site.data && site.data.historyMembers) { %>
+				<% var members = site.data.historyMembers; %>
+				<% for (var i = 0, len = members.length; i < len; i++) { %>
+				<% var member = members[i]; %>
+				<tr>
+					<td>
+						<img src="<%- member.avatar %>" class="profile-image" alt="profile-image" />
+					</td>
+					<td>
+						<strong><%- member.name %></strong>
+						<br />
+						<%- member.introduction %>
+						<br />
+						<% if (member.GitHub) { %>
+						- Github:
+						<a href="https://github.com/<%- member.GitHub %>"><%- member.GitHub %></a><br />
+						<% } %>
+						<% if (member.url) { %>
+						- Blog:
+						<a href="<%- member.url %>"><%- member.url %></a>
+						<% } %>
+					</td>
+				</tr>
+				<% } %>
+				<% } %>
+			</tbody>
+		</table>
+
+		<h1 id="awards">战队成绩</h1>
+
+		<table>
+			<thead>
+				<tr>
+					<th>Game Name</th>
+					<th style="text-align: right">Time</th>
+				</tr>
+			</thead>
+			<tbody>
+				<% if (site.data && site.data.awards) { %>
+				<% var awards = site.data.awards; %>
+				<% for (var i = 0, len = awards.length; i < len; i++) { %>
+				<% var award = awards[i]; %>
+				<tr>
+					<td><%- award.name %></td>
+					<td style="text-align: right">
+						<%- award.time %>
+					</td>
+				</tr>
+				<% } %>
+				<% } %>
+			</tbody>
+		</table>
+
+		<!-- <p class="right">
+			... more available at
+			<a href="//ctftime.org/team/65539">ctftime</a>.
+		</p> -->
+	</section>
+</div>
+
+<script src="/js/scale.fix.js"></script>
