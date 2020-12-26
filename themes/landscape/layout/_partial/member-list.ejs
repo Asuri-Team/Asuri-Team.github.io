@@ -1,0 +1,26 @@
+<ul class="member-profile">
+    <% for (const member of members) { %>
+        <li>
+            <img class="member-avatar" src="<%- member.avatar %>" alt="<%- member.name %>">
+            <div class="member-info">
+                <div class="member-name"><%- member.name %></div>
+                <div class="member-about" title="<%- member.about %>"><%- member.about %></div>
+                <div class="member-extra-links">
+                    <% if (member.github) { %>
+                        <a href="https://github.com/<%- member.github %>">
+                            🎉 GitHub
+                        </a>
+                    <% } %>
+                    <% if (member.site) { %>
+                        <a href="<%- member.site %>">
+                            🌏 Blog
+                        </a>
+                    <% } %>
+                </div>
+            </div>
+        </li>
+    <% } %>
+    <% if (members.length % 2 === 1) { %>
+        <li class="member-placeholder"></li>
+    <% } %>
+</ul>
