@@ -79,6 +79,11 @@ skip_render:
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html
 deploy:
-  type: git
+- type: git
   repo: git@github.com:Asuri-Team/Asuri-Team.github.io.git
   branch: master
+- type: 'sftp'
+  host: asuri.club
+  user: hexo-deployer
+  pass: sftp-password-placeholder
+  remotePath: /opt/asuri-blog
