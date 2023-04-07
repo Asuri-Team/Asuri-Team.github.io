@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>使用 PhantomJS 来实现 CTF 中的 XSS 题目 | Asuri Team</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="零：CTF、XSS 的概念CTF 在这个博客中提到的已经很多了，它是一类信息安全竞赛，在比赛中，选手通过各种方式，从题目给出的文件或者网址中，获取到某一特定格式的字符串。 CTF 中比较常见的一个题型就是 XSS（跨站脚本攻击），大概的原理就是服务端没有正确过滤用户的输入，导致用户提交的畸形字符串被插入到网页中并被解析成 JavaScript 执行。在 CTF 中，XSS 一般用来拿管理员的 Co">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用 PhantomJS 来实现 CTF 中的 XSS 题目">
+<meta property="og:url" content="http://asuri.org/2017/06/24/phantom-ctf-xss/index.html">
+<meta property="og:site_name" content="Asuri Team">
+<meta property="og:description" content="零：CTF、XSS 的概念CTF 在这个博客中提到的已经很多了，它是一类信息安全竞赛，在比赛中，选手通过各种方式，从题目给出的文件或者网址中，获取到某一特定格式的字符串。 CTF 中比较常见的一个题型就是 XSS（跨站脚本攻击），大概的原理就是服务端没有正确过滤用户的输入，导致用户提交的畸形字符串被插入到网页中并被解析成 JavaScript 执行。在 CTF 中，XSS 一般用来拿管理员的 Co">
+<meta property="og:locale">
+<meta property="og:image" content="https://dn-rexskz.qbox.me/blog/article/phantom-ctf-xss/0.png">
+<meta property="og:image" content="https://dn-rexskz.qbox.me/blog/article/phantom-ctf-xss/1.png">
+<meta property="og:image" content="https://dn-rexskz.qbox.me/blog/article/phantom-ctf-xss/2.png">
+<meta property="og:image" content="https://dn-rexskz.qbox.me/blog/article/phantom-ctf-xss/3.png">
+<meta property="article:published_time" content="2017-06-24T00:42:00.000Z">
+<meta property="article:modified_time" content="2023-04-07T12:29:53.466Z">
+<meta property="article:author" content="All Members">
+<meta property="article:tag" content="phantom">
+<meta property="article:tag" content="xss">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://dn-rexskz.qbox.me/blog/article/phantom-ctf-xss/0.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Asuri Team" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+
+<body>
+  <div id="container">
+    
+
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Asuri Team</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+          <a class="main-nav-link" href="/members">Members</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://asuri.org"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-phantom-ctf-xss" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/06/24/phantom-ctf-xss/" class="article-date">
+  <time datetime="2017-06-24T00:42:00.000Z" itemprop="datePublished">2017-06-24</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Develop/">Develop</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      使用 PhantomJS 来实现 CTF 中的 XSS 题目
+    </h1>
+  
+
+
+  <div class="article-author">
+    <img src="https://www.gravatar.com/avatar/67d0b10056c602378e25de466c83e7dd?s=48">
+    <div class="article-author-info">
+      <a href="/author/rexskz" class="article-author-name">Rex Zeng</a>
+      <a target="_blank" rel="noopener" href="https://www.rexskz.info/" class="article-author-site" title="Visit the author's site">[site]</a>
+      <div class="article-author-about" title="音游狗、安全狗、攻城狮、业余设计师、段子手、苦学日语的少年。">音游狗、安全狗、攻城狮、业余设计师、段子手、苦学日语的少年。</div>
+    </div>
+  </div>
+
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="零：CTF、XSS-的概念"><a href="#零：CTF、XSS-的概念" class="headerlink" title="零：CTF、XSS 的概念"></a>零：CTF、XSS 的概念</h1><p>CTF 在这个博客中提到的已经很多了，它是一类信息安全竞赛，在比赛中，选手通过各种方式，从题目给出的文件或者网址中，获取到某一特定格式的字符串。</p>
+<p>CTF 中比较常见的一个题型就是 XSS（跨站脚本攻击），大概的原理就是服务端没有正确过滤用户的输入，导致用户提交的畸形字符串被插入到网页中并被解析成 JavaScript 执行。在 CTF 中，XSS 一般用来拿管理员的 Cookie，伪造身份登录后台，再进行后续的渗透（顺便提一下，现在大部分网站的敏感 Cookie 都被设成了 HTTP Only，因此 XSS 是没法拿到的，需要用其它的方法）。</p>
+<p>一个非常简单的反射型 XSS 注入如下（为了突出重点，我就不把页面写的这么完整了，一般的 CTF 题目也鲜有很符合规范的页面）：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;html&gt;</span><br><span class="line">&lt;body&gt;</span><br><span class="line">Hello <span class="meta">&lt;?php</span> <span class="keyword">echo</span> <span class="variable">$_GET</span>[<span class="string">&#x27;name&#x27;</span>]; <span class="meta">?&gt;</span>!</span><br><span class="line">&lt;/body&gt;</span><br><span class="line">&lt;/html&gt;</span><br></pre></td></tr></table></figure>
+
+<p>如果我们输入的网址中，<code>name</code> 参数值为 <code>rex&lt;script&gt;alert(1)&lt;/script&gt;</code>，那么整个网页会变成这样：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">Hello rex<span class="tag">&lt;<span class="name">script</span>&gt;</span>alert(1)<span class="tag">&lt;/<span class="name">script</span>&gt;</span>!</span><br><span class="line"><span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>页面上就会有一个弹框。当然，如果能成功 alert(1)，那么一般来说大概应该可能有其它方法来获取 Cookie，因此比较简单的 XSS 的检测方式通常是看页面上能否 alert(1)。</p>
+<p>当然，XSS 还有其它方法，例如在一个论坛上发帖内容为 <code>&lt;img src=# onerror=alert(1)&gt;</code>，而这个论坛也没做输入过滤，那么这段恶意代码就会一直保留在这个帖子里，基本每个点进来的人都会遭殃。此为存储型 XSS。</p>
+<p>就算服务端做了一些过滤，黑客也可能会绕过。例如服务端的过滤如下：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">escape</span>(<span class="params"><span class="variable">$str</span></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> preg_replace(<span class="string">&#x27;/&lt;script&gt;/&#x27;</span>, <span class="string">&#x27;&#x27;</span>, <span class="variable">$str</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>想绕过的话，只需要使用 <code>&lt;scr&lt;script&gt;ipt&gt;alert(1)&lt;/script&gt;</code> 即可，左边被过滤之后剩下的刚好又拼接成了一个 <code>&lt;script&gt;</code> 标签。</p>
+<p>有一个很好玩的网站：<a target="_blank" rel="noopener" href="https://alf.nu/alert1">alert(1) to win</a>，是我在大一的时候某只姓三的学长给我的。这个网站给了你 <code>escape</code> 函数，你的目标就是输入 <code>input</code>，使其通过 <code>escape</code> 函数之后依旧可以 alert 出数字 1（注意是数字 1，不是字符串 1）。这个网站的题目对于目前的我来说还是比较难的，如果大家有兴趣，可以去挑战一下。</p>
+<h1 id="一：PhantomJS-的概念"><a href="#一：PhantomJS-的概念" class="headerlink" title="一：PhantomJS 的概念"></a>一：PhantomJS 的概念</h1><p>我之前对电脑的认识是非常肤浅的。第一次听说虚拟机居然还可以跑在命令行下的时候，我心想：虚拟机软件本身没有图形界面，那你该怎么显示虚拟机里面的图形呢？后来特么又看到了 PhantomJS，居然是个没有图形界面的浏览器！当时还心想，这玩意又没法给人看，会有啥用啊……</p>
+<p>后来接触了爬虫之后才逐渐理解了这玩意的用途。它是一个通过命令行和 API 操作的、没有图形界面的浏览器，专注于自动化测试、爬虫等不需要人们浏览，但需要获取数据的一些场合。</p>
+<p>如果觉得 PhantomJS 官方的文档太多懒得看，针对一些简单的编程，看阮老师的这篇文章也可以：<a target="_blank" rel="noopener" href="http://javascript.ruanyifeng.com/tool/phantomjs.html">PhantomJS – JavaScript 标准参考教程（alpha）</a>。</p>
+<h1 id="二：基于-PhantomJS-的-CTF-XSS-Checker-的实现"><a href="#二：基于-PhantomJS-的-CTF-XSS-Checker-的实现" class="headerlink" title="二：基于 PhantomJS 的 CTF-XSS-Checker 的实现"></a>二：基于 PhantomJS 的 CTF-XSS-Checker 的实现</h1><p>我的思路大概是参照了上面的网站实现的，但是上面的 <code>escape</code> 函数是返回了一个过滤之后的字符串，而我打算直接用 eval 方法。</p>
+<p>先放一下界面好啦！可以看到，上面网站中的 <code>escape</code> 函数被我改成了 <code>check</code>，里面会有一句 <code>eval</code>。</p>
+<p><img src="https://dn-rexskz.qbox.me/blog/article/phantom-ctf-xss/0.png" alt="0"></p>
+<p>由于 Node.js 与 PhantomJS 的交互最为简单，因此后端使用 Node.js 来编写。思路其实很简单：启动一个服务器，针对前端的静态文件直接返回文件内容（当然，这一点也可以用 Nginx 代劳），针对题目生成对应的题目网页，针对 <code>/check</code> 路由根据 POST body 进行 XSS 判断。</p>
+<p>具体的路由逻辑我就不写了，毕竟即使不会开服务器，不会写路由，使用 koa 等框架也能很轻松地实现。这里重点说一下前后端的检验流程。写一个网页解释器实在是太难，而且也不值得，所以最简单的方法就是不如就让它 alert 成功，只不过我们修改一下 alert 函数罢了。</p>
+<p>前端先生成一个隐藏的 <code>iframe</code>，通过劫持里面的 <code>onerror</code>、<code>console.log</code>、<code>alert</code> 等函数来处理，通过 HTML5 Message API 在父页面和 <code>iframe</code> 之间传递信息。具体代码如下：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">window</span>.onerror = <span class="function"><span class="keyword">function</span> (<span class="params">a</span>) </span>&#123;</span><br><span class="line">    parent.postMessage(&#123;</span><br><span class="line">        error: a.toString()</span><br><span class="line">    &#125;, <span class="string">&quot;*&quot;</span>);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="built_in">window</span>.console = <span class="built_in">window</span>.console || &#123;&#125;;</span><br><span class="line"><span class="built_in">window</span>.console.log = <span class="function"><span class="keyword">function</span> (<span class="params">a</span>) </span>&#123;</span><br><span class="line">    parent.postMessage(&#123;</span><br><span class="line">        <span class="built_in">console</span>: a</span><br><span class="line">    &#125;, <span class="string">&quot;*&quot;</span>);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="built_in">window</span>.alert = <span class="function"><span class="keyword">function</span> (<span class="params">a</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (a === <span class="number">1</span>)</span><br><span class="line">        parent.postMessage(&#123;</span><br><span class="line">            success: <span class="number">1</span></span><br><span class="line">        &#125;, <span class="string">&quot;*&quot;</span>);</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (a == <span class="number">1</span>)</span><br><span class="line">        parent.postMessage(&#123;</span><br><span class="line">            warning: <span class="string">&quot;You should alert *NUMBER* 1.&quot;</span></span><br><span class="line">        &#125;, <span class="string">&quot;*&quot;</span>);</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        parent.postMessage(&#123;</span><br><span class="line">            warning: <span class="string">&quot;You need to alert 1.&quot;</span></span><br><span class="line">        &#125;, <span class="string">&quot;*&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="built_in">window</span>.onmessage = <span class="function"><span class="keyword">function</span> (<span class="params">a</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        check(a.data);</span><br><span class="line">    &#125; <span class="keyword">catch</span>(e) &#123;</span><br><span class="line">        parent.postMessage(&#123;</span><br><span class="line">            error: e.toString().split(<span class="string">&quot;\\n&quot;</span>)[<span class="number">0</span>]</span><br><span class="line">        &#125;, <span class="string">&quot;*&quot;</span>);</span><br><span class="line">    &#125;;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>然后父页面通过返回的数据来处理就可以了，例如 onerror 的时候就将下面的黄条变红，并显示传过来的信息，如果 success 了，就将数据发给服务端进行验证。代码如下：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// script 就是上面说的要嵌入 iframe 里面的代码</span></span><br><span class="line">iframe.src = <span class="string">&#x27;data:text/html,&#x27;</span> + <span class="built_in">encodeURIComponent</span>(problemText.replace(<span class="regexp">/\n\s*/g</span>, <span class="string">&#x27;&#x27;</span>)) + script;</span><br><span class="line">iframe.onload = <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="built_in">this</span>.contentWindow.postMessage(textarea.value, <span class="string">&#x27;*&#x27;</span>);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 父页面通过 iframe 传回来的信息进行相应的处理</span></span><br><span class="line"><span class="built_in">window</span>.onmessage = <span class="function"><span class="keyword">function</span> (<span class="params">e</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> d = e.data;</span><br><span class="line">    <span class="built_in">console</span>.log(d);</span><br><span class="line">    <span class="keyword">if</span> (d.success !== <span class="literal">undefined</span>) &#123;</span><br><span class="line">        tab.className = <span class="string">&#x27;rs-tab rs-tab-success&#x27;</span>;</span><br><span class="line">        tab.innerText = <span class="string">&#x27;Local check passed, running server check...&#x27;</span>;</span><br><span class="line">        <span class="comment">// server check</span></span><br><span class="line">        <span class="keyword">var</span> xhr = <span class="keyword">new</span> XMLHttpRequest();</span><br><span class="line">        xhr.onreadystatechange = <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">            <span class="keyword">if</span> (xhr.readyState === <span class="number">4</span>) &#123;</span><br><span class="line">                <span class="keyword">if</span> (xhr.status === <span class="number">200</span>) &#123;</span><br><span class="line">                    tab.innerText = <span class="string">&#x27;Server response: \&#x27;&#x27;</span> + xhr.responseText + <span class="string">&#x27;\&#x27;.&#x27;</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;;</span><br><span class="line">        xhr.open(<span class="string">&#x27;POST&#x27;</span>, <span class="string">&#x27;/check&#x27;</span>, <span class="literal">true</span>);</span><br><span class="line">        xhr.send(<span class="built_in">JSON</span>.stringify(&#123;</span><br><span class="line">            id: location.pathname.match(<span class="regexp">/^\/(\d+)$/</span>)[<span class="number">1</span>],</span><br><span class="line">            ans: textarea.value,</span><br><span class="line">        &#125;));</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (d.warning !== <span class="literal">undefined</span>) &#123;</span><br><span class="line">        tab.className = <span class="string">&#x27;rs-tab rs-tab-warning&#x27;</span>;</span><br><span class="line">        tab.innerText = d.warning;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (d.error !== <span class="literal">undefined</span>) &#123;</span><br><span class="line">        tab.className = <span class="string">&#x27;rs-tab rs-tab-danger&#x27;</span>;</span><br><span class="line">        tab.innerText = d.error;</span><br><span class="line">        output.innerText = <span class="string">&#x27;&#x27;</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (d.console !== <span class="literal">undefined</span>) &#123;</span><br><span class="line">        output.innerText = d.console;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>这样本地的检验就可以啦！去看看服务端的 <code>/check</code> 是怎么写的。由于服务端是接收 JSON 返回 JSON 的，因此如果出了结果，直接输出一段 JSON 即可。假设我们已经想办法获取到了用户输入（上面那段代码中的 <code>ans</code>）、检验函数（之前提到的 <code>check</code>），那么可以这样写：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> input = <span class="comment">/* 获取到的 ans */</span>;</span><br><span class="line"><span class="keyword">var</span> outputStr = <span class="string">&#x27;&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">output</span>(<span class="params">obj</span>) </span>&#123;</span><br><span class="line">    outputStr = <span class="built_in">JSON</span>.stringify(obj);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="built_in">window</span>.onerror = <span class="function"><span class="keyword">function</span> (<span class="params">a</span>) </span>&#123;</span><br><span class="line">    output(&#123; <span class="attr">error</span>: a.toString() &#125;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="built_in">window</span>.alert = <span class="function"><span class="keyword">function</span> (<span class="params">a</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (a === <span class="number">1</span>) &#123;</span><br><span class="line">        output(&#123; <span class="attr">success</span>: <span class="number">1</span> &#125;);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (a == <span class="number">1</span>) &#123;</span><br><span class="line">        output(&#123; <span class="attr">error</span>: <span class="string">&quot;You should alert *NUMBER* 1.&quot;</span> &#125;);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        output(&#123; <span class="attr">error</span>: <span class="string">&quot;Server check failed, you need to alert 1.&quot;</span> &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 在这儿注入 check 函数的实现 */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    check(input);</span><br><span class="line">&#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">    output(&#123; <span class="attr">error</span>: e.toString().split(<span class="string">&quot;\\n&quot;</span>)[<span class="number">0</span>] &#125;);</span><br><span class="line">&#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> outputStr;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>说了这么多流程，终于要用到 PhantomJS 啦！我们需要用它创建一个页面，执行上面的代码，获取返回结果，并且在用户提交耗资源的操作（例如死循环）时及时将其关闭。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> phantom = <span class="built_in">require</span>(<span class="string">&#x27;phantom&#x27;</span>);</span><br><span class="line">    <span class="keyword">var</span> phInstance = <span class="literal">null</span>;</span><br><span class="line">    <span class="keyword">var</span> exitted = <span class="literal">false</span>;</span><br><span class="line">    phantom.create()</span><br><span class="line">        .then(<span class="function"><span class="params">instance</span> =&gt;</span> &#123;</span><br><span class="line">            phInstance = instance;</span><br><span class="line">            <span class="keyword">return</span> instance.createPage();</span><br><span class="line">        &#125;)</span><br><span class="line">        .then(<span class="function"><span class="params">page</span> =&gt;</span> &#123;</span><br><span class="line">            <span class="keyword">var</span> script = <span class="comment">/* 上面提到的 script */</span>;</span><br><span class="line">            <span class="keyword">var</span> evaluation = page.evaluateJavaScript(script);</span><br><span class="line">            evaluation.then(<span class="function"><span class="keyword">function</span> (<span class="params">html</span>) </span>&#123;</span><br><span class="line">                html = <span class="built_in">JSON</span>.parse(html);</span><br><span class="line">                <span class="keyword">if</span> (html.success) &#123;</span><br><span class="line">                    res.write(<span class="string">&#x27;Check passed, flag: &#x27;</span> + <span class="comment">/* 对应题目的 flag */</span>);</span><br><span class="line">                    res.end();</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    res.write(html.error);</span><br><span class="line">                    res.end();</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">if</span> (!exitted) &#123;</span><br><span class="line">                    phInstance.exit();</span><br><span class="line">                    exitted = <span class="literal">true</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;)</span><br><span class="line">        .catch(<span class="function"><span class="params">error</span> =&gt;</span> &#123;</span><br><span class="line">            <span class="built_in">console</span>.log(error); <span class="comment">// eslint-disable-line no-console</span></span><br><span class="line">            <span class="keyword">if</span> (!exitted) &#123;</span><br><span class="line">                phInstance.exit();</span><br><span class="line">                exitted = <span class="literal">true</span>;</span><br><span class="line">                res.write(<span class="string">&#x27;PhantomJS error&#x27;</span>);</span><br><span class="line">                res.end();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">    <span class="comment">// prevent time limit exceeded</span></span><br><span class="line">    <span class="built_in">setTimeout</span>(<span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (!exitted) &#123;</span><br><span class="line">            phInstance.exit();</span><br><span class="line">            exitted = <span class="literal">true</span>;</span><br><span class="line">            res.write(<span class="string">&#x27;TLE&#x27;</span>);</span><br><span class="line">            res.end();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;, <span class="number">5000</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>最后配上一点样式，就大功告成啦！</p>
+<p><img src="https://dn-rexskz.qbox.me/blog/article/phantom-ctf-xss/1.png" alt="1"></p>
+<p><img src="https://dn-rexskz.qbox.me/blog/article/phantom-ctf-xss/2.png" alt="2"></p>
+<p><img src="https://dn-rexskz.qbox.me/blog/article/phantom-ctf-xss/3.png" alt="3"></p>
+<hr>
+<p>P.S. 即将到来的 NUAACTF 会使用这个程序来设计 XSS 题目。当然，题目与 Flag 均不是本文中放出来的这些。</p>
+<p>P.S.S. Chrome 目前也推出了 Headless 模式，而且支持 Chrome 的全部特性。PhantomJS 作者表示自己要失业了……23333</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://asuri.org/2017/06/24/phantom-ctf-xss/" data-id="clg6iympe0013guotbxchde8s" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/phantom/" rel="tag">phantom</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/xss/" rel="tag">xss</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/11/21/cve_2015_3864_google_exploit/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          CVE-2015-3864漏洞利用分析(exploit_from_google)
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/06/13/Windbg%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Windbg学习笔记</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+        <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Develop/">Develop</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Devops/">Devops</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Pwn/">Pwn</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Reverse/">Reverse</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Web-%E5%AE%89%E5%85%A8/">Web 安全</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Writeup/">Writeup</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%AE%89%E5%8D%93%E5%AE%89%E5%85%A8/">安卓安全</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/CTF/" rel="tag">CTF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CVE-2015-3864/" rel="tag">CVE-2015-3864</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Crypto/" rel="tag">Crypto</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Docker/" rel="tag">Docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Pwn/" rel="tag">Pwn</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RCE/" rel="tag">RCE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ROP/" rel="tag">ROP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rev/" rel="tag">Rev</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Tools/" rel="tag">Tools</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Windows/" rel="tag">Windows</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/analytics/" rel="tag">analytics</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/googlectf/" rel="tag">googlectf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jctf/" rel="tag">jctf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mirai/" rel="tag">mirai</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nuaactf/" rel="tag">nuaactf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/phantom/" rel="tag">phantom</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/php/" rel="tag">php</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/qzone/" rel="tag">qzone</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/reverse/" rel="tag">reverse</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/suctf/" rel="tag">suctf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/virus/" rel="tag">virus</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/windows/" rel="tag">windows</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/writeup/" rel="tag">writeup</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/xss/" rel="tag">xss</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%BC%8F%E6%B4%9E/" rel="tag">文件格式漏洞</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/CTF/" style="font-size: 10px;">CTF</a> <a href="/tags/CVE-2015-3864/" style="font-size: 10px;">CVE-2015-3864</a> <a href="/tags/Crypto/" style="font-size: 10px;">Crypto</a> <a href="/tags/Docker/" style="font-size: 10px;">Docker</a> <a href="/tags/Pwn/" style="font-size: 15px;">Pwn</a> <a href="/tags/RCE/" style="font-size: 15px;">RCE</a> <a href="/tags/ROP/" style="font-size: 10px;">ROP</a> <a href="/tags/Rev/" style="font-size: 10px;">Rev</a> <a href="/tags/Tools/" style="font-size: 15px;">Tools</a> <a href="/tags/Windows/" style="font-size: 10px;">Windows</a> <a href="/tags/analytics/" style="font-size: 10px;">analytics</a> <a href="/tags/googlectf/" style="font-size: 15px;">googlectf</a> <a href="/tags/jctf/" style="font-size: 10px;">jctf</a> <a href="/tags/linux/" style="font-size: 15px;">linux</a> <a href="/tags/mirai/" style="font-size: 10px;">mirai</a> <a href="/tags/nuaactf/" style="font-size: 15px;">nuaactf</a> <a href="/tags/phantom/" style="font-size: 10px;">phantom</a> <a href="/tags/php/" style="font-size: 10px;">php</a> <a href="/tags/qzone/" style="font-size: 10px;">qzone</a> <a href="/tags/reverse/" style="font-size: 10px;">reverse</a> <a href="/tags/suctf/" style="font-size: 10px;">suctf</a> <a href="/tags/virus/" style="font-size: 10px;">virus</a> <a href="/tags/windows/" style="font-size: 10px;">windows</a> <a href="/tags/writeup/" style="font-size: 20px;">writeup</a> <a href="/tags/xss/" style="font-size: 15px;">xss</a> <a href="/tags/%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%BC%8F%E6%B4%9E/" style="font-size: 10px;">文件格式漏洞</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/11/">November 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/1970/01/">January 1970</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2020/11/24/2020-Taihuctf-writeup/">2020-Taihuctf-writeup</a>
+          </li>
+        
+          <li>
+            <a href="/2019/07/30/2019-googlectf-writeup-part2/">2019-googlectf-writeup-part2</a>
+          </li>
+        
+          <li>
+            <a href="/2019/07/30/2019-googlectf-writeup-part1/">2019-googlectf-writeup-part1</a>
+          </li>
+        
+          <li>
+            <a href="/2019/04/22/Asuri_2019/">2019 第十二届全国大学生信息安全竞赛—创新实践能力赛线上赛-Asuri 2019 wp</a>
+          </li>
+        
+          <li>
+            <a href="/2019/04/10/PHP%E5%A4%8D%E6%9D%82%E5%8F%98%E9%87%8F/">从一道题讲PHP复杂变量</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2023 All Members<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+      <a href="https://beian.miit.gov.cn/" target="_blank">鲁ICP备15035817号-2</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/members" class="mobile-nav-link">Members</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+    
+  </div>
+
+</body>
+
+</html>

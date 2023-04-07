@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>如何科学的在Docker Container中运行多个服务 | Asuri Team</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="在一个Docker Container中运行多个服务？打扰了。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="如何科学的在Docker Container中运行多个服务">
+<meta property="og:url" content="http://asuri.org/2018/08/25/run-multi-service-in-one-container/index.html">
+<meta property="og:site_name" content="Asuri Team">
+<meta property="og:description" content="在一个Docker Container中运行多个服务？打扰了。">
+<meta property="og:locale">
+<meta property="article:published_time" content="2018-08-25T12:50:01.000Z">
+<meta property="article:modified_time" content="2023-04-07T12:29:53.466Z">
+<meta property="article:author" content="All Members">
+<meta property="article:tag" content="linux">
+<meta property="article:tag" content="Docker">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Asuri Team" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+
+<body>
+  <div id="container">
+    
+
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Asuri Team</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+          <a class="main-nav-link" href="/members">Members</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://asuri.org"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-run-multi-service-in-one-container" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/08/25/run-multi-service-in-one-container/" class="article-date">
+  <time datetime="2018-08-25T12:50:01.000Z" itemprop="datePublished">2018-08-25</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Devops/">Devops</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      如何科学的在Docker Container中运行多个服务
+    </h1>
+  
+
+
+  <div class="article-author">
+    <img src="https://www.gravatar.com/avatar/f01e244e1449cf023c69581c97912214?s=48">
+    <div class="article-author-info">
+      <a href="/author/xm1994" class="article-author-name">Yibai Zhang</a>
+      <a target="_blank" rel="noopener" href="https://www.summershrimp.com/" class="article-author-site" title="Visit the author's site">[site]</a>
+      <div class="article-author-about" title="一只苦逼的研发狗，理智成为安全工程师。">一只苦逼的研发狗，理智成为安全工程师。</div>
+    </div>
+  </div>
+
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>在一个Docker Container中运行多个服务？打扰了。</p>
+<a id="more"></a>
+
+<h1 id="0x00-前言"><a href="#0x00-前言" class="headerlink" title="0x00 前言"></a>0x00 前言</h1><p>Docker，或说任何基于<code>内核namespace</code>的轻量级进程隔离技术，在设计之初，都不是为了当作虚拟机使用的。也就是说，其中运行的并不是一个完整的操作系统。包括Docker官方，也是推荐在一个Container内仅运行一个服务。如果需要运行多个服务，应通过<code>docker run --link</code> 或者<code>docker-compose</code>来关联多个容器。但是在实际的应用中，我们经常希望将一个完整的可运行环境打包成一个<code>docker image</code>，不再依赖其他的容器。比如在CTF比赛中，将多个服务打包成一个Image，可以有效地提高在环境受损后恢复的效率。在经历了多场比赛，看过各种大师傅用各种奇怪的姿势完成这个任务后，觉得应该好好的讨论一下这个问题。</p>
+<h1 id="0x01-错误的姿势"><a href="#0x01-错误的姿势" class="headerlink" title="0x01 错误的姿势"></a>0x01 错误的姿势</h1><ol>
+<li>使用upstart的启动方式</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># Dockerfile</span><br><span class="line">From ubuntu:14.04</span><br><span class="line">RUN apt-get update &amp;&amp; apt-get upgrade -y &amp;&amp; apt-get install mysql apache2 php7.0 </span><br><span class="line">ADD web &#x2F;var&#x2F;www&#x2F;html</span><br><span class="line">RUN service mysql start &amp;&amp; &#x2F;var&#x2F;www&#x2F;html&#x2F;init_sql.sh &amp;&amp; service mysql stop</span><br><span class="line">CMD service mysql start &amp;&amp; service apache2 start &amp;&amp; while true; do sleep 10;done</span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li><p>使用systemd的启动方式</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># Dockerfile</span><br><span class="line">From ubuntu:16.04</span><br><span class="line">RUN apt-get update &amp;&amp; apt-get upgrade -y &amp;&amp; apt-get install mysql apache2 php7.0 </span><br><span class="line">ADD web &#x2F;var&#x2F;www&#x2F;html</span><br><span class="line">RUN systemctl start mysql &amp;&amp; &#x2F;var&#x2F;www&#x2F;html&#x2F;init_sql.sh &amp;&amp; systemctl stop mysql</span><br><span class="line">CMD systemctl start mysql &amp;&amp; systemctl start apache2 &amp;&amp; while true; do sleep 10;done</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>使用启动脚本启动多个服务</p>
+</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># Dockerfile</span><br><span class="line">From ubuntu:16.04</span><br><span class="line">RUN apt-get update &amp;&amp; apt-get upgrade -y &amp;&amp; apt-get install mysql apache2 php7.0 </span><br><span class="line">ADD web &#x2F;var&#x2F;www&#x2F;html</span><br><span class="line">ADD entrypoint.sh &#x2F;sbin&#x2F;</span><br><span class="line">RUN chmod +x &#x2F;sbin&#x2F;entrypoint.sh &#x2F;var&#x2F;www&#x2F;html&#x2F;init_sql.sh&amp;&amp; \</span><br><span class="line">     &#x2F;etc&#x2F;init.d&#x2F;mysql start &amp;&amp; &#x2F;var&#x2F;www&#x2F;html&#x2F;init_sql.sh &amp;&amp; &#x2F;etc&#x2F;init.d&#x2F;mysql stop</span><br><span class="line">CMD &#x2F;sbin&#x2F;entrypoint.sh</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">#!&#x2F;bin&#x2F;bash </span><br><span class="line"></span><br><span class="line"># entrypoint.sh</span><br><span class="line">&#x2F;usr&#x2F;bin&#x2F;mysqld start &amp;</span><br><span class="line">&#x2F;usr&#x2F;bin&#x2F;httpd &amp;</span><br><span class="line">while true</span><br><span class="line">do</span><br><span class="line">sleep 100</span><br><span class="line">done</span><br></pre></td></tr></table></figure>
+
+<p>在实际中，使用<code>方法1</code>或者<code>方法2</code>很大几率无法完成将多个服务跑在同一个container中的任务。<code>方法3</code>虽然可以，但仍然存在一些问题：</p>
+<ol>
+<li>一旦产生僵尸进程，将无人回收，只有杀掉整个container才能解决。</li>
+<li>在停止container的时候将无人处理<code>SIGTERM</code>等信号。</li>
+<li>很难重启其中某一个服务</li>
+</ol>
+<p><code>方法1</code>和<code>方法2</code>不能成功，是因为docker只是一个进程隔离的沙箱环境，并不是真正的虚拟机。而<code>service xxx start</code> 和<code>systemctl start xxx</code> 分别是<code>upstart</code>和<code>systemd</code>这两个<code>/sbin/init</code>进程的替代者的服务管理命令。而<code>upstart</code>和<code>systemd</code>都要求系统必须是物理机或虚拟机，并不支持作为container的<code>init</code>进程。方法3存在问题是因为，在正常的系统中，<code>init</code>进程永远占用<code>PID=1</code>的位置，回收僵尸进程、处理未处理的信号等都是由<code>init</code>进程帮我们完成的，一个子进程如果失去了父进程，也会由<code>init</code>进程接管。但是在container中，<code>init</code>进程并不存在，<code>PID=1</code>的进程是我们在<code>Dockerfile</code>中定义的<code>Entrypoint</code>或最后一个<code>CMD</code>指定的命令。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">root@vpscn:&#x2F;var&#x2F;lib&#x2F;docker# docker exec -it hackmd sh</span><br><span class="line">&#x2F;hackmd # ps -ef</span><br><span class="line">PID   USER     TIME   COMMAND</span><br><span class="line">    1 hackmd     1:03 node app.js</span><br><span class="line">   42 hackmd     0:00 &#x2F;usr&#x2F;local&#x2F;bin&#x2F;node .&#x2F;lib&#x2F;workers&#x2F;dmpWorker.js</span><br><span class="line">   62 root       0:00 sh</span><br><span class="line">   69 root       0:00 ps -ef</span><br></pre></td></tr></table></figure>
+<p>因此，对于启动方法3的container，我们应该在启动时加上<code>--init</code>参数，来强制使用<a target="_blank" rel="noopener" href="https://github.com/krallin/tini">tini</a>作为<code>init</code>进程。但是就算这样，在服务多了之后，进行重启等操作仍然很繁琐。</p>
+<h1 id="0x02-推荐的姿势"><a href="#0x02-推荐的姿势" class="headerlink" title="0x02 推荐的姿势"></a>0x02 推荐的姿势</h1><p>作为一个<del>金牌运维</del>打杂的，简单谈谈我常用的方法。 </p>
+<p>首先推荐一个超级好用的基础镜像<code>phusion/baseimage</code>。截至SUCTF2018环境准备完成时，该镜像的最新版本是<code>0.10.1</code>，基于<code>ubuntu 16.04</code>。我们常用的<code>apt-get</code>等命令都可以无缝兼容。<a target="_blank" rel="noopener" href="https://github.com/phusion/baseimage-docker">phusion/baseimage</a> 采用了作者自己开发的一个基于<code>python</code>的<code>init</code>进程作为Container的<code>Entrypoint</code>，采用<code>runit</code>作为服务管理器。这个基础镜像还是在Coding打杂的时候知道的，<a target="_blank" rel="noopener" href="https://studio.coding.net/">Coding <del>WebIDE</del> Studio</a> 的Web Terminal也是基于这个镜像做的。NUAACTF/SUCTF的PWN题基础镜像<a target="_blank" rel="noopener" href="https://github.com/Asuri-Team/ctf-xinetd">ctf-xinetd</a>也是基于这个镜像做的。</p>
+<p>然后直接贴个在SUCTF2018运维期间写的<code>Dockerfile</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">#Dockerfile</span><br><span class="line">FROM phusion&#x2F;baseimage:0.10.1</span><br><span class="line">MAINTAINER Yibai Zhang &lt;xm1994@outlook.com&gt;</span><br><span class="line"></span><br><span class="line">RUN sed -i &#39;s&#x2F;archive.ubuntu.com&#x2F;mirrors.aliyun.com&#x2F;g&#39; &#x2F;etc&#x2F;apt&#x2F;sources.list &amp;&amp;\</span><br><span class="line">    sed -i &#39;s&#x2F;security.ubuntu.com&#x2F;mirrors.aliyun.com&#x2F;g&#39; &#x2F;etc&#x2F;apt&#x2F;sources.list &amp;&amp;\</span><br><span class="line">    apt-get update &amp;&amp; apt-get install -y apache2 libapache2-mod-php php-mysql mariadb-server &amp;&amp;\</span><br><span class="line">    apt-get clean &amp;&amp; rm -rf &#x2F;var&#x2F;lib&#x2F;apt&#x2F;lists&#x2F;* &#x2F;tmp&#x2F;* &#x2F;var&#x2F;tmp&#x2F;* &#x2F;var&#x2F;www&#x2F;html&#x2F;*</span><br><span class="line"></span><br><span class="line">RUN mkdir -p &#x2F;etc&#x2F;service&#x2F;apache2&#x2F; &amp;&amp; \</span><br><span class="line">    printf &quot;#!&#x2F;bin&#x2F;sh\n\ntrap \&quot;apachectl -k graceful-stop\&quot; 1 2 3 6 15\n\nexec &#x2F;usr&#x2F;sbin&#x2F;apachectl -D FOREGROUND\n&quot; &gt; &#x2F;etc&#x2F;service&#x2F;apache2&#x2F;run &amp;&amp;\</span><br><span class="line">    chmod +x &#x2F;etc&#x2F;service&#x2F;apache2&#x2F;run &amp;&amp; mkdir -p &#x2F;etc&#x2F;service&#x2F;mysql&#x2F; &amp;&amp;\</span><br><span class="line">    printf &quot;#!&#x2F;bin&#x2F;sh\n\ntrap \&quot;mysqladmin -uroot -psuCTF_P1us_1s shutdown\&quot; 1 2 3 6 15\n\nexec &#x2F;usr&#x2F;bin&#x2F;mysqld_safe&quot; &gt; &#x2F;etc&#x2F;service&#x2F;mysql&#x2F;run &amp;&amp;\</span><br><span class="line">    mkdir -p &#x2F;var&#x2F;run&#x2F;mysqld&#x2F; &amp;&amp; chown mysql:mysql &#x2F;var&#x2F;run&#x2F;mysqld &amp;&amp;\</span><br><span class="line">    chmod 700 &#x2F;etc&#x2F;service&#x2F;mysql&#x2F;run &#x2F;etc&#x2F;service&#x2F;apache2&#x2F;run</span><br><span class="line"></span><br><span class="line">COPY web &#x2F;var&#x2F;www&#x2F;html</span><br><span class="line">COPY flag &#x2F;flag</span><br><span class="line">RUN echo &quot;secure-file-priv&#x3D;&#x2F;var&#x2F;www&#x2F;&quot; &gt;&gt;&#x2F;etc&#x2F;mysql&#x2F;mariadb.conf.d&#x2F;50-server.cnf &amp;&amp; chmod -R 777 &#x2F;var&#x2F;www&#x2F;html&#x2F;favicon</span><br><span class="line">COPY init_sql.sh &#x2F;tmp&#x2F;init_sql.sh</span><br><span class="line">RUN chmod +x &#x2F;tmp&#x2F;init_sql.sh &amp;&amp; bash -c &quot;&#x2F;tmp&#x2F;init_sql.sh&quot; &amp;&amp; rm &#x2F;tmp&#x2F;init_sql.sh</span><br><span class="line">EXPOSE 80</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">#!&#x2F;usr&#x2F;bin&#x2F;env bash</span><br><span class="line">#init_sql.sh</span><br><span class="line"></span><br><span class="line">mysqld_safe &amp;   </span><br><span class="line">echo -n &quot;Waiting for mysql startup&quot;</span><br><span class="line">while ! mysqladmin --host&#x3D;&quot;localhost&quot; --silent ping ; do</span><br><span class="line">    echo -n &quot;.&quot;</span><br><span class="line">    sleep 1</span><br><span class="line">done</span><br><span class="line">echo</span><br><span class="line"></span><br><span class="line">mysql -uroot &lt;&lt;EOF</span><br><span class="line">UPDATE mysql.user SET Password&#x3D;PASSWORD(&#39;XXXXXX&#39;), plugin &#x3D; &#39;&#39; WHERE User&#x3D;&#39;root&#39;;</span><br><span class="line">create database calc;</span><br><span class="line">use calc;</span><br><span class="line">create table user(</span><br><span class="line">id INT NOT NULL AUTO_INCREMENT primary key,</span><br><span class="line">username varchar(32) NOT NULL,</span><br><span class="line">password varchar(32) NOT NULL</span><br><span class="line">)ENGINE&#x3D;InnoDB DEFAULT CHARSET&#x3D;utf8;</span><br><span class="line">insert into user values(1,&#39;admin&#39;,&#39;aa67095d8e65d624548cb6b50bd4778e&#39;);</span><br><span class="line">create table file(</span><br><span class="line">id INT NOT NULL AUTO_INCREMENT primary key,</span><br><span class="line">filename varchar(32) NOT NULL,</span><br><span class="line">filehash varchar(32) NOT NULL,</span><br><span class="line">sig varchar(120) NOT NULL</span><br><span class="line">)ENGINE&#x3D;InnoDB DEFAULT CHARSET&#x3D;utf8;</span><br><span class="line">create table flag(</span><br><span class="line">flag varchar(120) primary key</span><br><span class="line">)ENGINE&#x3D;InnoDB DEFAULT CHARSET&#x3D;utf8;</span><br><span class="line">insert into flag values(&#39;SUCTF&#123;a_very_long_long_long_long_long_fake_flag_d&#125;&#39;);</span><br><span class="line">grant SELECT, INSERT on calc.user to &#39;suctf&#39;@localhost identified by &#39;suctf&#39;;</span><br><span class="line">grant SELECT, INSERT, UPDATE on calc.file to &#39;suctf&#39;@localhost ;</span><br><span class="line">grant SELECT on calc.flag to &#39;suctf&#39;@localhost ;</span><br><span class="line">FLUSH PRIVILEGES;</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line">mysqladmin -uroot -pXXXXXX shutdown</span><br></pre></td></tr></table></figure>
+<p>这里着重看一下<code>printf &quot;#!/bin/sh\n\ntrap \&quot;apachectl -k graceful-stop\&quot; 1 2 3 6 15\n\nexec /usr/sbin/apachectl -D FOREGROUND\n&quot; &gt; /etc/service/apache2/run</code>，这个命令就是在创建runit启动脚本。具体的说明可以去看<code>phusion/baseimage</code>或者<code>runit</code>的手册。执行完成后会在<code>/etc/service/apache2/run</code>下面生成如下内容的脚本</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#!&#x2F;bin&#x2F;sh</span><br><span class="line"></span><br><span class="line">trap &quot;apachectl -k graceful-stop&quot; 1 2 3 6 15</span><br><span class="line"></span><br><span class="line">exec &#x2F;usr&#x2F;sbin&#x2F;apachectl -D FOREGROUND</span><br></pre></td></tr></table></figure>
+<p>这个脚本会作为runit的子进程运行，并将Apache2保持在前台运行。在接收到<code>1 2 3 6 15</code>这几个信号的时候友好的(graceful)结束Apache2。如果在运行中需要重启Apache服务，只需要运行<code>docker exec container_name sv restart apache2</code>即可。通过这种方式，在Container停止的时候也可以通知相关的进程，而不是直接全部杀死，更可以保证服务的完整性。<del>虽然在比赛中基本挂了就要恢复环境根本不需要保证完整性。</del></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://asuri.org/2018/08/25/run-multi-service-in-one-container/" data-id="clg6iympi001eguot21z73v5s" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Docker/" rel="tag">Docker</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/linux/" rel="tag">linux</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2018/12/25/NUAACTF-2018-%E5%AE%98%E6%96%B9wp/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          NUAACTF_2018 官方wp
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2018/05/12/xinetd-kafel/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">xinetd-kafel - 一个更安全的xinetd服务</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+        <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Develop/">Develop</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Devops/">Devops</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Pwn/">Pwn</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Reverse/">Reverse</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Web-%E5%AE%89%E5%85%A8/">Web 安全</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Writeup/">Writeup</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%AE%89%E5%8D%93%E5%AE%89%E5%85%A8/">安卓安全</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/CTF/" rel="tag">CTF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CVE-2015-3864/" rel="tag">CVE-2015-3864</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Crypto/" rel="tag">Crypto</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Docker/" rel="tag">Docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Pwn/" rel="tag">Pwn</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RCE/" rel="tag">RCE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ROP/" rel="tag">ROP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rev/" rel="tag">Rev</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Tools/" rel="tag">Tools</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Windows/" rel="tag">Windows</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/analytics/" rel="tag">analytics</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/googlectf/" rel="tag">googlectf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jctf/" rel="tag">jctf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mirai/" rel="tag">mirai</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nuaactf/" rel="tag">nuaactf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/phantom/" rel="tag">phantom</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/php/" rel="tag">php</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/qzone/" rel="tag">qzone</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/reverse/" rel="tag">reverse</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/suctf/" rel="tag">suctf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/virus/" rel="tag">virus</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/windows/" rel="tag">windows</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/writeup/" rel="tag">writeup</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/xss/" rel="tag">xss</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%BC%8F%E6%B4%9E/" rel="tag">文件格式漏洞</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/CTF/" style="font-size: 10px;">CTF</a> <a href="/tags/CVE-2015-3864/" style="font-size: 10px;">CVE-2015-3864</a> <a href="/tags/Crypto/" style="font-size: 10px;">Crypto</a> <a href="/tags/Docker/" style="font-size: 10px;">Docker</a> <a href="/tags/Pwn/" style="font-size: 15px;">Pwn</a> <a href="/tags/RCE/" style="font-size: 15px;">RCE</a> <a href="/tags/ROP/" style="font-size: 10px;">ROP</a> <a href="/tags/Rev/" style="font-size: 10px;">Rev</a> <a href="/tags/Tools/" style="font-size: 15px;">Tools</a> <a href="/tags/Windows/" style="font-size: 10px;">Windows</a> <a href="/tags/analytics/" style="font-size: 10px;">analytics</a> <a href="/tags/googlectf/" style="font-size: 15px;">googlectf</a> <a href="/tags/jctf/" style="font-size: 10px;">jctf</a> <a href="/tags/linux/" style="font-size: 15px;">linux</a> <a href="/tags/mirai/" style="font-size: 10px;">mirai</a> <a href="/tags/nuaactf/" style="font-size: 15px;">nuaactf</a> <a href="/tags/phantom/" style="font-size: 10px;">phantom</a> <a href="/tags/php/" style="font-size: 10px;">php</a> <a href="/tags/qzone/" style="font-size: 10px;">qzone</a> <a href="/tags/reverse/" style="font-size: 10px;">reverse</a> <a href="/tags/suctf/" style="font-size: 10px;">suctf</a> <a href="/tags/virus/" style="font-size: 10px;">virus</a> <a href="/tags/windows/" style="font-size: 10px;">windows</a> <a href="/tags/writeup/" style="font-size: 20px;">writeup</a> <a href="/tags/xss/" style="font-size: 15px;">xss</a> <a href="/tags/%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%BC%8F%E6%B4%9E/" style="font-size: 10px;">文件格式漏洞</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/11/">November 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/1970/01/">January 1970</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2020/11/24/2020-Taihuctf-writeup/">2020-Taihuctf-writeup</a>
+          </li>
+        
+          <li>
+            <a href="/2019/07/30/2019-googlectf-writeup-part2/">2019-googlectf-writeup-part2</a>
+          </li>
+        
+          <li>
+            <a href="/2019/07/30/2019-googlectf-writeup-part1/">2019-googlectf-writeup-part1</a>
+          </li>
+        
+          <li>
+            <a href="/2019/04/22/Asuri_2019/">2019 第十二届全国大学生信息安全竞赛—创新实践能力赛线上赛-Asuri 2019 wp</a>
+          </li>
+        
+          <li>
+            <a href="/2019/04/10/PHP%E5%A4%8D%E6%9D%82%E5%8F%98%E9%87%8F/">从一道题讲PHP复杂变量</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2023 All Members<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+      <a href="https://beian.miit.gov.cn/" target="_blank">鲁ICP备15035817号-2</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/members" class="mobile-nav-link">Members</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+    
+  </div>
+
+</body>
+
+</html>

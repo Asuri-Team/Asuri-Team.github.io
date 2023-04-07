@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>xinetd-kafel - 一个更安全的xinetd服务 | Asuri Team</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="为了保证CTF解题&#x2F;渗透赛中PWN服务有更稳定的表现（预防搅屎棍）和CTF攻防赛中有人使用ptrace&#x2F;seccomp等系统调用做通用防御，我在xinetd中加入了对syscall的过滤。感谢Google的Kafel项目，给编写seccomp bpf代码提供了一种更方便的方法。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="xinetd-kafel - 一个更安全的xinetd服务">
+<meta property="og:url" content="http://asuri.org/2018/05/12/xinetd-kafel/index.html">
+<meta property="og:site_name" content="Asuri Team">
+<meta property="og:description" content="为了保证CTF解题&#x2F;渗透赛中PWN服务有更稳定的表现（预防搅屎棍）和CTF攻防赛中有人使用ptrace&#x2F;seccomp等系统调用做通用防御，我在xinetd中加入了对syscall的过滤。感谢Google的Kafel项目，给编写seccomp bpf代码提供了一种更方便的方法。">
+<meta property="og:locale">
+<meta property="article:published_time" content="2018-05-12T15:50:01.000Z">
+<meta property="article:modified_time" content="2023-04-07T12:29:53.466Z">
+<meta property="article:author" content="All Members">
+<meta property="article:tag" content="Tools">
+<meta property="article:tag" content="linux">
+<meta property="article:tag" content="Pwn">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Asuri Team" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+
+<body>
+  <div id="container">
+    
+
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Asuri Team</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+          <a class="main-nav-link" href="/members">Members</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://asuri.org"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-xinetd-kafel" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/05/12/xinetd-kafel/" class="article-date">
+  <time datetime="2018-05-12T15:50:01.000Z" itemprop="datePublished">2018-05-12</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Pwn/">Pwn</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      xinetd-kafel - 一个更安全的xinetd服务
+    </h1>
+  
+
+
+  <div class="article-author">
+    <img src="https://www.gravatar.com/avatar/f01e244e1449cf023c69581c97912214?s=48">
+    <div class="article-author-info">
+      <a href="/author/xm1994" class="article-author-name">Yibai Zhang</a>
+      <a target="_blank" rel="noopener" href="https://www.summershrimp.com/" class="article-author-site" title="Visit the author's site">[site]</a>
+      <div class="article-author-about" title="一只苦逼的研发狗，理智成为安全工程师。">一只苦逼的研发狗，理智成为安全工程师。</div>
+    </div>
+  </div>
+
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>为了保证CTF解题/渗透赛中PWN服务有更稳定的表现（预防搅屎棍）和CTF攻防赛中有人使用ptrace/seccomp等系统调用做通用防御，我在xinetd中加入了对syscall的过滤。感谢Google的Kafel项目，给编写seccomp bpf代码提供了一种更方便的方法。</p>
+<a id="more"></a>
+
+
+<h1 id="0x00-前言：为啥要搞这个东西？"><a href="#0x00-前言：为啥要搞这个东西？" class="headerlink" title="0x00 前言：为啥要搞这个东西？"></a>0x00 前言：为啥要搞这个东西？</h1><p>众所周知，在CTF线下赛中，各大主办方明令禁止使用通用防御软件/规则对赛题进行防御。但是目前在国内外的各大比赛中，PWN题目多用socat或xinetd提供服务。而这两个组建都太过简陋，无法提供精细的系统调用控制，主办方对通防工具的检查多为人工登陆gamebox检查。<br>在近日结束的一场线下赛中，某战队向我反馈成功的使用了我在去年编写的一个<a target="_blank" rel="noopener" href="https://github.com/Asuri-Team/pwn-sandbox">PWN通防工具</a>苟到了最后（关于这个工具的原理如果有兴趣欢迎star一下对应项目，人数多的话我会再开坑写文章）。<br>我也惊讶于主办方竟然对这么大型的通防工具都没有察觉。</p>
+<p>而在CTF解题赛/渗透赛中，虽然有docker这一容器技术可以为pwn题目隔离运行环境，限制运行资源，方便重启等维护工作，但依然难以避免有部分搅屎选手采用诸如<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/Fork%E7%82%B8%E5%BC%B9">Fork炸弹</a>等手段对服务器进行DoS攻击。<br>因此，对一些用不到的的系统调用进行限制，也可以大大减少搅屎棍选手的数量。（Docker已直接支持对container内程序进行系统调用限制<a target="_blank" rel="noopener" href="https://docs.docker.com/engine/security/seccomp/">Read More</a>）</p>
+<p>因此，<a target="_blank" rel="noopener" href="https://github.com/Asuri-Team/xinetd-kafel">xinetd-kafel</a>这一改版的xinetd服务油然而生。</p>
+<h1 id="0x01-原理：你对xinetd做了点啥？"><a href="#0x01-原理：你对xinetd做了点啥？" class="headerlink" title="0x01 原理：你对xinetd做了点啥？"></a>0x01 原理：你对xinetd做了点啥？</h1><p>其实修改xinetd让其支持对系统调用的过滤这一想法最早在Defcon 2015 Final时就已被其主办方实现。但主办方并未开源其xinetd代码（也可能是我没找到），而且其只能在xinetd的配置文件中对syscall进行简单的黑白名单过滤，难以有效限制日渐增长的搅屎大军。<br>让程序支持syscall过滤通常来讲有两种办法： </p>
+<ol>
+<li>ptrace</li>
+<li>seccomp<br>其中，ptrace就是linux下gdb用来调试程序所使用的syscall，而且其功能如其名，process trace， 用于跟踪进程的各种调用。<br>但是由于ptrace使用过于复杂，我们在xinetd中，并未使用这一方式，而采用了seccomp。</li>
+</ol>
+<h2 id="seccomp是个啥？"><a href="#seccomp是个啥？" class="headerlink" title="seccomp是个啥？"></a>seccomp是个啥？</h2><p><code>seccomp - operate on Secure Computing state of the process</code><br>seccomp 中文直译就是“操作进程的安全计算状态”，其实就是通知内核对进程的系统调用进行限制。几年前CentOS/RedHat Linux默认启用的selinux底层就是使用的这个系统调用对进程进行系统调用限制。当年应该人人装完linux的第一件事就是关掉selinux。现在的Ubuntu和CentOS都已不再默认安装或开启selinux了。<br>通过<code>man seccomp</code>我们就能看到seccomp的相关调用方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">prctl(PR_SET_SECCOMP, SECCOMP_MODE_XX, args);</span><br><span class="line">seccomp(SECCOMP_MODE_XX, flags, args);</span><br></pre></td></tr></table></figure>
+<p>linux Man page对seccomp的描述非常有歧义，其提供了如上两种接口，这里我把其参数相应的对应了起来。<code>seccomp</code>的第二个参数flags很难查到相关资料，而且在我们的场景下并不影响使用，就不再多做解释。seccomp调用会对当前进程及其子进程生效，如果我们调用seccomp之后，当前进程的系统调用就会被限制。</p>
+<p><code>SECCOMP_MODE_XX</code>共有两种选择：</p>
+<ol>
+<li>SECCOMP_MODE_STRICT</li>
+<li>SECCOMP_MODE_FILTER</li>
+</ol>
+<p><code>SECCOMP_MODE_STRICT</code> 会将系统调限制在 <code>read, write, _exit (but not exit_group), sigreturn </code>中。 我们可以编写一个小程序测试一下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;stdio.h&gt;</span><br><span class="line">#include &lt;linux&#x2F;seccomp.h&gt;</span><br><span class="line">#include &lt;linux&#x2F;filter.h&gt;</span><br><span class="line">#include &lt;linux&#x2F;audit.h&gt;</span><br><span class="line">#include &lt;linux&#x2F;signal.h&gt;</span><br><span class="line">#include &lt;sys&#x2F;prctl.h&gt;</span><br><span class="line">#include &lt;unistd.h&gt;</span><br><span class="line"></span><br><span class="line">int main(void)</span><br><span class="line">&#123;</span><br><span class="line">	puts(&quot;a&quot;);</span><br><span class="line">	prctl(PR_SET_SECCOMP, SECCOMP_MODE_STRICT, 0);</span><br><span class="line">	puts(&quot;b&quot;);</span><br><span class="line">	system(&quot;echo c&quot;);</span><br><span class="line">	return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>编译运行后结果如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">xm1994@xm1994-vm:~$ .&#x2F;a.out </span><br><span class="line">a</span><br><span class="line">b</span><br><span class="line">Killed</span><br></pre></td></tr></table></figure>
+<p>程序在执行到system函数后就提示了Killed。这是因为在执行system时，会调用fork和execve两个系统调用。<br>如果我们删掉system()函数后再运行呢？程序依然会提示killed。这个问题是由于在新版的libc中，main函数退出后。libc_start_main会调用exit_group(0)结束程序以及其子进程（感觉是为了防止僵尸进程？），但再旧版的libc中，执行的是exit()。</p>
+<p><code>SECCOMP_MODE_FILTER</code> 模式则允许传入一个过滤器参数，进行自定义的系统调用过滤。</p>
+<h2 id="这过滤器咋搞啊？"><a href="#这过滤器咋搞啊？" class="headerlink" title="这过滤器咋搞啊？"></a>这过滤器咋搞啊？</h2><p>seccomp使用的过滤器叫<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/BPF">BPF</a>, 允许在内核中直接设置数据包过滤模式。 我们使用wireshark/tcpdump进行网络抓包时，设置的抓包规则就会被编译成bpf送入内核。在内核中，系统调用流程也会反映在网络数据包（特殊的）的处理流程中（还有很多其他的系统事件也会以数据包的形式存在）。因此，我们也可以通过编译bpf规则到内核中，来自定义seccomp的过滤规则。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"> struct sock_fprog &#123;</span><br><span class="line">    unsigned short      len;    &#x2F;* Number of BPF instructions *&#x2F;</span><br><span class="line">    struct sock_filter *filter; &#x2F;* Pointer to array of</span><br><span class="line">                                    BPF instructions *&#x2F;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">Each program must contain one or more BPF instructions:</span><br><span class="line"></span><br><span class="line">struct sock_filter &#123;            &#x2F;* Filter block *&#x2F;</span><br><span class="line">    __u16 code;                 &#x2F;* Actual filter code *&#x2F;</span><br><span class="line">    __u8  jt;                   &#x2F;* Jump true *&#x2F;</span><br><span class="line">    __u8  jf;                   &#x2F;* Jump false *&#x2F;</span><br><span class="line">    __u32 k;                    &#x2F;* Generic multiuse field *&#x2F;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>bpf规则实际上是在内核中的bpf虚拟机中运行，也就是说他也是一种opcode，因此，我们需要一些工具去生成相应的opcode。一个比较常用的工具是libseccomp，它可以通过一些接口来生成bpf规则代码。但使用libseccomp的话就需要自己写一个parser去调用相关的接口了。万幸，在调研中，我发现了谷歌的某个员工编写的<a target="_blank" rel="noopener" href="https://github.com/google/kafel">kafel</a>库, 他可以很方便的将文本描述的过滤规则编译成sock_fprog结构体。</p>
+<h1 id="0x02-修改：你到底改了点啥？"><a href="#0x02-修改：你到底改了点啥？" class="headerlink" title="0x02 修改：你到底改了点啥？"></a>0x02 修改：你到底改了点啥？</h1><p>在阅读了xinetd代码后，发现其代码结构是相当的干净易于理解的。我在其配置文件parser中添加了<code>kafel_rule</code> 这一选项，用于指定kafel规则文件。随后将文件编译为sock_fprog结构体保存在每个service的配置中。<br>xinetd在接收到连接后会fork出来一个子进程，随后通过dup/dup2进行流重定向。在流重定向完成后，会调用execve执行目标服务程序。这一过程类似于在shell中执行程序并对流重定向，如果读者实现过简易的shell，应该很好理解。<br>我们只需要在execve之前调用 <code>prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER, args);</code> 便可对目标服务程序设定seccomp规则。 </p>
+<p>这一修改其实十分简单，代码的总变更行数不超过200行。</p>
+<h1 id="0x03-效果：真管用？"><a href="#0x03-效果：真管用？" class="headerlink" title="0x03 效果：真管用？"></a>0x03 效果：真管用？</h1><p>当然管用了，不信自己试试。 </p>
+<p>这个版本的xinetd我们已经应用到了战队布置pwn题使用的docker image：<a target="_blank" rel="noopener" href="https://github.com/Asuri-Team/ctf-xinetd">ctf-xinetd</a>中。欢迎各位大师傅脱下来试用，好用的话别忘点个star~。</p>
+<h1 id="0x04-目标：理想很丰满"><a href="#0x04-目标：理想很丰满" class="headerlink" title="0x04 目标：理想很丰满"></a>0x04 目标：理想很丰满</h1><p>这个工具我用了不到六个小时就写完了。之所以这么赶时间，是希望在即将到来的国赛和以后的比赛中，能有主办方使用和推广这一工具，为选手提供更加干净公平的比赛环境。最终目的当然是国内外的所有比赛都能用上这一工具，但是理想很丰满，怕是到最后只有我们战队和比较熟悉的几个战队办比赛才会用吧233333。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://asuri.org/2018/05/12/xinetd-kafel/" data-id="clg6iympk001jguotbxv786x2" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Pwn/" rel="tag">Pwn</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Tools/" rel="tag">Tools</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/linux/" rel="tag">linux</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2018/08/25/run-multi-service-in-one-container/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          如何科学的在Docker Container中运行多个服务
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2018/01/16/WindowsPwn-SEH/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">WindowsPwn--SEH</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+        <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Develop/">Develop</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Devops/">Devops</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Pwn/">Pwn</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Reverse/">Reverse</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Web-%E5%AE%89%E5%85%A8/">Web 安全</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Writeup/">Writeup</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%AE%89%E5%8D%93%E5%AE%89%E5%85%A8/">安卓安全</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/CTF/" rel="tag">CTF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CVE-2015-3864/" rel="tag">CVE-2015-3864</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Crypto/" rel="tag">Crypto</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Docker/" rel="tag">Docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Pwn/" rel="tag">Pwn</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RCE/" rel="tag">RCE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ROP/" rel="tag">ROP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rev/" rel="tag">Rev</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Tools/" rel="tag">Tools</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Windows/" rel="tag">Windows</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/analytics/" rel="tag">analytics</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/googlectf/" rel="tag">googlectf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jctf/" rel="tag">jctf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mirai/" rel="tag">mirai</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nuaactf/" rel="tag">nuaactf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/phantom/" rel="tag">phantom</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/php/" rel="tag">php</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/qzone/" rel="tag">qzone</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/reverse/" rel="tag">reverse</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/suctf/" rel="tag">suctf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/virus/" rel="tag">virus</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/windows/" rel="tag">windows</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/writeup/" rel="tag">writeup</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/xss/" rel="tag">xss</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%BC%8F%E6%B4%9E/" rel="tag">文件格式漏洞</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/CTF/" style="font-size: 10px;">CTF</a> <a href="/tags/CVE-2015-3864/" style="font-size: 10px;">CVE-2015-3864</a> <a href="/tags/Crypto/" style="font-size: 10px;">Crypto</a> <a href="/tags/Docker/" style="font-size: 10px;">Docker</a> <a href="/tags/Pwn/" style="font-size: 15px;">Pwn</a> <a href="/tags/RCE/" style="font-size: 15px;">RCE</a> <a href="/tags/ROP/" style="font-size: 10px;">ROP</a> <a href="/tags/Rev/" style="font-size: 10px;">Rev</a> <a href="/tags/Tools/" style="font-size: 15px;">Tools</a> <a href="/tags/Windows/" style="font-size: 10px;">Windows</a> <a href="/tags/analytics/" style="font-size: 10px;">analytics</a> <a href="/tags/googlectf/" style="font-size: 15px;">googlectf</a> <a href="/tags/jctf/" style="font-size: 10px;">jctf</a> <a href="/tags/linux/" style="font-size: 15px;">linux</a> <a href="/tags/mirai/" style="font-size: 10px;">mirai</a> <a href="/tags/nuaactf/" style="font-size: 15px;">nuaactf</a> <a href="/tags/phantom/" style="font-size: 10px;">phantom</a> <a href="/tags/php/" style="font-size: 10px;">php</a> <a href="/tags/qzone/" style="font-size: 10px;">qzone</a> <a href="/tags/reverse/" style="font-size: 10px;">reverse</a> <a href="/tags/suctf/" style="font-size: 10px;">suctf</a> <a href="/tags/virus/" style="font-size: 10px;">virus</a> <a href="/tags/windows/" style="font-size: 10px;">windows</a> <a href="/tags/writeup/" style="font-size: 20px;">writeup</a> <a href="/tags/xss/" style="font-size: 15px;">xss</a> <a href="/tags/%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%BC%8F%E6%B4%9E/" style="font-size: 10px;">文件格式漏洞</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/11/">November 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/1970/01/">January 1970</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2020/11/24/2020-Taihuctf-writeup/">2020-Taihuctf-writeup</a>
+          </li>
+        
+          <li>
+            <a href="/2019/07/30/2019-googlectf-writeup-part2/">2019-googlectf-writeup-part2</a>
+          </li>
+        
+          <li>
+            <a href="/2019/07/30/2019-googlectf-writeup-part1/">2019-googlectf-writeup-part1</a>
+          </li>
+        
+          <li>
+            <a href="/2019/04/22/Asuri_2019/">2019 第十二届全国大学生信息安全竞赛—创新实践能力赛线上赛-Asuri 2019 wp</a>
+          </li>
+        
+          <li>
+            <a href="/2019/04/10/PHP%E5%A4%8D%E6%9D%82%E5%8F%98%E9%87%8F/">从一道题讲PHP复杂变量</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2023 All Members<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+      <a href="https://beian.miit.gov.cn/" target="_blank">鲁ICP备15035817号-2</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/members" class="mobile-nav-link">Members</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+    
+  </div>
+
+</body>
+
+</html>

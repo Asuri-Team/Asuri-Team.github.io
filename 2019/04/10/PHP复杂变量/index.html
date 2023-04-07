@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>从一道题讲PHP复杂变量 | Asuri Team</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="近期有小伙伴问了我一道题，然后自己发掘到了一些关于 PHP 复杂变量不太被关注的问题。  文章首发于先知社区：https:&#x2F;&#x2F;xz.aliyun.com&#x2F;t&#x2F;4785">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从一道题讲PHP复杂变量">
+<meta property="og:url" content="http://asuri.org/2019/04/10/PHP%E5%A4%8D%E6%9D%82%E5%8F%98%E9%87%8F/index.html">
+<meta property="og:site_name" content="Asuri Team">
+<meta property="og:description" content="近期有小伙伴问了我一道题，然后自己发掘到了一些关于 PHP 复杂变量不太被关注的问题。  文章首发于先知社区：https:&#x2F;&#x2F;xz.aliyun.com&#x2F;t&#x2F;4785">
+<meta property="og:locale">
+<meta property="og:image" content="https://ws1.sinaimg.cn/large/64ef14dcgy1g1wudhruk9j20fa0bq753.jpg">
+<meta property="og:image" content="https://ws1.sinaimg.cn/large/64ef14dcgy1g1xyg3hhraj22800v6qgb.jpg">
+<meta property="og:image" content="https://ws1.sinaimg.cn/large/64ef14dcgy1g1xypdkfm8j22800x64cb.jpg">
+<meta property="og:image" content="https://ws1.sinaimg.cn/large/64ef14dcgy1g1xyr8th9xj213i0lq44j.jpg">
+<meta property="og:image" content="https://ws1.sinaimg.cn/large/64ef14dcgy1g1y1vwzzh3j21jo09gn22.jpg">
+<meta property="og:image" content="https://ws1.sinaimg.cn/large/64ef14dcgy1g1y2cip77aj20ws0ek40c.jpg">
+<meta property="og:image" content="https://ws1.sinaimg.cn/large/64ef14dcgy1g1y2gxu0vcj22800lgq97.jpg">
+<meta property="og:image" content="https://ws1.sinaimg.cn/large/64ef14dcgy1g1y2j8au4cj20vu0pago5.jpg">
+<meta property="og:image" content="https://ws1.sinaimg.cn/large/64ef14dcgy1g0m4ju4fjfj20m80b4dge.jpg">
+<meta property="og:image" content="https://ws1.sinaimg.cn/large/64ef14dcgy1g0m55go2pvj20m80b43zd.jpg">
+<meta property="og:image" content="https://ws1.sinaimg.cn/large/64ef14dcgy1g1y2o9jg8uj22800g60x4.jpg">
+<meta property="article:published_time" content="2019-04-10T17:57:32.000Z">
+<meta property="article:modified_time" content="2023-04-07T12:29:53.466Z">
+<meta property="article:author" content="All Members">
+<meta property="article:tag" content="php">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://ws1.sinaimg.cn/large/64ef14dcgy1g1wudhruk9j20fa0bq753.jpg">
+  
+    <link rel="alternate" href="/atom.xml" title="Asuri Team" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+
+<body>
+  <div id="container">
+    
+
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Asuri Team</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+          <a class="main-nav-link" href="/members">Members</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://asuri.org"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-PHP复杂变量" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/04/10/PHP%E5%A4%8D%E6%9D%82%E5%8F%98%E9%87%8F/" class="article-date">
+  <time datetime="2019-04-10T17:57:32.000Z" itemprop="datePublished">2019-04-11</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Web-%E5%AE%89%E5%85%A8/">Web 安全</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      从一道题讲PHP复杂变量
+    </h1>
+  
+
+
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>近期有小伙伴问了我一道题，然后自己发掘到了一些关于 PHP 复杂变量不太被关注的问题。</p>
+<blockquote>
+<p>文章首发于先知社区：<a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/4785">https://xz.aliyun.com/t/4785</a></p>
+</blockquote>
+<a id="more"></a>
+
+<p>[TOC]</p>
+<h2 id="起因"><a href="#起因" class="headerlink" title="起因"></a>起因</h2><p>起因是因为一个小伙伴问了我一道题</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">highlight_file(<span class="keyword">__FILE__</span>);</span><br><span class="line"><span class="variable">$str</span> = <span class="variable">$_GET</span>[<span class="string">&#x27;str&#x27;</span>];</span><br><span class="line"><span class="variable">$str</span> = addslashes(<span class="variable">$str</span>);</span><br><span class="line"><span class="keyword">if</span>(preg_match(<span class="string">&#x27;/[A-Za-z0-9]+\(/i&#x27;</span>,<span class="variable">$str</span>) == <span class="number">1</span>)&#123;</span><br><span class="line">    <span class="keyword">die</span>(<span class="string">&#x27;hack&#x27;</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">eval</span>(<span class="string">&#x27;$a=&quot;&#x27;</span> . <span class="variable">$str</span> . <span class="string">&#x27;&quot;;&#x27;</span>);</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>自己想了好一会好像并没有能用自己当时的现有知识去解决这个问题，于是我去搜集了一些资料学到了一些新的知识。感兴趣的小伙伴可以先自己做一下哈～</p>
+<h3 id="题目解释"><a href="#题目解释" class="headerlink" title="题目解释"></a>题目解释</h3><p>整个代码逻辑非常简单，接受一个<code>$_GET[&#39;str&#39;]</code>的传参，在经过<code>addslashes()</code>函数转义特殊符号与正则表达式检验之后，传入<code>eval()</code>当中拼接到<code>$a=&quot;&quot;;</code>变量当中。</p>
+<p>既然有<code>eval()</code>，那是不是可以执行命令呢？答案是当然可以的。</p>
+<p>首先我们来看正则表达式的效果如下图所示</p>
+<p><img src="https://ws1.sinaimg.cn/large/64ef14dcgy1g1wudhruk9j20fa0bq753.jpg"></p>
+<p>如果小括号前有数字或者字母的话就会<code>die()</code>掉整个程序，大概意思就是防止直接使用函数，例如不能直接使用<code>system(&#39;ls&#39;)</code>这样子。</p>
+<h2 id="PHP-复杂变量"><a href="#PHP-复杂变量" class="headerlink" title="PHP 复杂变量"></a>PHP 复杂变量</h2><h3 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h3><p>下面我们简单介绍一个关注度比较少的一个 php 知识——PHP 复杂变量。按照 php 官方文档对复杂变量的介绍</p>
+<blockquote>
+<p>复杂语法不是因为其语法复杂而得名，而是因为它可以使用复杂的表达式。</p>
+<p>任何具有 <a target="_blank" rel="noopener" href="https://www.php.net/manual/zh/language.types.string.php">string</a> 表达的标量变量，数组单元或对象属性都可使用此语法。只需简单地像在 <a target="_blank" rel="noopener" href="https://www.php.net/manual/zh/language.types.string.php">string</a> 以外的地方那样写出表达式，然后用花括号 <em>{</em> 和 <em>}</em> 把它括起来即可。由于 <em>{</em> 无法被转义，只有 <em>$</em> 紧挨着 <em>{</em> 时才会被识别。可以用 <em>{$</em> 来表达 *{$*。</p>
+</blockquote>
+<p>我们介绍一个简单的例子：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="variable">$great</span> = <span class="string">&#x27;fantastic&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 无效，输出: This is &#123; fantastic&#125;</span></span><br><span class="line"><span class="keyword">echo</span> <span class="string">&quot;This is &#123; <span class="subst">$great</span>&#125;&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 有效，输出： This is fantastic</span></span><br><span class="line"><span class="keyword">echo</span> <span class="string">&quot;This is <span class="subst">&#123;$great&#125;</span>&quot;</span>;</span><br><span class="line"><span class="keyword">echo</span> <span class="string">&quot;This is $&#123;great&#125;&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>也就是说在 php 中，我们还可以利用<code>$&#123;xxx&#125;</code>的形式来表达一个变量。</p>
+<h3 id="Usage"><a href="#Usage" class="headerlink" title="Usage"></a>Usage</h3><p>官方文档还给出了一个非常有意思的 Note:</p>
+<blockquote>
+<p><strong>Note</strong>:</p>
+<p>函数、方法、静态类变量和类常量只有在 PHP 5 以后才可在 <em>{$}</em> 中使用。然而，只有在该字符串被定义的命名空间中才可以将其值作为变量名来访问。只单一使用花括号 (<em>{}</em>) 无法处理从函数或方法的返回值或者类常量以及类静态变量的值。</p>
+</blockquote>
+<p>函数、方法！所以我们根据文档可以怎么利用呢？</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">highlight_file(<span class="keyword">__FILE__</span>);</span><br><span class="line"><span class="variable">$a</span> = <span class="string">&quot;$&#123;phpinfo()&#125;&quot;</span>;</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://ws1.sinaimg.cn/large/64ef14dcgy1g1xyg3hhraj22800v6qgb.jpg"></p>
+<h3 id="Thinking"><a href="#Thinking" class="headerlink" title="Thinking"></a>Thinking</h3><p>然而为什么可以这么做呢？虽然官方文档很明确的指出了，但是是不是还是有一点费解的感觉？</p>
+<p>其实在 php 中，我们可以查阅 php 文档知道有</p>
+<blockquote>
+<p>PHP 中的变量用一个美元符号后面跟变量名来表示。变量名是区分大小写的。</p>
+<p>变量名与 PHP 中其它的标签一样遵循相同的规则。一个有效的变量名由字母或者下划线开头，后面跟上任意数量的字母，数字，或者下划线。按照正常的正则表达式，它将被表述为：<code>[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*&#39;</code>。</p>
+</blockquote>
+<p>我们可以看到<code>$&#123;phpinfo()&#125;</code>里面在严格意义上来说并不是一个变量，那为什么可以执行呢？</p>
+<p>让我们来看一个例子</p>
+<p><img src="https://ws1.sinaimg.cn/large/64ef14dcgy1g1xypdkfm8j22800x64cb.jpg"></p>
+<p><img src="https://ws1.sinaimg.cn/large/64ef14dcgy1g1xyr8th9xj213i0lq44j.jpg"></p>
+<p>在 php 中，可以接受函数的返回值作为变量名，而<code>phpinfo()</code>的返回值为<code>TRUE</code>，所以先将<code>phpinfo()</code>执行了，将返回值返回作为了变量名。</p>
+<p>我们可以再来看一个例子。</p>
+<p><img src="https://ws1.sinaimg.cn/large/64ef14dcgy1g1y1vwzzh3j21jo09gn22.jpg"></p>
+<p>这里就更清楚的说明了执行了<code>system(&#39;whomai&#39;)</code>并把其返回值<code>zedd</code>作为了变量，最后<code>$zedd</code>才被修改了。</p>
+<p>这里也与<a target="_blank" rel="noopener" href="https://www.chabug.org/ctf/425.html">php变量解析的复杂语法</a>作者 @s1ye 师傅交流了一下，也跟他讨论了他文章中有几个地方存在的疏忽之处，<code>$&#123;phpinfo()&#125;</code>得到的并非是<code>$TRUE</code>，具体可以使用上述方法看看。</p>
+<h2 id="Challanges"><a href="#Challanges" class="headerlink" title="Challanges"></a>Challanges</h2><h3 id="Easy"><a href="#Easy" class="headerlink" title="Easy"></a>Easy</h3><p>我们不妨先把问题简化，如果没有任何防护，我们可以怎么做呢？</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">error_reporting(<span class="number">0</span>);</span><br><span class="line">highlight_file(<span class="keyword">__FILE__</span>);</span><br><span class="line"><span class="variable">$str</span> = <span class="variable">$_GET</span>[<span class="string">&#x27;str&#x27;</span>];</span><br><span class="line"><span class="keyword">eval</span>(<span class="string">&#x27;$a=&quot;&#x27;</span> . <span class="variable">$str</span> . <span class="string">&#x27;&quot;;&#x27;</span>);</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>直接传入拼接自然我们肯定有双引号闭合进而执行命令。</p>
+<h3 id="Medium"><a href="#Medium" class="headerlink" title="Medium"></a>Medium</h3><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">error_reporting(<span class="number">0</span>);</span><br><span class="line">highlight_file(<span class="keyword">__FILE__</span>);</span><br><span class="line"><span class="variable">$str</span> = <span class="variable">$_GET</span>[<span class="string">&#x27;str&#x27;</span>];</span><br><span class="line"><span class="variable">$str</span> = addslashes(<span class="variable">$str</span>);</span><br><span class="line"><span class="keyword">eval</span>(<span class="string">&#x27;$a=&quot;&#x27;</span> . <span class="variable">$str</span> . <span class="string">&#x27;&quot;;&#x27;</span>);</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>那加上<code>addslashes()</code>方法呢？既然不能逃逸双引号，我们就可以利用 php 复杂变量来处理。</p>
+<p><img src="https://ws1.sinaimg.cn/large/64ef14dcgy1g1y2cip77aj20ws0ek40c.jpg"></p>
+<h3 id="Difficult"><a href="#Difficult" class="headerlink" title="Difficult"></a>Difficult</h3><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">highlight_file(<span class="keyword">__FILE__</span>);</span><br><span class="line"><span class="variable">$str</span> = <span class="variable">$_GET</span>[<span class="string">&#x27;str&#x27;</span>];</span><br><span class="line"><span class="variable">$str</span> = addslashes(<span class="variable">$str</span>);</span><br><span class="line"><span class="keyword">if</span>(preg_match(<span class="string">&#x27;/[A-Za-z0-9]+\(/i&#x27;</span>,<span class="variable">$str</span>) == <span class="number">1</span>)&#123;</span><br><span class="line">    <span class="keyword">die</span>(<span class="string">&#x27;hack&#x27;</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">eval</span>(<span class="string">&#x27;$a=&quot;&#x27;</span> . <span class="variable">$str</span> . <span class="string">&#x27;&quot;;&#x27;</span>);</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>好的，终于回到了我们题目，这样的话就不能单纯地使用函数方法了。那我们可以怎么做呢？</p>
+<p>如果开启了<code>Notice</code>回显的话，我们可以利用反引号就可以简单实现命令执行了</p>
+<p><img src="https://ws1.sinaimg.cn/large/64ef14dcgy1g1y2gxu0vcj22800lgq97.jpg"></p>
+<p>那要是没开启呢？自然不可行了。</p>
+<p><img src="https://ws1.sinaimg.cn/large/64ef14dcgy1g1y2j8au4cj20vu0pago5.jpg"></p>
+<p>接下来就可以利用可变函数的与字符串拼接的特性了，简单来说就用下图的技巧，详细的可以移步个人博客查看<a target="_blank" rel="noopener" href="https://blog.zeddyu.info/2019/02/28/Some-Tricks-of-Bypass-php-waf/">Some Tricks of Bypass php waf</a></p>
+<p><img src="https://ws1.sinaimg.cn/large/64ef14dcgy1g0m4ju4fjfj20m80b4dge.jpg"></p>
+<p><img src="https://ws1.sinaimg.cn/large/64ef14dcgy1g0m55go2pvj20m80b43zd.jpg"></p>
+<p>所以我们可以这里玩法就很多样了</p>
+<p><img src="https://ws1.sinaimg.cn/large/64ef14dcgy1g1y2o9jg8uj22800g60x4.jpg"></p>
+<p>关于 php 复杂变量的玩法还有很多，这里就大概说到这里吧，文中有不对之处还望师傅们斧正。</p>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><p><a target="_blank" rel="noopener" href="https://www.php.net/manual/zh/language.types.string.php">php 文档-String 字符串</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.php.net/manual/zh/language.types.string.php#language.types.string.parsing.complex">php 文档-复杂(花括号)语法</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.chabug.org/ctf/425.html">php变量解析的复杂语法</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://asuri.org/2019/04/10/PHP%E5%A4%8D%E6%9D%82%E5%8F%98%E9%87%8F/" data-id="clg6iymox0009guot4f892tn7" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/php/" rel="tag">php</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2019/04/22/Asuri_2019/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          2019 第十二届全国大学生信息安全竞赛—创新实践能力赛线上赛-Asuri 2019 wp
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2019/03/12/%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C%E5%88%B0%E6%8F%90%E6%9D%83/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">命令执行到提权</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+        <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Develop/">Develop</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Devops/">Devops</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Pwn/">Pwn</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Reverse/">Reverse</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Web-%E5%AE%89%E5%85%A8/">Web 安全</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Writeup/">Writeup</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%AE%89%E5%8D%93%E5%AE%89%E5%85%A8/">安卓安全</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/CTF/" rel="tag">CTF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CVE-2015-3864/" rel="tag">CVE-2015-3864</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Crypto/" rel="tag">Crypto</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Docker/" rel="tag">Docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Pwn/" rel="tag">Pwn</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RCE/" rel="tag">RCE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ROP/" rel="tag">ROP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rev/" rel="tag">Rev</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Tools/" rel="tag">Tools</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Windows/" rel="tag">Windows</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/analytics/" rel="tag">analytics</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/googlectf/" rel="tag">googlectf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jctf/" rel="tag">jctf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mirai/" rel="tag">mirai</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nuaactf/" rel="tag">nuaactf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/phantom/" rel="tag">phantom</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/php/" rel="tag">php</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/qzone/" rel="tag">qzone</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/reverse/" rel="tag">reverse</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/suctf/" rel="tag">suctf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/virus/" rel="tag">virus</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/windows/" rel="tag">windows</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/writeup/" rel="tag">writeup</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/xss/" rel="tag">xss</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%BC%8F%E6%B4%9E/" rel="tag">文件格式漏洞</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/CTF/" style="font-size: 10px;">CTF</a> <a href="/tags/CVE-2015-3864/" style="font-size: 10px;">CVE-2015-3864</a> <a href="/tags/Crypto/" style="font-size: 10px;">Crypto</a> <a href="/tags/Docker/" style="font-size: 10px;">Docker</a> <a href="/tags/Pwn/" style="font-size: 15px;">Pwn</a> <a href="/tags/RCE/" style="font-size: 15px;">RCE</a> <a href="/tags/ROP/" style="font-size: 10px;">ROP</a> <a href="/tags/Rev/" style="font-size: 10px;">Rev</a> <a href="/tags/Tools/" style="font-size: 15px;">Tools</a> <a href="/tags/Windows/" style="font-size: 10px;">Windows</a> <a href="/tags/analytics/" style="font-size: 10px;">analytics</a> <a href="/tags/googlectf/" style="font-size: 15px;">googlectf</a> <a href="/tags/jctf/" style="font-size: 10px;">jctf</a> <a href="/tags/linux/" style="font-size: 15px;">linux</a> <a href="/tags/mirai/" style="font-size: 10px;">mirai</a> <a href="/tags/nuaactf/" style="font-size: 15px;">nuaactf</a> <a href="/tags/phantom/" style="font-size: 10px;">phantom</a> <a href="/tags/php/" style="font-size: 10px;">php</a> <a href="/tags/qzone/" style="font-size: 10px;">qzone</a> <a href="/tags/reverse/" style="font-size: 10px;">reverse</a> <a href="/tags/suctf/" style="font-size: 10px;">suctf</a> <a href="/tags/virus/" style="font-size: 10px;">virus</a> <a href="/tags/windows/" style="font-size: 10px;">windows</a> <a href="/tags/writeup/" style="font-size: 20px;">writeup</a> <a href="/tags/xss/" style="font-size: 15px;">xss</a> <a href="/tags/%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%BC%8F%E6%B4%9E/" style="font-size: 10px;">文件格式漏洞</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/11/">November 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/1970/01/">January 1970</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2020/11/24/2020-Taihuctf-writeup/">2020-Taihuctf-writeup</a>
+          </li>
+        
+          <li>
+            <a href="/2019/07/30/2019-googlectf-writeup-part2/">2019-googlectf-writeup-part2</a>
+          </li>
+        
+          <li>
+            <a href="/2019/07/30/2019-googlectf-writeup-part1/">2019-googlectf-writeup-part1</a>
+          </li>
+        
+          <li>
+            <a href="/2019/04/22/Asuri_2019/">2019 第十二届全国大学生信息安全竞赛—创新实践能力赛线上赛-Asuri 2019 wp</a>
+          </li>
+        
+          <li>
+            <a href="/2019/04/10/PHP%E5%A4%8D%E6%9D%82%E5%8F%98%E9%87%8F/">从一道题讲PHP复杂变量</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2023 All Members<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+      <a href="https://beian.miit.gov.cn/" target="_blank">鲁ICP备15035817号-2</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/members" class="mobile-nav-link">Members</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+    
+  </div>
+
+</body>
+
+</html>

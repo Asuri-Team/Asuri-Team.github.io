@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Asuri Team</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta property="og:type" content="website">
+<meta property="og:title" content="Asuri Team">
+<meta property="og:url" content="http://asuri.org/author/hac425/index.html">
+<meta property="og:site_name" content="Asuri Team">
+<meta property="og:locale">
+<meta property="article:author" content="All Members">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Asuri Team" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+
+<body>
+  <div id="container">
+    
+
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Asuri Team</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+          <a class="main-nav-link" href="/members">Members</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://asuri.org"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main">
+  
+    <article id="post-cve_2015_3864_google_exploit" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/11/21/cve_2015_3864_google_exploit/" class="article-date">
+  <time datetime="2017-11-21T15:17:00.000Z" itemprop="datePublished">2017-11-21</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E5%AE%89%E5%8D%93%E5%AE%89%E5%85%A8/">安卓安全</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/11/21/cve_2015_3864_google_exploit/">CVE-2015-3864漏洞利用分析(exploit_from_google)</a>
+    </h1>
+  
+
+
+  <div class="article-author">
+    <img src="https://www.gravatar.com/avatar/409ae1fbaab1499a986c69ce1bbd1cc9?s=48">
+    <div class="article-author-info">
+      <a href="/author/hac425" class="article-author-name">hac425</a>
+      <a target="_blank" rel="noopener" href="https://jinyu00.github.io/" class="article-author-site" title="Visit the author's site">[site]</a>
+      <div class="article-author-about" title="一个想做渗透的 bin">一个想做渗透的 bin</div>
+    </div>
+  </div>
+
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>接下来要学习安卓的漏洞利用相关的知识了，网上搜了搜，有大神推荐 <code>stagefright</code> 系列的漏洞。于是开干，本文分析的是 <code>google</code> 的 <code>exploit</code>. 本文介绍的漏洞是 <code>CVE-2015-3864</code> , 在 <code>google</code>的博客上也有对该 <code>exploit</code> 的研究。</p>
+<p>我之前下载下来了:</p>
+<p><code>pdf版本</code> 的链接：<a target="_blank" rel="noopener" href="https://gitee.com/hac425/blog_data/blob/master/Project-Zero_-Stagefrightened_.pdf">在这里</a></p>
+<p><code>exploit</code> 的链接： <a target="_blank" rel="noopener" href="https://www.exploit-db.com/exploits/38226/">https://www.exploit-db.com/exploits/38226/</a></p>
+<p>分析环境：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Android 5.1 nexus4 </span><br></pre></td></tr></table></figure>
+
+
+<h3 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h3><p>这个漏洞是一个文件格式相关漏洞，是由 <code>mediaserver</code> 在处理 <code>MPEG4</code> 文件时所产生的漏洞，漏洞的代码位于 <code>libstagefright.so</code> 这个库里面。</p>
+<p>要理解并且利用 <code>文件格式</code> 类漏洞，我们就必须要非常清楚的了解目标文件的具体格式规范。</p>
+<h4 id="Part-1-文件格式学习"><a href="#Part-1-文件格式学习" class="headerlink" title="Part 1  文件格式学习"></a>Part 1  文件格式学习</h4><p>先来一张总体的格式图<br><img src="http://oy9h5q2k4.bkt.clouddn.com/1511308907505erev1a87.png?imageslim" alt="paste image"></p>
+<p><code>mp4</code> 文件由 <code>box</code> 组成，图中那些 <code>free</code>, <code>stsc</code>等都是<code>box</code>, <code>box</code> 里也可以包含 <code>box</code> ,这种 <code>box</code> 就叫 <code>containerbox</code> .</p>
+<ul>
+<li><p>每个 <code>box</code> 前四个字节为 <code>box</code> 的 <code>size</code> </p>
+</li>
+<li><p>第二个四字节为 <code>box</code> 的 <code>type</code>，<code>box type</code> 有 <code>ftyp,moov,trak</code> 等等好多种，<code>moov</code> 是 <code>containerbox</code> ,包含 <code>mvhd</code> 、<code>trak</code> 等  <code>box</code></p>
+</li>
+</ul>
+<p>还有一些要注意的点。</p>
+<ul>
+<li><code>box</code> 中存储数据采用大端字节序存储</li>
+<li>当 <code>size</code> 域为 0时，表示这是文件最后一个    <code>box</code></li>
+<li>当 <code>size</code> 为1 时，表示这是一个 <code>large box</code> ,在 <code>type</code> 域后面的 <code>8 字节</code> 作为该 <code>box</code> 的长度。</li>
+</ul>
+<p>下面来看两个实例。</p>
+<p><strong>实例一</strong></p>
+<p><img src="http://oy9h5q2k4.bkt.clouddn.com/1511309726966akyw40lg.png?imageslim" alt="paste image"></p>
+<ul>
+<li><code>size</code> 域为 <code>00000014</code>，所以该 <code>box</code>长度为 <code>0x14</code> 字节。</li>
+<li><code>type</code> 域为 <code>66 74 79 70</code> 所以 <code>type</code> 为 <code>fytp</code></li>
+<li>剩下的一些信息是一些与多媒体播放相关的一些信息。与漏洞利用无关，就不说了。</li>
+</ul>
+<p><strong>实例二</strong></p>
+<p><img src="http://oy9h5q2k4.bkt.clouddn.com/15113100377113eokwnmp.png?imageslim" alt="paste image"></p>
+<ul>
+<li><code>size</code> 域为1，表示从该 <code>box</code> 开头偏移8字节开始的8字节为 <code>size</code> 字段， 所以该 <code>box</code> 的大小为 <code>0xFFFFFFFFFFFFFF88</code> </li>
+<li><code>type</code> 为 <code>tx3g</code></li>
+</ul>
+<p>现在我们对该文件的格式已经有了一个大概的了解，这对于漏洞利用来说还不够，接下来我们要去看具体的解析该文件格式的代码是怎么实现的。</p>
+<p>解析文件的具体代码位于 <code>MPEG4Extractor.cpp</code> 中的 <code>MPEG4Extractor::parseChunk</code> 函数里面。<br>该函数中的 <code>chunk</code> 对应的就是 <code>box</code>, 函数最开始先解析 <code>type</code> 和 <code>size</code> .</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 开始4字节为 box 大小， 后面紧跟的 4 字节为 box type</span><br><span class="line"></span><br><span class="line">   uint64_t chunk_size &#x3D; ntohl(hdr[0]);</span><br><span class="line">   uint32_t chunk_type &#x3D; ntohl(hdr[1]); &#x2F;&#x2F;大端序转换</span><br><span class="line">   off64_t data_offset &#x3D; *offset + 8; 	&#x2F;&#x2F; 找到 box 数据区的偏移</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; 如果size区为1， 那么后面8字节作为size</span><br><span class="line">   if (chunk_size &#x3D;&#x3D; 1) &#123;</span><br><span class="line">       if (mDataSource-&gt;readAt(*offset + 8, &amp;chunk_size, 8) &lt; 8) &#123;</span><br><span class="line">           return ERROR_IO;</span><br><span class="line">       &#125;</span><br><span class="line">       chunk_size &#x3D; ntoh64(chunk_size);</span><br><span class="line">       data_offset +&#x3D; 8;</span><br><span class="line"></span><br><span class="line">       if (chunk_size &lt; 16) &#123;</span><br><span class="line">           &#x2F;&#x2F; The smallest valid chunk is 16 bytes long in this case.</span><br><span class="line">           return ERROR_MALFORMED;</span><br><span class="line">       &#125;</span><br><span class="line">   &#125; else if (chunk_size &lt; 8) &#123;</span><br><span class="line">       &#x2F;&#x2F; The smallest valid chunk is 8 bytes long.</span><br><span class="line">       return ERROR_MALFORMED;</span><br><span class="line">   &#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>通过注释和代码，我们知道对于  <code>size</code> 的处理和前面所述是一致的。然后就会根据不同的 <code>chunk_type</code> ,进入不同的逻辑，<br><img src="http://oy9h5q2k4.bkt.clouddn.com/1511313213505jmd3szla.png?imageslim" alt="paste image"></p>
+<p>如果 <code>box</code> 中还包含 <code>子 box</code> 就会递归调用该函数进行解析。</p>
+<h4 id="Part-2-漏洞分析"><a href="#Part-2-漏洞分析" class="headerlink" title="Part 2 漏洞分析"></a>Part 2 漏洞分析</h4><p><code>CVE-2015-3864</code>  漏洞产生的原因是，在处理 <code>tx3g box</code>时，对于获取的 <code>size</code> 字段处理不当，导致分配内存时出现整数溢出，进而造成了堆溢出。</p>
+<p><img src="http://oy9h5q2k4.bkt.clouddn.com/1511313757977irc4emw4.png?imageslim" alt="paste image"></p>
+<p><code>size</code> 为之前所解析的所有 <code>tx3g box</code> 的长度总和。<code>chunk_size</code> 为当前要处理的 <code>tx3g box</code> 的长度。然后 <code>size + chunk_size</code> 计算要分配的内存大小。 <code>chunk_size</code> 是 <code>uint64_t</code> 类型的，<code>chunk_size</code> 我们在文件格式中我们所能控制的最大大小为 <code>0xFFFFFFFFFFFFFFFF</code> ( 看 <code>part1</code> 实例二 ) ，也是 <code>64</code> 位，但是我们还有一个 <code>size</code> 为可以控制，这样一相加，就会造成 <code>整数溢出</code> ， 导致分配小内存。而我们的 <strong>数据大小则远远大于分配的内存大小，进而造成堆溢出</strong>。</p>
+<h4 id="Part-3-漏洞利用"><a href="#Part-3-漏洞利用" class="headerlink" title="Part 3 漏洞利用"></a>Part 3 漏洞利用</h4><p><strong>概述</strong></p>
+<p>现在我们已经拥有了堆溢出的能力，如果是在 <code>ptmalloc</code> 中，可以修改下一个堆块的元数据来触发 <code>crash</code> ，甚至可能完成漏洞利用。不过从 <code>android 5</code>开始，安卓已经开始使用 <code>jemalloc</code> 作为默认的堆分配器。</p>
+<p>在 <code>jemalloc</code> 中，小内存分配采用 <code>regions</code> 进行分配， <code>region</code> 之间是没有 <strong>元数据</strong> 的 （具体可以去网上搜 <code>jemalloc</code> 的分析的文章），所以 在 <code>ctf</code> 中常见的通过修改 <strong>堆块元数据</strong> 的漏洞利用方法在这里是没法用了。</p>
+<p>不过所有事情都有两面性。<code>region</code> 间是直接相邻的，那我就可以很方便的修改相邻内存块的数据。 如果我们在 <code>tx3g</code> 对应内存块的后面放置一个含有关键数据结构的内存块，比如一个对象，在 <code>含有虚函数</code> 的类的 <code>对象</code> 的 <code>开始4字节（32位下）</code>，会存放一个 <code>虚表指针</code> .</p>
+<p>在 <code>对象 </code> 调用 <code>虚函数</code> 时会从 <code>虚表指针</code> 指向的位置的 <code>某个偏移（不同函数，偏移不同）</code> 处取到相应的函数指针，然后跳过去执行。</p>
+<p>如果我们修改对象的虚表指针，我们就有可能在程序调用虚函数时，控制程序的流程。</p>
+<p><strong>一些重要的 chunk_type(box type)</strong></p>
+<p><strong>tx3g box</strong></p>
+<p>上一节提到，我们可以修改对象的虚表指针，以求能够控制程序的跳转。那我们就需要找到一个能够在解析 <code>box</code> 数据能时分配的对象。</p>
+<p><code>MPEG4DataSource</code> 就是这样一个类。</p>
+<p><img src="http://oy9h5q2k4.bkt.clouddn.com/1511319727633yo0eb9f8.png?imageslim" alt="paste image"></p>
+<p>可以看到该对象继承自 <code>DataSource</code>, 同时还有几个虚函数。</p>
+<p>我们可以在ida中看看虚表的构成。</p>
+<p><img src="http://oy9h5q2k4.bkt.clouddn.com/1511319976562k70bssgz.png?imageslim" alt="paste image"></p>
+<p>可以看到 <code>readAt</code> 方法在虚表的第7项，也就是虚表偏移 <code>0x1c</code> 处。同时<code>MPEG4DataSource</code>在我这的大小为 <code>0x20</code> .再看一下漏洞位置的代码。</p>
+<p><img src="http://oy9h5q2k4.bkt.clouddn.com/1511313757977irc4emw4.png?imageslim" alt="paste image"><br>可以看到如果当前解析的 <code>tx3g</code> box 不是第一个<code>tx3g</code> box（即size&gt;0），会先调用 <code>memcpy</code> , 把之前所有 <code>tx3g</code> box中的数据拷贝到刚刚分配的内存。</p>
+<p>如果我们先构造一个 <code>tx3g</code> ，其中包含的数据大于 <code>0x20</code>, 然后在构造一个 <code>tx3g</code> 构造大小使得 <code>size+chunk_size = 0x20</code>, 然后通过 <code>memcpy</code> 就可以覆盖 <code>MPEG4DataSource</code> 的虚表了。<code>exploit</code> 中就是这样干的。</p>
+<p><strong>pssh box</strong></p>
+<p>看看代码</p>
+<p><img src="http://oy9h5q2k4.bkt.clouddn.com/1511321133430whaf4w9j.png?imageslim" alt="paste image"><br>划线位置说明了 <code>pssh</code> 的结构。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">pssh 的结构</span><br><span class="line">开始8字节 表示 该 box 的性质</span><br><span class="line"></span><br><span class="line">00 00 00 40 70 73 73 68</span><br><span class="line">size: 0x40, </span><br><span class="line">type: pssh :</span><br><span class="line">+ 0xc 开始 16字节 为 pssh.uuid</span><br><span class="line">+ 0x1c开始4字节为 pssh.datalen</span><br><span class="line">+ 0x20 开始为 pssh.data</span><br><span class="line">可以查看 代码，搜索关键字： FOURCC(&#39;p&#39;, &#39;s&#39;, &#39;s&#39;, &#39;h&#39;)</span><br></pre></td></tr></table></figure>
+
+<p>这里先分配 <code>pssh.datalen</code> 大小的内存，然后把 <code>pssh.data</code> 拷贝到刚刚分配的内存。完了之后会把 分配到的 <code>PsshInfo</code> 结构体增加到 类属性值 <code>Vector&lt;PsshInfo&gt; mPssh</code> 中, <code> mPssh</code> 在 <code>MPEG4Extractor::~MPEG4Extractor() </code>中才会被释放。</p>
+<p><img src="http://oy9h5q2k4.bkt.clouddn.com/1511321832880rsre9xy0.png?imageslim" alt="paste image"></p>
+<p>所以在解析完 <code>MPEG4</code>格式前，通过 <code>pssh</code> 分配的内存会一直在内存中。</p>
+<p><strong>avcC box 和 hvcC box</strong><br>这两个 <code>box</code> 的处理基本一致，以 <code>avcC</code> 为例进行介绍。解析代码如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">     case FOURCC(&#39;a&#39;, &#39;v&#39;, &#39;c&#39;, &#39;C&#39;):</span><br><span class="line">     &#123;</span><br><span class="line">     	&#x2F;&#x2F; 这是一块临时分配， buffer 为智能指针，在 函数返回时相应内存会被释放。</span><br><span class="line">         sp&lt;ABuffer&gt; buffer &#x3D; new ABuffer(chunk_data_size);</span><br><span class="line">         if (mDataSource-&gt;readAt(</span><br><span class="line">                     data_offset, buffer-&gt;data(), chunk_data_size) &lt; chunk_data_size) &#123;</span><br><span class="line">             return ERROR_IO;</span><br><span class="line">         &#125;</span><br><span class="line">&#x2F;&#x2F; 在这里，会释放掉原来那个，新分配内存来容纳新的数据。</span><br><span class="line">&#x2F;&#x2F; 因此我们有了一个 分配，释放 内存能力</span><br><span class="line">&#x2F;&#x2F; setData 中会释放掉原来的buf, 新分配一个 chunk_data_size</span><br><span class="line"></span><br><span class="line">         mLastTrack-&gt;meta-&gt;setData(</span><br><span class="line">                 kKeyAVCC, kTypeAVCC, buffer-&gt;data(), chunk_data_size);</span><br><span class="line"></span><br><span class="line">         *offset +&#x3D; chunk_size;</span><br><span class="line">         break;</span><br><span class="line">     &#125;</span><br></pre></td></tr></table></figure>
+<p>首先根据 <code>chunk_data_size</code> 分配 <code>ABuffer</code> 到 <code>buffer</code>，<code>chunk_data_size</code> 在 <code>box</code> 的 <code>size</code> 域指定，注意<code>buffer</code>是一个智能指针，在这里，它会在函数返回时释放。</p>
+<p><code>ABuffer</code> 中是直接调用的 <code>malloc</code> 分配的内存。<br><img src="http://oy9h5q2k4.bkt.clouddn.com/1511322333438n9iujtsk.png?imageslim" alt="paste image"><br>接下来读取数据到 <code>buffer-&gt;data()</code>, 最后调用 <code>mLastTrack-&gt;meta-&gt;setData</code> 保存数据到 <code>meta</code>, 在 <code>setData</code> 内部会先释放掉之前的内存，然后分配的内存，存放该数据，此时分配内存的大小还是<code>chunk_data_size</code>, 我们可控。</p>
+<p><img src="http://oy9h5q2k4.bkt.clouddn.com/1511322457145o2ojlgaf.png?imageslim" alt="paste image"></p>
+<p><code>hvcC</code> 的处理方式基本一样。所以通过这两个 <code>box</code> 我们可以 <strong>分配指定大小的内存，并且可以随时释放前面分配的那个内存块</strong> 。我们需要使用这个来布局<code>tx3g</code>内存块 和 <code>MPEG4DataSource </code>内存块。</p>
+<p><strong>修改对象虚表指针</strong></p>
+<p>下面结合<code>exploit</code> 和上一节的那几个关键 <code>box</code> ，分析通过布局内存，使得我们可以修改 <code>MPEG4DataSource </code> 的虚表指针。<br>为了便于说明，取了 <code>exploit</code> 中的用于 <code>修改对象虚表指针</code>的相关代码进行解析 ( 我调试过程做了部分修改 )<br><img src="http://oy9h5q2k4.bkt.clouddn.com/15113295608707xyip57h.png?imageslim" alt="paste image"></p>
+<p>首先看到第<code>7，8</code>行，构造了第一个 <code>tx3g box</code>, 大小为 <code>0x3a8</code>， 后面在触发漏洞时，会先把这部分数据拷贝到分配到的小内存<code>buffer</code>中，然后会溢出到下一个 <code>region</code> 的 <code>MPEG4DataSource </code>内存块。使用 <code>cyclic</code> 可以在程序 <code>crash</code> 时，计算 <code>buffer</code> 和 <code>MPEG4DataSource </code> 之间的距离。</p>
+<p>第 <code>13</code> 行，调用了 <code>memory_leak</code> 函数， 该函数通过使用 <code>pssh</code> 来分配任意大小的内存，在这里分配的是 <code>alloc_size</code> ，即 <code>0x20</code>. 因为<code>MPEG4DataSource </code> 的大小为 <code>0x20</code> ,就保证内存的分配会在同一个 <code>run</code> 中分配。这些这样这里分配了 <code>4</code> 个 <code>0x20</code> 的内存块，我认为是用来清理之前可能使用内存时，产生的内存碎片，确保后面内存分配按照我们的顺序进行分配。此时内存关系</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">| pssh | - | pssh |</span><br></pre></td></tr></table></figure>
+
+
+<p>第 <code>17</code> 到 <code>25</code> 行，清理内存后,开始分配 <code>avcC</code> 和 <code>hvcC</code>, 大小也是 <code>0x20</code>， 然后在第 <code>25</code> 行又进行了内存碎片清理，原因在于我们在分配 <code>avcC</code> 和 <code>hvcC</code>时，会使用到 <code>new ABuffer(chunk_data_size)</code>,这个临时的缓冲区，这个会在函数返回时被释放（请看智能指针相关知识）</p>
+<p><img src="http://oy9h5q2k4.bkt.clouddn.com/1511330396572jzet4fq5.png?imageslim" alt="paste image"><br>同时多分配了几个 <code>pssh</code> 确保可以把 <code>avcC</code> 和 <code>hvcC</code>包围在中间。所以现在的内存关系是</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">| pssh | - | pssh | pssh | avcC | hvcC | pssh |</span><br></pre></td></tr></table></figure>
+
+<p>然后是 第 <code>29</code> 行， 再次分配 <code>hvcC</code> ,不过这次的大小 为 <code>alloc_size * 2</code>, 触发 <code>hvcC</code> 的释放，而且确保不会占用 刚刚释放的 内存.（jemalloc中  相同大小的内存在同一个run中分配）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">| pssh | - | pssh | pssh | avcC | .... | pssh |</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+<p>接下来构造 <code>stbl</code> 用 <code>MPEG4DataSource </code> 占据刚刚空出来的 内存。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">| pssh | - | pssh | pssh | avcC | MPEG4DataSource | pssh |</span><br></pre></td></tr></table></figure>
+<p>接下来， 第 <code>38</code> 行用同样的手法分配释放 <code>avcC</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">| pssh | - | pssh | pssh | .... | MPEG4DataSource | pssh |</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>然后使用整数溢出，计算得到第二个 <code>tx3g</code> 的长度值，使得最后分配到的内存大小为<code>0x20</code>, 用来占据刚刚空闲的 <code>avcC</code> 的 内存块，于是现在的内存布局，就会变成这样。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">| pssh | - | pssh | pssh | tx3g | MPEG4DataSource | pssh |</span><br></pre></td></tr></table></figure>
+<p>然后在</p>
+<p><img src="http://oy9h5q2k4.bkt.clouddn.com/1511331158750fgbh83d2.png?imageslim" alt="paste image"><br>就会溢出修改了 <code>MPEG4DataSource </code> 的虚表指针。然后在下面的 <code>readAt</code> 函数调用出会 <code>crash</code>.</p>
+<p>我测试时得好几次才能成功一次，估计和内存碎片相关。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">Thread 10 received signal SIGSEGV, Segmentation fault.</span><br><span class="line">0xb66b57cc in android::MPEG4Extractor::parseChunk (this&#x3D;this@entry&#x3D;0xb74e2138, offset&#x3D;offset@entry&#x3D;0xb550ca98, depth&#x3D;depth@entry&#x3D;0x2) at frameworks&#x2F;av&#x2F;media&#x2F;libstagefright&#x2F;MPEG4Extractor.cpp:1905</span><br><span class="line">1905	            if ((size_t)(mDataSource-&gt;readAt(*offset, buffer + size, chunk_size))</span><br><span class="line">───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────[ registers ]────</span><br><span class="line">$r0   : 0xb74e27b8  →  0x61616169 (&quot;iaaa&quot;?)</span><br><span class="line">$r1   : 0xb74e2bb8  →  0x00000000</span><br><span class="line">$r2   : 0x61616169 (&quot;iaaa&quot;?)</span><br><span class="line">$r3   : 0x00000000</span><br><span class="line">$r4   : 0xb550c590  →  0x00000428</span><br><span class="line">$r5   : 0xfffffbf8</span><br><span class="line">$r6   : 0xb550c580  →  0xb74e5c98  →  0x28040000</span><br><span class="line">$r7   : 0xb550c570  →  0xfffffbf8</span><br><span class="line">$r8   : 0xb74e2138  →  0xb6749f18  →  0xb66b2841  →  &lt;android::MPEG4Extractor::~MPEG4Extractor()+1&gt; ldr r3,  [pc,  #188]	; (0xb66b2900 &lt;android::MPEG4Extractor::~MPEG4Extractor()+192&gt;)</span><br><span class="line">$r9   : 0x74783367 (&quot;g3xt&quot;?)</span><br><span class="line">$r10  : 0xb550ca98  →  0x01000a98</span><br><span class="line">$r11  : 0xb74e2790  →  0x28040000</span><br><span class="line">$r12  : 0x00000000</span><br><span class="line">$sp   : 0xb550c530  →  0xb74e2bb8  →  0x00000000</span><br><span class="line">$lr   : 0xb66b57bd  →  &lt;android::MPEG4Extractor::parseChunk(long+0&gt; ldr r1,  [r4,  #0]</span><br><span class="line">$pc   : 0xb66b57cc  →  &lt;android::MPEG4Extractor::parseChunk(long+0&gt; ldr r6,  [r2,  #28]</span><br><span class="line">$cpsr : [THUMB fast interrupt overflow carry ZERO negative]</span><br><span class="line">────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span><br><span class="line">$r0   : 0x00000000</span><br><span class="line">$r1   : 0xb74e2bb8  →  0x00000000</span><br><span class="line">$r2   : 0x61616169 (&quot;iaaa&quot;?)</span><br><span class="line">$r3   : 0x00000000</span><br><span class="line">$r4   : 0xb550c590  →  0x00000428</span><br><span class="line">$r5   : 0xfffffbf8</span><br><span class="line">$r6   : 0xb550c580  →  0xb74e5c98  →  0x28040000</span><br><span class="line">$r7   : 0xb550c570  →  0xfffffbf8</span><br><span class="line">$r8   : 0xb74e2138  →  0xb6749f18  →  0xb66b2841  →  &lt;android::MPEG4Extractor::~MPEG4Extractor()+1&gt; ldr r3,  [pc,  #188]	; (0xb66b2900 &lt;android::MPEG4Extractor::~MPEG4Extractor()+192&gt;)</span><br><span class="line">$r9   : 0x74783367 (&quot;g3xt&quot;?)</span><br><span class="line">$r10  : 0xb550ca98  →  0x01000a98</span><br><span class="line">$r11  : 0xb74e2790  →  0x28040000</span><br><span class="line">$r12  : 0x00000000</span><br><span class="line">$sp   : 0xb550c530  →  0xb74e2bb8  →  0x00000000</span><br><span class="line">$lr   : 0xb66b57bd  →  &lt;android::MPEG4Extractor::parseChunk(long+0&gt; ldr r1,  [r4,  #0]</span><br><span class="line">$pc   : 0xb66b57cc  →  &lt;android::MPEG4Extractor::parseChunk(long+0&gt; ldr r6,  [r2,  #28]</span><br><span class="line">$cpsr : [THUMB fast interrupt overflow carry ZERO negative]</span><br></pre></td></tr></table></figure>
+<p>可以看到断在了<code>&lt;android::MPEG4Extractor::parseChunk(long+0&gt; ldr r6,  [r2,  #28]</code>,去 <code>ida</code> 里面找到对应的位置。</p>
+<p><img src="http://oy9h5q2k4.bkt.clouddn.com/15113320522611r713790.png?imageslim" alt="paste image"><br><code>r2</code>存放的就是虚表指针，可以确定成功修改了 虚函数表指针。</p>
+<p><img src="http://oy9h5q2k4.bkt.clouddn.com/1511332282692sjn299pl.png?imageslim" alt="paste image"></p>
+<p>偏移也符合预期。</p>
+<p><strong>堆喷射</strong></p>
+<p>上面我们已经成功修改了<code>MPEG4DataSource </code> 的虚表指针,并在虚函数调用时触发了 <code>crash</code> .</p>
+<p>我们现在能够修改对象的 虚表指针，并且能够触发虚函数调用。我们需要在一个可预测的内存地址精准的布置我们的数据，然后把虚表指针修改到这里，在 <code>exploit</code> 中使用了</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">spray_size &#x3D; 0x100000</span><br><span class="line">spray_count &#x3D; 0x10</span><br><span class="line"></span><br><span class="line">sample_table(heap_spray(spray_size) * spray_count)</span><br></pre></td></tr></table></figure>
+
+<p>来进行堆喷射 </p>
+<p><code>heap_spray</code> 函数 就是使用 <code>pssh</code> 来喷射的内存。每次分配 <code>0x100</code> 页，共分配了 <code>0x10</code> 次。 <code>exploit</code> 作者在 博客中写道，这样就可以在可预测的内存地址中定位到特定数据。在这里就是 用于 <code>stack_pivot</code> 的 <code>gadget</code>.</p>
+<p>对于这一点，我很疑惑，<strong>有大佬可以告诉我为什么可以这样吗？ 或者有没有相关的 <code>paper</code> 来介绍为什么可以在 可预测的地址 精确的布置我们的数据</strong></p>
+<h3 id="最后"><a href="#最后" class="headerlink" title="最后"></a>最后</h3><p>这个 <code>exploit</code> 写的确实强悍，提示我在进行漏洞利用时，要关注各种可能分配内存的地方，灵活的使用代码中的内存分配，来布局内存。 同时研究一个漏洞要把相关知识给补齐。对于这个漏洞就是 <code>MPEG4</code> 的文件格式和 相关的处理代码了。</p>
+<p>一些tips：</p>
+<ul>
+<li>使用 <code>gef</code> + <code>gdb-multiarch</code> 来调试 , <code>pwndbg</code> 我用着非常卡， <code>gef</code> 就不会</li>
+<li>调试过程尽量使用脚本减少重复工作量。</li>
+</ul>
+<p>使用的一些脚本。</p>
+<p>使用 <code>gdbserver attach mediaserver</code> 并转发端口的脚本</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">adb root</span><br><span class="line">adb forward tcp:1234 tcp:1234</span><br><span class="line">a&#x3D;&#96;adb shell &quot;ps | grep mediaserver&quot; |  awk &#39;&#123;printf $2&#125;&#39;&#96;</span><br><span class="line">echo $a</span><br><span class="line">adb shell &quot;gdbserver --attach :1234 $a&quot;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><code>gdb</code> 的调试脚本</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">set arch armv5</span><br><span class="line">gef-remote 127.0.0.1:1234</span><br><span class="line">set solib-search-path debug_so&#x2F;</span><br><span class="line">directory android-5.1.0_r3&#x2F;</span><br><span class="line">gef config context.layout &quot;regs -source&quot;</span><br><span class="line">set logging file log.txt</span><br><span class="line">set logging on</span><br><span class="line">break frameworks&#x2F;av&#x2F;media&#x2F;libstagefright&#x2F;MPEG4Extractor.cpp:1897 </span><br><span class="line">break frameworks&#x2F;av&#x2F;media&#x2F;libstagefright&#x2F;MPEG4Extractor.cpp:1630</span><br><span class="line">break frameworks&#x2F;av&#x2F;media&#x2F;libstagefright&#x2F;MPEG4Extractor.cpp:1647</span><br><span class="line">break frameworks&#x2F;av&#x2F;media&#x2F;libstagefright&#x2F;MPEG4Extractor.cpp:884</span><br><span class="line">commands 1</span><br><span class="line">p chunk_size</span><br><span class="line">p buffer</span><br><span class="line">c</span><br><span class="line">end</span><br><span class="line"></span><br><span class="line">commands 2</span><br><span class="line">p buffer</span><br><span class="line"></span><br><span class="line">end</span><br><span class="line"></span><br><span class="line">commands 3</span><br><span class="line">p buffer</span><br><span class="line">c</span><br><span class="line">end</span><br><span class="line"></span><br><span class="line">commands 4</span><br><span class="line">hexdump dword  mDataSource 0x4</span><br><span class="line">c</span><br><span class="line">end</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>参考：</p>
+<p><a target="_blank" rel="noopener" href="https://census-labs.com/media/shadow-infiltrate-2017.pdf">https://census-labs.com/media/shadow-infiltrate-2017.pdf</a></p>
+<p><a target="_blank" rel="noopener" href="https://googleprojectzero.blogspot.hk/">https://googleprojectzero.blogspot.hk/</a></p>
+<p><a target="_blank" rel="noopener" href="http://blog.csdn.net/zhuweigangzwg/article/details/17222951">http://blog.csdn.net/zhuweigangzwg/article/details/17222951</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://asuri.org/2017/11/21/cve_2015_3864_google_exploit/" data-id="clg6iymq6003aguotbiq48uav" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CVE-2015-3864/" rel="tag">CVE-2015-3864</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%BC%8F%E6%B4%9E/" rel="tag">文件格式漏洞</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+
+</section>
+        
+        <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Develop/">Develop</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Devops/">Devops</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Pwn/">Pwn</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Reverse/">Reverse</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Web-%E5%AE%89%E5%85%A8/">Web 安全</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Writeup/">Writeup</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%AE%89%E5%8D%93%E5%AE%89%E5%85%A8/">安卓安全</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/CTF/" rel="tag">CTF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CVE-2015-3864/" rel="tag">CVE-2015-3864</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Crypto/" rel="tag">Crypto</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Docker/" rel="tag">Docker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Pwn/" rel="tag">Pwn</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RCE/" rel="tag">RCE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ROP/" rel="tag">ROP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rev/" rel="tag">Rev</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Tools/" rel="tag">Tools</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Windows/" rel="tag">Windows</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/analytics/" rel="tag">analytics</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/googlectf/" rel="tag">googlectf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jctf/" rel="tag">jctf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mirai/" rel="tag">mirai</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nuaactf/" rel="tag">nuaactf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/phantom/" rel="tag">phantom</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/php/" rel="tag">php</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/qzone/" rel="tag">qzone</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/reverse/" rel="tag">reverse</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/suctf/" rel="tag">suctf</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/virus/" rel="tag">virus</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/windows/" rel="tag">windows</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/writeup/" rel="tag">writeup</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/xss/" rel="tag">xss</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%BC%8F%E6%B4%9E/" rel="tag">文件格式漏洞</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/CTF/" style="font-size: 10px;">CTF</a> <a href="/tags/CVE-2015-3864/" style="font-size: 10px;">CVE-2015-3864</a> <a href="/tags/Crypto/" style="font-size: 10px;">Crypto</a> <a href="/tags/Docker/" style="font-size: 10px;">Docker</a> <a href="/tags/Pwn/" style="font-size: 15px;">Pwn</a> <a href="/tags/RCE/" style="font-size: 15px;">RCE</a> <a href="/tags/ROP/" style="font-size: 10px;">ROP</a> <a href="/tags/Rev/" style="font-size: 10px;">Rev</a> <a href="/tags/Tools/" style="font-size: 15px;">Tools</a> <a href="/tags/Windows/" style="font-size: 10px;">Windows</a> <a href="/tags/analytics/" style="font-size: 10px;">analytics</a> <a href="/tags/googlectf/" style="font-size: 15px;">googlectf</a> <a href="/tags/jctf/" style="font-size: 10px;">jctf</a> <a href="/tags/linux/" style="font-size: 15px;">linux</a> <a href="/tags/mirai/" style="font-size: 10px;">mirai</a> <a href="/tags/nuaactf/" style="font-size: 15px;">nuaactf</a> <a href="/tags/phantom/" style="font-size: 10px;">phantom</a> <a href="/tags/php/" style="font-size: 10px;">php</a> <a href="/tags/qzone/" style="font-size: 10px;">qzone</a> <a href="/tags/reverse/" style="font-size: 10px;">reverse</a> <a href="/tags/suctf/" style="font-size: 10px;">suctf</a> <a href="/tags/virus/" style="font-size: 10px;">virus</a> <a href="/tags/windows/" style="font-size: 10px;">windows</a> <a href="/tags/writeup/" style="font-size: 20px;">writeup</a> <a href="/tags/xss/" style="font-size: 15px;">xss</a> <a href="/tags/%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%BC%8F%E6%B4%9E/" style="font-size: 10px;">文件格式漏洞</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/11/">November 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/1970/01/">January 1970</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2020/11/24/2020-Taihuctf-writeup/">2020-Taihuctf-writeup</a>
+          </li>
+        
+          <li>
+            <a href="/2019/07/30/2019-googlectf-writeup-part2/">2019-googlectf-writeup-part2</a>
+          </li>
+        
+          <li>
+            <a href="/2019/07/30/2019-googlectf-writeup-part1/">2019-googlectf-writeup-part1</a>
+          </li>
+        
+          <li>
+            <a href="/2019/04/22/Asuri_2019/">2019 第十二届全国大学生信息安全竞赛—创新实践能力赛线上赛-Asuri 2019 wp</a>
+          </li>
+        
+          <li>
+            <a href="/2019/04/10/PHP%E5%A4%8D%E6%9D%82%E5%8F%98%E9%87%8F/">从一道题讲PHP复杂变量</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2023 All Members<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+      <a href="https://beian.miit.gov.cn/" target="_blank">鲁ICP备15035817号-2</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/members" class="mobile-nav-link">Members</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+    
+  </div>
+
+</body>
+
+</html>
